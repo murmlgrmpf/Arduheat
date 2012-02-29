@@ -93,11 +93,8 @@ void loop()
 //    }
 //    
 ////    PumpState = Heating.Rooms[i].getTempActual();
-////    DebugPump();
 ////    PumpState = Heating.Rooms[i].getTempRef();
-////    DebugPump();
 ////    PumpState = Heating.Rooms[i].getHeatflow();
-////    DebugPump();
 //    
 //  }
   //Heating.Rooms[1].getHeatflow();
@@ -117,8 +114,7 @@ void loop()
     Heating.PumpWarmWater.set(0.2);
 //    //
 //    //timeoptimal control
-//    //if()
-//    
+//    //if()   
   }
   else
   {
