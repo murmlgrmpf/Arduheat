@@ -7,6 +7,7 @@
 #include "cPump.h"
 #include "cValve.h"
 #include "cRoom.h"
+#include "cFlowMeter.h"
 
 class cHeating 
 {
@@ -42,6 +43,8 @@ class cHeating
     cValve ValveBoiler;
     cValve ValveSolar;
     cValve ValveHeatSource1;
+    
+    cFlowMeter FlowMeter;
     
     cHeating(void);
     

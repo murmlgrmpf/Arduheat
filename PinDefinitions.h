@@ -6,6 +6,10 @@
 
 void PinInitialization(void);
 
+// Universal Constants
+#define DensityWater 0.99820 // [kg/l]
+#define CWater 4184 // [J/(kg·K)]
+
 // Pin mapping Arduino
 #define PinPumpCirculation    14 //
 #define PinValveWarmWaterOpen 15 //

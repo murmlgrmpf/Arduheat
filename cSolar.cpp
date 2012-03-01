@@ -1,9 +1,6 @@
 #include "cSolar.h"
 
 cSolar::cSolar()
-: Pump(PinPumpSolar) , Valve(PinValveSolarOpen,PinValveSolarClose), 
-TempLead(SystempMultiplexer,MultiplexTempSolarLead), TempReturn(SystempMultiplexer,MultiplexTempSolarReturn), 
-Intensity(SystempMultiplexer,MultiplexIntensitySolar)
 {
 }
 

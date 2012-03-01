@@ -17,8 +17,6 @@ class cSolar
   public:
     cSolar();
     
-    cTempSensor TempLead, TempReturn, Intensity;
-    
     cValve Valve;
     cPump Pump;
     

@@ -31,6 +31,8 @@ cHeating::cHeating(void)
   ValveHeatSource1.setPinOpen(PinValveHeatSource1Open);
   ValveHeatSource1.setPinClose(PinValveHeatSource1Close);
   
+  
+  
 }
 
 float cHeating::TempHeatingLead(){

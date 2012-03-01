@@ -12,16 +12,18 @@ cValve::cValve(void)
 /** Creates a valve object with pin setting. The Valve is initialized with a closed state. */
 cValve::cValve(int iPinOpen, int iPinClose)
 {
-  _iPinOpen=iPinOpen;
-  _iPinClose=iPinClose;
+  cValve::setPinOpen(iPinOpen);
+  cValve::setPinClose(iPinClose);
+  
   _bState = false;
 }
 
 /// Creates a valve object with pin setting and an initial state.
 cValve::cValve(int iPinOpen, int iPinClose, boolean bState)
 {
-  _iPinOpen=iPinOpen;
-  _iPinClose=iPinClose;
+  cValve::setPinOpen(iPinOpen);
+  cValve::setPinClose(iPinClose);
+  
   _bState = bState;
 }
 
@@ -37,6 +39,7 @@ void cValve::set(boolean bState)
 void cValve::setPinOpen(int iPinOpen)
 {
   _iPinOpen = iPinOpen;
+  pinMode(_iPinOpen, OUTPUT);
   
   cValve::run();
 }
@@ -45,6 +48,7 @@ void cValve::setPinOpen(int iPinOpen)
 void cValve::setPinClose(int iPinClose)
 {
   _iPinClose = iPinClose;
+  pinMode(_iPinClose, OUTPUT);
   
   cValve::run();
 }

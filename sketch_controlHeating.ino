@@ -8,9 +8,9 @@
 // Simple Vorlauftemperatur reference
 float TempHeatingLeadRef = 42.0;
 
+
 #define LiterPerImpuls 0.009263548
-#define DensityWater 0.99820 // [kg/l]
-#define CWater 4184 // [J/(kg·K)]
+
 #define TimePeriod 5000
 #define CPumpWarmWater 60
 #define NWarmWaterHeatExchanger 4.3
@@ -27,14 +27,8 @@ float fTempRefSchedule[16]={20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0,
 unsigned long LastTime = 0;
 
 float PumpState =0;
-//float Temperatur[16][3] ={0};
-
-//cPump SolarPump(PinPumpSolar);
-//cPump 
-//cRoom Rooms[16];
 
 cHeating Heating;
-//cValve TestValve;
 
 
 /**
@@ -50,17 +44,6 @@ void  setup()
   delay(2000);// Give reader a chance to see the output.
   analogReference(DEFAULT);
   PinInitialization();
-//  TestValve.setPinOpen(PinValveWarmWaterOpen);
-//  TestValve.setPinClose(PinValveWarmWaterClose);
-//  // Initialize room numbers and Pins
-//  for(int i = 0; i<16; i++)
-//  {
-//    Rooms[i].setRoomNumber(i+1);
-//    
-//    Rooms[i].setPinValve(i+26);
-//    pinMode(Rooms[i].getPinValve(), OUTPUT);
-//    digitalWrite(Rooms[i].getPinValve(), HIGH);
-//  }
 }
 
 
@@ -107,8 +90,8 @@ void loop()
   //Heating.PumpWarmWater.set(0.5);
   
   // ***************Brauchwasser control
-  fMassFlux = massFluxPulseCounter();
-  if(fmassFlux>0.0)
+  //fMassFlux = massFluxPulseCounter();
+  if(Heating.FlowMeter.get()>0.0)
   {
     Heating.ValveWarmWater.set(true);
     Heating.PumpWarmWater.set(0.2);
@@ -128,33 +111,34 @@ void loop()
 }
 
 
-float massFluxPulseCounter(void)
-{
-  unsigned long time = millis();
-  
-  // Take care of possible overflow
-  if(time>LastTimeCounter+500)
-  {
-    // Massflux in [kg/s]
-    if (iCounter-iLastCounter > 0)
-    {
-     fmassFlux = AlphaFilter*fmassFlux + (1-AlphaFilter)*(DensityWater*LiterPerImpuls*(iCounter-iLastCounter)/(float(time - LastTimeCounter))*1000);
-     //fmassFlux = (DensityWater*LiterPerImpuls*(iCounter-iLastCounter)/(float(time - LastTimeCounter))*1000);
-    }
-    else
-    {
-      fmassFlux = 0.0;
-    }
-    
-     iLastCounter = iCounter;
-     LastTimeCounter= time;
-  }
-  return fmassFlux;
-}
+//float massFluxPulseCounter(void)
+//{
+//  unsigned long time = millis();
+//  
+//  // Take care of possible overflow
+//  if(time>LastTimeCounter+500)
+//  {
+//    // Massflow rate in [kg/s]
+//    if (iCounter-iLastCounter > 0)
+//    {
+//     fmassFlux = AlphaFilter*fmassFlux + (1-AlphaFilter)*(DensityWater*LiterPerImpuls*(iCounter-iLastCounter)/(float(time - LastTimeCounter))*1000);
+//     //fmassFlux = (DensityWater*LiterPerImpuls*(iCounter-iLastCounter)/(float(time - LastTimeCounter))*1000);
+//    }
+//    else
+//    {
+//      fmassFlux = 0.0;
+//    }
+//    
+//     iLastCounter = iCounter;
+//     LastTimeCounter= time;
+//  }
+//  return fmassFlux;
+//}
 
 void incCounter()
 {
-  iCounter = iCounter +1;
+  Heating.FlowMeter.incCounter();
+  //iCounter = iCounter +1;
 }
 
 
