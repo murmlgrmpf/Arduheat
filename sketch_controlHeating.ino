@@ -93,11 +93,21 @@ void loop()
   //fMassFlux = massFluxPulseCounter();
   if(Heating.FlowMeter.get()>0.0)
   {
+    // open Valve
     Heating.ValveWarmWater.set(true);
-    Heating.PumpWarmWater.set(0.2);
-//    //
-//    //timeoptimal control
-//    //if()   
+    // Heating.PumpWarmWater.set(0.2);
+
+    // timeoptimal control until 5 degrees below Setpoint
+    if(Heating.TempWarmWater()<=Heating.SetpointTempWarmWater - 5)   
+    {
+      Heating.PumpWarmWater.set(1.0);
+    }
+    // open loop control
+    else
+    {
+      // Newton procedure to attain the necessary Massflow
+      //Heating.PumpWarmWater.set();
+    }
   }
   else
   {
