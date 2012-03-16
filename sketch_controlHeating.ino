@@ -90,7 +90,6 @@ void loop()
   //Heating.PumpWarmWater.set(0.5);
   
   // ***************Brauchwasser control
-  //fMassFlux = massFluxPulseCounter();
   if(Heating.FlowMeter.get()>0.0)
   {
     // open Valve
@@ -105,7 +104,7 @@ void loop()
     // open loop control
     else
     {
-      // Newton procedure to attain the necessary Massflow
+      // Newton procedure to compute the necessary Massflow
       //Heating.PumpWarmWater.set();
     }
   }
@@ -120,30 +119,6 @@ void loop()
   CheckTime();
 }
 
-
-//float massFluxPulseCounter(void)
-//{
-//  unsigned long time = millis();
-//  
-//  // Take care of possible overflow
-//  if(time>LastTimeCounter+500)
-//  {
-//    // Massflow rate in [kg/s]
-//    if (iCounter-iLastCounter > 0)
-//    {
-//     fmassFlux = AlphaFilter*fmassFlux + (1-AlphaFilter)*(DensityWater*LiterPerImpuls*(iCounter-iLastCounter)/(float(time - LastTimeCounter))*1000);
-//     //fmassFlux = (DensityWater*LiterPerImpuls*(iCounter-iLastCounter)/(float(time - LastTimeCounter))*1000);
-//    }
-//    else
-//    {
-//      fmassFlux = 0.0;
-//    }
-//    
-//     iLastCounter = iCounter;
-//     LastTimeCounter= time;
-//  }
-//  return fmassFlux;
-//}
 
 void incCounter()
 {
@@ -166,7 +141,7 @@ void SerialDebug()
   Serial.println("fmassflux");
     Serial.println(fmassFlux, DEC);
     //Serial.println("Counter");
-    //Serial.println(iCounter, DEC);
+    //Serial.println(flowmeter._iCounter, DEC);
 //***********    Write Systemtemperatures for calibration ***********
       Serial.println("TempWarmWater");
       Serial.println(Heating.TempWarmWater(), DEC);
