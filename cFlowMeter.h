@@ -17,10 +17,12 @@ class cFlowMeter
     unsigned long _lLastTime;
     float _fMassFlowRate;
     unsigned int _iLastCounter;
-    unsigned int _iCounter;
+
     boolean _bFlowing;
     
   public:
+  // For debugging make the counter public. move to private once it works
+      unsigned int _iCounter;
     /// Creates the flow meter
     cFlowMeter(void);
     /// Get the actual mass flow rate in kg/second
