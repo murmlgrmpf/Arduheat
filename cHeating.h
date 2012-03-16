@@ -46,6 +46,8 @@ class cHeating
     
     cFlowMeter FlowMeter;
     
+    float SetpointTempWarmWater;
+    
     cHeating(void);
     
     float TempHeatingLead();

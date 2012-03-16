@@ -3,17 +3,13 @@
 
 cHeating::cHeating(void)
 {
-  //Create Rooms
-  //cRoom Rooms[16];
+  SetpointTempWarmWater = 50.0;
   
   // Initialize room numbers and Pins
   for(int i = 0; i<16; i++)
   {
+    // The rooms know their multiplexers and pinout by the room number
     Rooms[i].setRoomNumber(i+1);
-    
-//    Rooms[i].Valve.setPinOpen(i+26);
-//    pinMode(Rooms[i].getPinValve(), OUTPUT);
-//    digitalWrite(Rooms[i].getPinValve(), HIGH);
   }
   // Create Pumps
   PumpWarmWater.setPinPump(PinPumpWarmWater);
@@ -30,8 +26,6 @@ cHeating::cHeating(void)
   ValveSolar.setPinClose(PinValveSolarClose);
   ValveHeatSource1.setPinOpen(PinValveHeatSource1Open);
   ValveHeatSource1.setPinClose(PinValveHeatSource1Close);
-  
-  
   
 }
 
