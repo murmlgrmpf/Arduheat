@@ -11,8 +11,9 @@ cHeating::cHeating(void)
     // The rooms know their multiplexers and pinout by the room number
     Rooms[i].setRoomNumber(i+1);
   }
-  // Create Pumps
+  // Initialize Pumps
   PumpWarmWater.setPinPump(PinPumpWarmWater);
+  PumpWarmWater.setMaxMassFlowRate(PumpWarmWaterMaxMassFlowRate);
   PumpBoiler.setPinPump(PinPumpBoiler);
   PumpSolar.setPinPump(PinPumpSolar);
   PumpHeating.setPinPump(PinPumpHeating);

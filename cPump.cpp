@@ -4,29 +4,33 @@
 
 cPump::cPump(void)
 {
-  _Power =0;
   _PinPump = 0;
+  _fMaxMassFlowRate = 1.0;
   //Set the time to switch on and off the Pump
   _LastTimePeriod = millis();
-  //cPump::set(_Power);
+  
+  cPump::setMassFlowRate(0.0);
+
 }
 
-cPump::cPump(int PinPump)
+cPump::cPump(int PinPump, float fMaxMassFlowRate)
 {
-  _Power =0;
   _PinPump = PinPump;
+  _fMaxMassFlowRate = fMaxMassFlowRate;
   //Set the time to switch on and off the Pump
   _LastTimePeriod = millis();
-  cPump::set(_Power);
+  
+  cPump::setMassFlowRate(0.0);
 }
 
-cPump::cPump(int PinPump, float Value)
+cPump::cPump(int PinPump, float fMaxMassFlowRate, float fMassFlowRate)
 {
-  _Power = Value;
   _PinPump = PinPump;
+  _fMaxMassFlowRate = fMaxMassFlowRate;
   //Set the time to switch on and off the Pump
   _LastTimePeriod = millis();
-  cPump::set(Value);
+  
+  cPump::setMassFlowRate(fMassFlowRate);
 }
 
 /* Switches the Pump on and off corresponding to the power level
@@ -43,14 +47,12 @@ void cPump::run(void)
   // TimeSwitch reached
   if(millis()>=_TimeSwitch)
   {
-    //digitalWrite(PinPumpWarmWater, HIGH); // Pump switched off
     digitalWrite(_PinPump, HIGH); // Pump switched off
   }
   // The Switching time got readjusted and the Pump 
   // needs to be switched on again
   else
   {
-    //digitalWrite(PinPumpWarmWater, LOW); // Pump switched off
     digitalWrite(_PinPump, LOW); // Pump switched on
   }
   // TimePeriod is over and new period starts
@@ -61,22 +63,47 @@ void cPump::run(void)
   }
 }
 
-float cPump::get()
+float cPump::getMassFlowRate()
 {
-  return _Power;
+  return _Power*_fMaxMassFlowRate;
 }
 
-void cPump::set(float Value)
+/* Calculates the pwm _Power and then executes the pwm
+*/
+void cPump::setMassFlowRate(float fMassFlowRate)
 {
-  //this->_Value = Value;
-  _Power = Value;  
+  //Linear approximation of mass flow rate over high percentage of pwm.
+  _Power = fMassFlowRate/_fMaxMassFlowRate;
+  
+  // Limit _Power 
+  if (_Power>1.0)
+  {
+    _Power = 1.0;
+  }
+  else if(_Power<0.0)
+  {
+    _Power = 0.0;
+  }
+  
+  // Execute pwm 
   cPump::run();
 
 }
 
+// May be needed to limit the regulator
+float cPump::getMaxMassFlowRate()
+{
+  return _fMaxMassFlowRate;
+}
+
+// Needed for calibration of pwm
+void cPump::setMaxMassFlowRate(float fMaxMassFlowRate)
+{
+  _fMaxMassFlowRate = fMaxMassFlowRate;
+}
+
 void cPump::setPinPump(int PinPump)
 {
-  //this->_Value = Value;
   _LastTimePeriod = millis();
   _PinPump = PinPump;
   cPump::run();

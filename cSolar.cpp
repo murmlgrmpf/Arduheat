@@ -6,7 +6,7 @@ cSolar::cSolar()
 
 void cSolar::Probe(boolean bFlame)
 {
-  Pump.set(0.5);
+  Pump.setMassFlowRate(0.5);
 }
 
 void cSolar::run(void)

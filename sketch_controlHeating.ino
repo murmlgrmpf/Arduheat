@@ -99,9 +99,10 @@ void loop()
     // timeoptimal control until 5 degrees below Setpoint
     if(Heating.TempWarmWater()<=Heating.SetpointTempWarmWater - 5)   
     {
-      Heating.PumpWarmWater.set(1.0);
+      // Set Pump to maximum mass flow rate
+      Heating.PumpWarmWater.setMassFlowRate(Heating.PumpWarmWater.getMaxMassFlowRate());
     }
-    // open loop control
+    // open loop controll
     else
     {
       // Newton procedure to compute the necessary Massflow
@@ -110,7 +111,7 @@ void loop()
   }
   else
   {
-    Heating.PumpWarmWater.set(0.0);
+    Heating.PumpWarmWater.setMassFlowRate(0.0);
     Heating.ValveWarmWater.set(false);
   }
   //***************************
@@ -137,7 +138,7 @@ void SerialDebug()
 //  Serial.println(PumpState, DEC);
   //***********    Write Counter of Warmwater flow rate ***********
         Serial.println("PumpWarmWater");
-      Serial.println(Heating.PumpWarmWater.get(), DEC);
+      Serial.println(Heating.PumpWarmWater.getMassFlowRate(), DEC);
   Serial.println("fmassflux");
     Serial.println(fmassFlux, DEC);
     //Serial.println("Counter");
