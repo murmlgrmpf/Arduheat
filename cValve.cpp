@@ -1,6 +1,6 @@
 #include "cValve.h"
 
-/// Creates a valve object with pin setting, the initial state is close.
+/// Creates a valve object with pin setting, the period is set to a standard value and the initial state is close.
 cValve::cValve(int iPinOpen, int iPinClose)
 {
   _iPinOpen=iPinOpen;
@@ -13,7 +13,7 @@ cValve::cValve(int iPinOpen, int iPinClose)
   _bisDriving = false;
 }
 
-/// Creates a valve object with pin setting, the initial state is close.
+/// Creates a valve object with pin setting and period, the initial state is close.
 /** Creates a valve object with pin setting. The Valve is initialized with a closed state. */
 cValve::cValve(int iPinOpen, int iPinClose, unsigned long iTimePeriod)
 {
@@ -42,7 +42,7 @@ boolean cValve::get(void)
   return _bisOpen;
 }
 
-/// Executes the state of the valve (opens or closes it).
+/// Executes the set state of the valve (opens or closes it).
 /** If the set state of the valve is true, it shall be opened, if it is false, it is going to be closed*/
 void cValve::run(void)
 {
