@@ -1,13 +1,12 @@
 #include "cValve.h"
 
-/// Creates a valve object without setting the pins and closed state (false). This is necessary for the rooms.
-cValve::cValve(void)
+/// Creates a valve object with pin setting, the initial state is close.
+cValve::cValve(int iPinOpen, int iPinClose)
 {
-  _iPinOpen=0;
-  _iPinClose=0;
-  _iPinSense=0;
+  _iPinOpen=iPinOpen;
+  _iPinClose=iPinClose;
   
-  _iTimePeriod = 1800;
+  _iTimePeriod = 1500;
   
   _bsetOpen = false;
   _bisOpen = false;
@@ -16,29 +15,14 @@ cValve::cValve(void)
 
 /// Creates a valve object with pin setting, the initial state is close.
 /** Creates a valve object with pin setting. The Valve is initialized with a closed state. */
-cValve::cValve(int iPinOpen, int iPinClose, int iPinSense)
+cValve::cValve(int iPinOpen, int iPinClose, unsigned long iTimePeriod)
 {
-  cValve::setPinOpen(iPinOpen);
-  cValve::setPinClose(iPinClose);
-  cValve::setPinSense(iPinSense);
+  _iPinOpen=iPinOpen;
+  _iPinClose=iPinClose;
   
-  _iTimePeriod = 1800;
+  _iTimePeriod = iTimePeriod;
   
   _bsetOpen = false;
-  _bisOpen = false;
-  _bisDriving = true;
-}
-
-/// Creates a valve object with pin setting and an initial state.
-cValve::cValve(int iPinOpen, int iPinClose, int iPinSense, boolean bsetOpen)
-{
-  cValve::setPinOpen(iPinOpen);
-  cValve::setPinClose(iPinClose);
-  cValve::setPinSense(iPinSense);
-  
-  _iTimePeriod = 1800;
-  
-  _bsetOpen = bsetOpen;
   _bisOpen = false;
   _bisDriving = true;
 }
@@ -49,27 +33,6 @@ void cValve::set(boolean bsetOpen)
   _bsetOpen = bsetOpen;
   
   cValve::run();
-}
-
-/// Sets the _PinOpen. This is necessary for the rooms, where the constructor cannot initialize the pins.
-void cValve::setPinOpen(int iPinOpen)
-{
-  _iPinOpen = iPinOpen;
-  pinMode(_iPinOpen, OUTPUT);
-}
-
-/// Sets the _PinClose. This is necessary for the rooms, where the constructor cannot initialize the pins.
-void cValve::setPinClose(int iPinClose)
-{
-  _iPinClose = iPinClose;
-  pinMode(_iPinClose, OUTPUT);
-}
-
-/// Sets the _iPinSense. This is necessary for the rooms, where the constructor cannot initialize the pins.
-void cValve::setPinSense(int iPinSense)
-{
-  _iPinSense = iPinSense;
-  pinMode(_iPinSense, INPUT);
 }
 
 /// Reads the is state of the valve.
@@ -84,7 +47,6 @@ boolean cValve::get(void)
 void cValve::run(void)
 {
   unsigned long time = millis();
-  float fSense = analogRead(_iPinSense);
   
   // Reset timer and start driving if state of valve has changed
   if(_bsetOpen!=_bisOpen)
@@ -96,8 +58,8 @@ void cValve::run(void)
   // Drive the valve
   if(_bisDriving==true)
   {
-    // Check driving conditions
-    if((time - _iTimeStart < _iTimePeriod) && (fSense < SenseThreshold))
+    // Check if motor has reached end position
+    if(time - _iTimeStart < _iTimePeriod)
     {
       if(_bsetOpen == true)
       {
