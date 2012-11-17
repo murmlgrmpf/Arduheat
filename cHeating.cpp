@@ -2,6 +2,9 @@
 
 
 cHeating::cHeating(void)
+:ValveWarmWater(PinValveWarmWaterOpen,PinValveWarmWaterClose), 
+ValveBoiler(PinValveBoilerOpen,PinValveBoilerClose),
+ValveHeatSource1(PinValveHeatSource1Open,PinValveHeatSource1Close)
 {
   SetpointTempWarmWater = 50.0;
   
@@ -18,15 +21,6 @@ cHeating::cHeating(void)
   PumpSolar.setPinPump(PinPumpSolar);
   PumpHeating.setPinPump(PinPumpHeating);
   PumpCirculation.setPinPump(PinPumpCirculation);
-  // Create Valves
-  ValveWarmWater.setPinOpen(PinValveWarmWaterOpen);
-  ValveWarmWater.setPinClose(PinValveWarmWaterClose);
-  ValveBoiler.setPinOpen(PinValveBoilerOpen);
-  ValveBoiler.setPinClose(PinValveBoilerClose);
-  ValveSolar.setPinOpen(PinValveSolarOpen);
-  ValveSolar.setPinClose(PinValveSolarClose);
-  ValveHeatSource1.setPinOpen(PinValveHeatSource1Open);
-  ValveHeatSource1.setPinClose(PinValveHeatSource1Close);
   
 }
 

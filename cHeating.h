@@ -41,7 +41,6 @@ class cHeating
     
     cValve ValveWarmWater;
     cValve ValveBoiler;
-    cValve ValveSolar;
     cValve ValveHeatSource1;
     
     cFlowMeter FlowMeter;
