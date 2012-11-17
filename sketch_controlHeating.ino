@@ -102,9 +102,10 @@ void loop()
       // Set Pump to maximum mass flow rate
       Heating.PumpWarmWater.setMassFlowRate(Heating.PumpWarmWater.getMaxMassFlowRate());
     }
-    // open loop controll
+    // open loop control
     else
     {
+      
       // Newton procedure to compute the necessary Massflow
       //Heating.PumpWarmWater.set();
     }
