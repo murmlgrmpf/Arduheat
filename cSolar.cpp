@@ -1,6 +1,7 @@
 #include "cSolar.h"
 
 cSolar::cSolar()
+:Valve(PinValveSolarOpen,PinValveSolarClose)
 {
 }
 
