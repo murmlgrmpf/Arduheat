@@ -9,7 +9,7 @@ cRoom::cRoom(void)
   _iMultiplexNumber = 0;
   _iMultiplexConnectorActual = 0;
   _iMultiplexConnectorRef = 0;
-  //cValve Valve();
+  cRoomValve Valve();
   
   //cRoom::readTemp();
 }

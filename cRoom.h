@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 #include "Temperatures.h"
-#include "cValve.h"
+#include "cRoomValve.h"
 
 // Highest and lowest value for manual reference override
 #define TempLow 5
@@ -28,15 +28,13 @@ class cRoom
     cRoom(void);
     //~cRoom();
     /// Each room has a valve
-    cValve Valve;
+    cRoomValve Valve;
     
     void setRoomNumber(int iRoomNumber);
     void setTempRefSchedule(float fTempRefSchedule);
-    //void setPinValve(int iPinValve);
     float getTempActual(void);
     float getTempRef(void);
     float getHeatflow(void);
-//    int getPinValve(void);
 };
 
 #endif
