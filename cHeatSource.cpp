@@ -1,7 +1,7 @@
 #include "cHeatSource.h"
 
 cHeatSource::cHeatSource()
-: Valve(PinValveHeatSource1Open,PinValveHeatSource1Close)
+: Valve(PinValveHeatSource1Open,PinValveHeatSource1Close,PinValveHeatSource1MotorSense)
 {
 }
 
