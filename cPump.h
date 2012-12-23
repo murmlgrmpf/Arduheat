@@ -8,7 +8,7 @@ class cPump
 {
   private:
     int _PinPump;
-    float _Power;
+    
     float _Period;
     long _TimePeriod;
     long _TimeSwitch;
@@ -26,6 +26,8 @@ class cPump
     void calcPeriod(void);
     
   public:
+  
+  float _Power;
     /// Creates a pump object without a certain pin.
     cPump(void);
     /// Creates a pump object with a certain pin.

@@ -8,6 +8,7 @@ cPump::cPump(void)
   _fMaxMassFlowRate = 1.0;
   //Set the time to switch on and off the Pump
   _LastTimePeriod = millis();
+  _Period = 10000;
   
   cPump::setMassFlowRate(0.0);
 
@@ -19,6 +20,7 @@ cPump::cPump(int PinPump, float fMaxMassFlowRate)
   _fMaxMassFlowRate = fMaxMassFlowRate;
   //Set the time to switch on and off the Pump
   _LastTimePeriod = millis();
+  _Period = 10000;
   
   cPump::setMassFlowRate(0.0);
 }
@@ -29,6 +31,7 @@ cPump::cPump(int PinPump, float fMaxMassFlowRate, float fMassFlowRate)
   _fMaxMassFlowRate = fMaxMassFlowRate;
   //Set the time to switch on and off the Pump
   _LastTimePeriod = millis();
+  _Period = 10000;
   
   cPump::setMassFlowRate(fMassFlowRate);
 }
@@ -65,7 +68,8 @@ void cPump::run(void)
 
 float cPump::getMassFlowRate()
 {
-  return _Power*_fMaxMassFlowRate;
+  float fMassFlowRate = _Power*_fMaxMassFlowRate;
+  return(fMassFlowRate);
 }
 
 /* Calculates the pwm _Power and then executes the pwm
