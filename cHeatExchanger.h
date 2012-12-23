@@ -5,22 +5,20 @@
 #include "PinDefinitions.h"
 #include "Temperatures.h"
 
+// solving Cr
+#define maxIter 15  // max number of iterations
+#define alpha 0.1   // relaxation coefficient
+
+// Properties of heat exchanger
+// Identified by measurements & regression
+#define N 4.3       // Übertragungsfähigkeit
+#define setTheta_c_Threshold 0.81135 // threshold between limiting Cc and Ch
+
 class cHeatExchanger
 {
   private:
-    float CalculateCr(void);
-    float theta_c_soll;
-    float C_r;
-    float e;
-    float dC_r;
-    float deltaC_r;
-    float CalculateCrLimitCh(float theta);
-    float CalculateCrLimitCc(float theta);
-    float SetpointTempWarmWater;
-    float TempOutside;
-    float TempBoilerHead;
-    //float LimitCc;
-    float theta_h_setpoint;
+    float CrLimitCc(float theta);
+    float CrLimitCh(float theta);
     
     
     
@@ -30,13 +28,7 @@ class cHeatExchanger
     //cHeatExchanger(float *TempWarmWater());
     /// Get the actual mass flow rate in kg/second
     /** \return the actual mass flow rate in kg/second */
-    //float get();
-    /// Set the power in percent
-    /** Drives the mixer with a certain power into a direction (open or close)
-    \param Power the desired power in percent */
-    //void incCounter(void);
-    //float CalculateCr(float T_Bw_soll, float T_Bw_aussen, float T_Kuppel);
-    float getMassflow(float T_Bw_soll, float T_Bw_aussen, float T_Kuppel, float Massflow_h, float Massflow_c);
+    float calcMassflow(float T_Bw_soll, float T_Bw_aussen, float T_Kuppel, float Massflow_c);
     
 };
 
