@@ -9,7 +9,8 @@ void PinInitialization(void);
 // Universal Constants
 #define DensityWater 0.99820 // [kg/l]
 #define CWater 4184 // [J/(kg·K)]
-#define PumpWarmWaterMaxMassFlowRate 0.53 //[kg/s /power]
+//#define PumpWarmWaterMaxMassFlowRate 0.53 //[kg/s /power]
+#define PumpWarmWaterMaxMassFlowRate 0.9 //[kg/s /power]
 
 // Pin mapping Arduino
 #define PinPumpCirculation        9
@@ -55,8 +56,8 @@ void PinInitialization(void);
 
 // System Temperatures on Multiplexer 3
 #define SystempMultiplexer                3
-#define MultiplexTempHeatingLead          0
-#define MultiplexTempHeatingReturn        1
+#define MultiplexTempHeatingLead          1
+#define MultiplexTempHeatingReturn        0
 #define MultiplexTempHeatSource1Lead      2 
 #define MultiplexTempHeatSource1Return    3
 #define MultiplexTempHeatSource1Operation 4
@@ -104,7 +105,7 @@ void PinInitialization(void);
 #define TempHeatControl 69 // A15 = 69
 
 // Filter Coefficient
-#define AlphaFilter 0.7
+#define AlphaFilter 0
 
 
 #endif
