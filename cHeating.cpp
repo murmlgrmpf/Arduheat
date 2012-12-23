@@ -6,6 +6,8 @@ cHeating::cHeating(void)
 ValveBoiler(PinValveBoilerOpen,PinValveBoilerClose),
 ValveHeatSource1(PinValveHeatSource1Open,PinValveHeatSource1Close)
 {
+  FlowMeter;
+  HxWarmWater;
   SetpointTempWarmWater = 50.0;
   
   // Initialize room numbers and Pins
