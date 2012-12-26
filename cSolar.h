@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 #include "PinDefinitions.h"
-#include "Temperatures.h"
+#include "cTemp.h"
 #include "cValve.h"
 #include "cPump.h"
 
@@ -21,9 +21,9 @@ class cSolar
     cPump Pump;
     
     void Probe(boolean bFlame);
-    //float TempLead();
-    //float TempReturn();
-    //float Intensity();
+    float TempLead();
+    float TempReturn();
+    float Intensity();
 };
 
 #endif

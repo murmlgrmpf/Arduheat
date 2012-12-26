@@ -20,9 +20,9 @@ void cSolar::run(void)
     digitalWrite(PinStartHeatSource1, LOW);};
 }
 
-//float cSolar::TempLead(){
-//    return readTemperature(SystempMultiplexer,MultiplexTempSolarLead);}
-//float cSolar::TempReturn(){
-//    return readTemperature(SystempMultiplexer,MultiplexTempSolarReturn);}
-//float cSolar::Intensity(){
-//    return readTemperature(SystempMultiplexer,MultiplexIntensitySolar);}
+float cSolar::TempLead(){
+   return readTemperature(SystempMultiplexer,MultiplexTempSolarLead);}
+float cSolar::TempReturn(){
+   return readTemperature(SystempMultiplexer,MultiplexTempSolarReturn);}
+float cSolar::Intensity(){
+   return readTemperature(SystempMultiplexer,MultiplexIntensitySolar);}
