@@ -10,7 +10,8 @@ void PinInitialization(void);
 #define DensityWater 0.99820 // [kg/l]
 #define CWater 4184 // [J/(kg·K)]
 //#define PumpWarmWaterMaxMassFlowRate 0.53 //[kg/s /power]
-#define PumpWarmWaterMaxMassFlowRate 0.9 //[kg/s /power]
+// #define PumpWarmWaterMaxMassFlowRate 0.9 //[kg/s /power]
+#define PumpWarmWaterMaxMassFlowRate 0.626 //[kg/s /power]
 
 // Pin mapping Arduino
 #define PinPumpCirculation        9
