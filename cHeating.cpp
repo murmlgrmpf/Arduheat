@@ -6,9 +6,10 @@ cHeating::cHeating(void)
 ValveBoiler(PinValveBoilerOpen,PinValveBoilerClose),
 ValveHeatSource1(PinValveHeatSource1Open,PinValveHeatSource1Close)
 {
+  Temperatures;
   FlowMeter;
   HxWarmWater;
-  SetpointTempWarmWater = 50.0;
+  SetpointTempWarmWater = 45.0;
   
   // Initialize room numbers and Pins
   for(int i = 0; i<16; i++)
@@ -27,36 +28,34 @@ ValveHeatSource1(PinValveHeatSource1Open,PinValveHeatSource1Close)
 }
 
 float cHeating::TempHeatingLead(){
-    return (OffsetTempHeatingLead + readTemperature(SystempMultiplexer,MultiplexTempHeatingLead));}
+    return (OffsetTempHeatingLead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempHeatingLead));}
 float cHeating::TempHeatingReturn(){
-    return (OffsetTempHeatingReturn + readTemperature(SystempMultiplexer,MultiplexTempHeatingReturn));}
+    return (OffsetTempHeatingReturn + Temperatures.getTemp(SystempMultiplexer,MultiplexTempHeatingReturn));}
 float cHeating::TempHeatSource1Lead(){
-    return (OffsetTempHeatSource1Lead + readTemperature(SystempMultiplexer,MultiplexTempHeatSource1Lead));}
+    return (OffsetTempHeatSource1Lead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempHeatSource1Lead));}
 float cHeating::TempHeatSource1Return(){
-    return (OffsetTempHeatSource1Lead + readTemperature(SystempMultiplexer,MultiplexTempHeatSource1Return));}
+    return (OffsetTempHeatSource1Lead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempHeatSource1Return));}
 float cHeating::TempHeatSource1Operation(){
-    return (OffsetTempHeatSource1Operation + readTemperature(SystempMultiplexer,MultiplexTempHeatSource1Operation));}
+    return (OffsetTempHeatSource1Operation + Temperatures.getTemp(SystempMultiplexer,MultiplexTempHeatSource1Operation));}
 float cHeating::TempSolarReturn(){
-    return (OffsetTempSolarReturn + readTemperature(SystempMultiplexer,MultiplexTempSolarReturn));}
+    return (OffsetTempSolarReturn + Temperatures.getTemp(SystempMultiplexer,MultiplexTempSolarReturn));}
 float cHeating::TempSolarLead(){
-    return (OffsetTempSolarLead + readTemperature(SystempMultiplexer,MultiplexTempSolarLead));}
+    return (OffsetTempSolarLead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempSolarLead));}
 float cHeating::TempBoilerCharge(){
-    return (OffsetTempBoilerCharge + readTemperature(SystempMultiplexer,MultiplexTempBoilerCharge));}
+    return (OffsetTempBoilerCharge + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerCharge));}
 float cHeating::TempBoilerReserve1(){
-    return (OffsetTempBoilerReserve1 + readTemperature(SystempMultiplexer,MultiplexTempBoilerReserve1));}
+    return (OffsetTempBoilerReserve1 + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerReserve1));}
 float cHeating::TempBoilerReserve2(){
-    return (OffsetTempBoilerReserve2 + readTemperature(SystempMultiplexer,MultiplexTempBoilerReserve2));}
+    return (OffsetTempBoilerReserve2 + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerReserve2));}
 float cHeating::TempBoilerHead(){
-    return (OffsetTempBoilerHead + readTemperature(SystempMultiplexer,MultiplexTempBoilerHead));}
+    return (OffsetTempBoilerHead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerHead));}
 float cHeating::TempBoilerTop(){
-  TempBoilerTopFilter = AlphaFilter*TempBoilerTopFilter + (1-AlphaFilter)*(OffsetTempBoilerTop + readTemperature(SystempMultiplexer,MultiplexTempBoilerTop));
-    return TempBoilerTopFilter;}
+    return (OffsetTempBoilerTop + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerTop));}
 float cHeating::TempWarmWater(){
-  TempWarmWaterFilter = AlphaFilter*TempWarmWaterFilter + (1-AlphaFilter)*(OffsetTempWarmWater + readTemperature(SystempMultiplexer,MultiplexTempWarmWater));
-    return TempWarmWaterFilter;}
+    return (OffsetTempWarmWater + Temperatures.getTemp(SystempMultiplexer,MultiplexTempWarmWater));}
 float cHeating::TempCirculationReturn(){
-    return (OffsetTempCirculationReturn + readTemperature(SystempMultiplexer,MultiplexTempCirculationReturn));}
+    return (OffsetTempCirculationReturn + Temperatures.getTemp(SystempMultiplexer,MultiplexTempCirculationReturn));}
 float cHeating::IntensitySolar(){
-    return (OffsetIntensitySolar + readTemperature(SystempMultiplexer,MultiplexIntensitySolar));}
+    return (OffsetIntensitySolar + Temperatures.getTemp(SystempMultiplexer,MultiplexIntensitySolar));}
 float cHeating::TempOutside(){
-    return (OffsetTempOutside + readTemperature(SystempMultiplexer,MultiplexTempOutside));}
+    return (OffsetTempOutside + Temperatures.getTemp(SystempMultiplexer,MultiplexTempOutside));}

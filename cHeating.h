@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 #include "PinDefinitions.h"
-#include "Temperatures.h"
+#include "cTemp.h"
 #include "cPump.h"
 #include "cValve.h"
 #include "cRoom.h"
@@ -48,7 +48,9 @@ class cHeating
     
     cFlowMeter FlowMeter;
     
-    float SetpointTempWarmWater;
+    cTemp Temperatures;
+    
+    double SetpointTempWarmWater;
     
     cHeating(void);
     
