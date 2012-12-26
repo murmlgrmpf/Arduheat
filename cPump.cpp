@@ -4,25 +4,12 @@
 
 cPump::cPump(void)
 {
-  _PinPump = 0;
-  _fMaxMassFlowRate = 1.0;
-  //Set the time to switch on and off the Pump
-  _LastTimePeriod = millis();
-  _Period = 10000;
-  
-  cPump::setMassFlowRate(0.0);
-
+  cPump::cPump(0, 1.0, 0.0);
 }
 
 cPump::cPump(int PinPump, float fMaxMassFlowRate)
 {
-  _PinPump = PinPump;
-  _fMaxMassFlowRate = fMaxMassFlowRate;
-  //Set the time to switch on and off the Pump
-  _LastTimePeriod = millis();
-  _Period = 10000;
-  
-  cPump::setMassFlowRate(0.0);
+  cPump::cPump(PinPump, fMaxMassFlowRate, 0.0);
 }
 
 cPump::cPump(int PinPump, float fMaxMassFlowRate, float fMassFlowRate)
@@ -31,8 +18,8 @@ cPump::cPump(int PinPump, float fMaxMassFlowRate, float fMassFlowRate)
   _fMaxMassFlowRate = fMaxMassFlowRate;
   //Set the time to switch on and off the Pump
   _LastTimePeriod = millis();
-  _Period = 10000;
-  
+  _Period = 2000;
+
   cPump::setMassFlowRate(fMassFlowRate);
 }
 
@@ -117,5 +104,5 @@ void cPump::setPinPump(int PinPump)
 void cPump::calcPeriod()
 {
   //Default _Period = 10 sec = 10000ms
-  _Period = 10000;
+  _Period = 2000;
 }
