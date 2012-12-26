@@ -1,5 +1,5 @@
-#ifndef Temperatures_h
-#define Temperatures_h
+#ifndef cTemp_h
+#define cTemp_h
 
 #include "Arduino.h"
 #include "PinDefinitions.h"
@@ -29,19 +29,31 @@
 //!Resistance of Multiplexer 3
 #define RM3 50.309//330.853
 
+#define _AlphaT 0.1
+
 //extern float TemperaturesArray[16][3] ={0};
+class cTemp
+{
+  private:
+    float _TempRaw[16][3];
+    float _TempFilt[16][3];
+    
+    void run(void);
+    
+//     void getTemperatures(float TemperatureArray[][3]);
+    void getTemperatures(void);
+    
+    float _alphaT;
 
-/**
- * @fn float getTemperatures(void)
- * @brief Reads in all Temperatures and stores them in an array.
- *
- * Switches the channels of the multiplexers (see setMultiplexer()) and
- * then reads in the temperatures via evaluateTemperatures()
- * @return T1raw
- */
+    unsigned long _TimePeriod;
+    unsigned long _LastTime;
+    
+  public:
+    cTemp(void);
+    float getTemp(int iMultiplexNumber,int iMultiplexConnector);
+    
+};
 
-void getTemperatures(float TemperatureArray[][3]);
-void setMultiplexer(int i);
 float readTemperature(int iMultiplexNumber,int iMultiplexConnector);
-
+void setMultiplexer(int i);
 #endif
