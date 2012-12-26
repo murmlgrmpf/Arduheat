@@ -3,7 +3,6 @@
 
 #include "Arduino.h"
 #include "PinDefinitions.h"
-#include "Temperatures.h"
 
 #define LiterPerImpuls 0.009263548
 
