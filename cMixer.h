@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 #include "PinDefinitions.h"
-#include "Temperatures.h"
+#include "cTemp.h"
 #include "cValve.h"
 
 class cMixer
