@@ -66,24 +66,30 @@ float cHeatExchanger::calcMassflow(float T_Bw_soll, float T_Bw_aussen, float T_K
   float Th  = T_Kuppel;
   float Tc  = T_Bw_aussen;
   float setTcp = T_Bw_soll;
+  float theta = (T_Kuppel-T_Bw_soll)/(T_Kuppel-T_Bw_aussen);
+  
+  N = 4+140*theta;
   
   float setTheta_c = (setTcp - Tc)/(Th - Tc);
   float C_c = Massflow_c*CWater;
 
-  if(setTheta_c <= setTheta_c_Threshold*0.999)
+  float Cr_h = cHeatExchanger::CrLimitCh(setTheta_c);
+  float Cr_c = cHeatExchanger::CrLimitCc(setTheta_c);
+   
+  if(Cr_h <= 1)
   {
     float Cr_h = cHeatExchanger::CrLimitCh(setTheta_c);
     float Massflow_h_h = C_c/CWater*Cr_h;
-    if (Cr_h<1.0)
+//     if (Cr_h<1.0)
     {
       return(Massflow_h_h);
     }
   }
-  else if(setTheta_c >= (setTheta_c_Threshold*1.001))
+  else if(Cr_c <= 1)
   {
     float Cr_c = cHeatExchanger::CrLimitCc(setTheta_c);
     float Massflow_h_c = C_c/CWater/Cr_c;
-    if (Cr_c<1.0)
+//     if (Cr_c<1.0)
     {
       return(Massflow_h_c);
     }
