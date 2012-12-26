@@ -2,9 +2,9 @@
 #define cRoom_h
 
 #include "Arduino.h"
-#include "Temperatures.h"
+#include "cTemp.h"
 #include "cRoomValve.h"
-
+//#include "cHeating.h"
 // Highest and lowest value for manual reference override
 #define TempLow 5
 #define TempHigh 30
