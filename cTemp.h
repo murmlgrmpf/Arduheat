@@ -29,19 +29,14 @@
 //!Resistance of Multiplexer 3
 #define RM3 50.309//330.853
 
-#define _AlphaT 0.1
+#define AlphaT 50
 
-//extern float TemperaturesArray[16][3] ={0};
 class cTemp
 {
   private:
-    float _TempRaw[16][3];
     float _TempFilt[16][3];
     
     void run(void);
-    
-//     void getTemperatures(float TemperatureArray[][3]);
-    void getTemperatures(void);
     
     float _alphaT;
 

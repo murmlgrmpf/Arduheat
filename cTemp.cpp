@@ -4,17 +4,15 @@ cTemp::cTemp(void)
 {
   // Initialize temperatures
   for (int j=0; j<16; j++){
-    for (int i = 0; i<3; i++)
-    {
-      _TempRaw[j][i] = readTemperature(i+1,j);
-      _TempFilt[j][i] = _TempRaw[j][i];
+    for (int i = 0; i<3; i++) {
+       _TempFilt[j][i] = 0;
     }
   }
   
   _LastTime = millis();
   _TimePeriod = 100;
-  // exponential filtering coefficient [1/s]
-  _alphaT = _AlphaT/_TimePeriod*1000;
+  // exponential filtering coefficient [1/#Measurements]
+  _alphaT = AlphaT*_TimePeriod/1000;
 }
 
 void cTemp::run(void)
@@ -26,8 +24,7 @@ void cTemp::run(void)
   for (int j=0; j<16; j++){
     for (int i = 0; i<3; i++)
     {
-      _TempRaw[j][i] = readTemperature(i+1,j);
-      _TempFilt[j][i] = (1-_alphaT)*_TempRaw[j][i] + _alphaT*_TempFilt[j][i];
+      _TempFilt[j][i] = (_alphaT/(_alphaT+1))*readTemperature(i+1,j)  + 1/(_alphaT+1)*_TempFilt[j][i];
     }
   }
   
@@ -41,26 +38,6 @@ float cTemp::getTemp(int iMultiplexNumber,int iMultiplexConnector)
   cTemp::run();
   
   return(_TempFilt[iMultiplexNumber-1][iMultiplexConnector]);
-}
-
-/**
- * @fn float getTemperatures(void)
- * @brief Reads in all Temperatures and stores them in an array.
- *
- * Switches the channels of the multiplexers (see setMultiplexer()) and
- * then reads in the temperatures via evaluateTemperatures()
- * @return T1raw
- */
-// void cTemp::getTemperatures(float TemperatureArray[][3])
-void cTemp::getTemperatures(void)
-{
-  for (int j=0; j<16; j++){
-    for (int i = 0; i<3; i++)
-    {
-      _TempRaw[j][i] = readTemperature(i+1,j);
-      _TempFilt[j][i] = (1-_alphaT)*_TempRaw[j][i] + _alphaT*_TempFilt[j][i];
-    }
-  }
 }
 
 
