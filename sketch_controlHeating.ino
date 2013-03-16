@@ -22,22 +22,13 @@ float fMassFlowPumpWarmWater = 0.0;
 float fTempRefSchedule[16]={20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0,
                     20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0};
 
-
-
 unsigned long LastTime = 0;
 boolean trigger = false;
 
 float PumpState =0;
 
-// cHeating Heating;
-cTemp Temperatures;
+cHeating Heating;
 
-double Input, Output;
-
-// Simple Vorlauftemperatur reference
-double SetpointTempWarmWater = 30.0;
-
-PID myPID(&Input, &Output, &SetpointTempWarmWater, 0.01, 0.001, 0.03, DIRECT);
 
 /**
  * @fn void setup(void)
@@ -54,9 +45,8 @@ void  setup()
   
   SerialDebug();
   DataAcquisition(true);
-//   Heating.SetpointTempWarmWater = SetpointTempWarmWater;
-  myPID.SetOutputLimits(0.0, 1.0);
-  Output = 0.0;
+  // Overwrite Setpoint Temperature for WarmWater
+  Heating.SpTempWarmWater = 45;
 
 }
 
@@ -68,6 +58,9 @@ void  setup()
  */
 void loop()
 {
+  // Wärmequellen management
+  // #1 Brenner
+  Heating.BurnerControl();
 //  float fmaxHeatflow =0;
   
   
@@ -104,70 +97,8 @@ void loop()
   //Heating.PumpBoiler.set(0.50);
   //Heating.PumpWarmWater.set(0.5);
   
-  // ***************Brauchwasser control
+  Heating.ControlWarmWater(); 
   
-  //fMassFlowPumpWarmWater = Heating.HxWarmWater.calcMassflow(50.0, 8.0, Heating.TempBoilerTop(), Heating.FlowMeter.get() );
-  //fMassFlowPumpWarmWater = Heating.HxWarmWater.calcMassflow(50.0, 8.0, 57.0, Heating.FlowMeter.get() );
-  
-//   if(Heating.FlowMeter.get()>0.0)
-//   {
-//    
-//     Input = Heating.TempWarmWater();
-//     
-//    timeoptimal control until 5 degrees below Setpoint
-//    if(Heating.TempWarmWater()<=Heating.SetpointTempWarmWater - 7)
-//    {
-//      turn the PID on
-//      myPID.SetMode(MANUAL);
-//      open Valve
-//      Heating.ValveWarmWater.set(true);
-//      Set Pump to maximum mass flow rate
-//      Heating.PumpWarmWater.setMassFlowRate(Heating.PumpWarmWater.getMaxMassFlowRate());
-//      Output = 0;
-//    }
-//    else if (Heating.TempWarmWater()>=Heating.SetpointTempWarmWater+2)
-//    {
-//     myPID.SetMode(MANUAL);
-//     stop pump
-//     Heating.PumpWarmWater.setMassFlowRate(0.0);
-//     close valve
-//     Heating.ValveWarmWater.set(false);
-//     
-//     Output = 0;
-//    }
-//    else
-//    {
-//      open Valve
-//      Heating.ValveWarmWater.set(true);
-//      
-//      open loop control
-//      fMassFlowPumpWarmWater = Heating.HxWarmWater.calcMassflow(Heating.SetpointTempWarmWater, 8.1560, Heating.TempBoilerTop(), Heating.FlowMeter.get() );
-//      Heating.PumpWarmWater.setMassFlowRate(fMassFlowPumpWarmWater);
-//      
-//      closed loop control
-//      turn the PID on
-//      myPID.SetMode(AUTOMATIC);
-//      myPID.Compute();
-//      float theta = (Heating.TempBoilerTop()-Heating.SetpointTempWarmWater)/(Heating.TempBoilerTop()-8.1560);
-//      float beta = 1;// - 1.5*theta;
-//       Heating.PumpWarmWater.setMassFlowRate(Output*Heating.PumpWarmWater.getMaxMassFlowRate());
-//      
-//      Heating.PumpWarmWater.setMassFlowRate(Heating.FlowMeter.get());
-//      
-//    }
-// 
-//   }
-//   else
-//   {
-//     stop pump
-//     Heating.PumpWarmWater.setMassFlowRate(0.0);
-//     close valve
-//     Heating.ValveWarmWater.set(false);
-//   }
-//   ***************************
-//   
-  
-  //SerialDebug();
   DataAcquisition(false);
   CheckTime();
 }
@@ -175,7 +106,7 @@ void loop()
 
 void incCounter()
 {
-//   Heating.FlowMeter.incCounter();
+  Heating.FlowMeter.incCounter();
 }
 
 
@@ -184,22 +115,18 @@ void DataAcquisition(boolean bfirstRun)
 {
   // Header
   if (bfirstRun) {
-    Serial.println("Time ; _Power% ; PumpMassFlow ; FlowMeter ; TempWarmWater ; TempBoilerTop ; TempBoilerReturn ; PID% ;");
+    Serial.println("Time ; TempWarmWater ; TempBoilerTop ; TempBoilerReturn ; TempBoilerHead ; PID% ;");
   }
   
   unsigned long time = millis();
   if(trigger)
   {
     printValue(time);
-//     printValue(Heating.PumpWarmWater._Power);
-//     printValue(Heating.PumpWarmWater.getMassFlowRate());
-//     printValue(Heating.FlowMeter.get());
-//     printValue(Heating.TempWarmWater());
-//     printValue(Heating.TempBoilerTop());
-//     printValue(Heating.TempCirculationReturn());
-    printValue(readTemperature(3,15));
-    printValue(Temperatures.getTemp(3,15));
-    printValue(Output);
+    printValue(Heating.TempWarmWater());
+    printValue(Heating.TempBoilerTop());
+    printValue(Heating.TempCirculationReturn());
+    printValue(Heating.TempBoilerHead());
+    printValue(Heating.PumpWarmWater.Power);
     //printValue();
     
     Serial.println(); //carriage return and new line
