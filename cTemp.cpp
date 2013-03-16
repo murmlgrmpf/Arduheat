@@ -37,7 +37,7 @@ float cTemp::getTemp(int iMultiplexNumber,int iMultiplexConnector)
 {
   cTemp::run();
   
-  return(_TempFilt[iMultiplexNumber-1][iMultiplexConnector]);
+  return(_TempFilt[iMultiplexConnector][iMultiplexNumber-1]);
 }
 
 

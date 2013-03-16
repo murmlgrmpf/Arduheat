@@ -29,7 +29,7 @@
 //!Resistance of Multiplexer 3
 #define RM3 50.309//330.853
 
-#define AlphaT 50
+#define AlphaT 10
 
 class cTemp
 {
