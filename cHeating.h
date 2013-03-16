@@ -9,26 +9,30 @@
 #include "cRoom.h"
 #include "cFlowMeter.h"
 #include "cHeatExchanger.h"
+#include <PID_v1.h>
 
 class cHeating 
 {
   private:
-    float TempHeatingLeadFilter;
-    float TempHeatingReturnFilter;
-    float TempHeatSource1LeadFilter;
-    float TempHeatSource1ReturnFilter;
-    float TempHeatSource1OperationFilter;
-    float TempSolarReturnFilter;
-    float TempSolarLeadFilter;
-    float TempBoilerChargeFilter;
-    float TempBoilerReserve1Filter;
-    float TempBoilerReserve2Filter;
-    float TempBoilerHeadFilter;
-    float TempBoilerTopFilter;
-    float TempWarmWaterFilter;
-    float TempCirculationReturnFilter;
-    float IntensitySolarFilter;
-    float TempOutsideFilter;
+    double _TempHeatingLead;
+    double _TempHeatingReturn;
+    double _TempHeatSource1Lead;
+    double _TempHeatSource1Return;
+    double _TempHeatSource1Operation;
+    double _TempSolarReturn;
+    double _TempSolarLead;
+    double _TempBoilerCharge;
+    double _TempBoilerReserve1;
+    double _TempBoilerReserve2;
+    double _TempBoilerHead;
+    double _TempBoilerTop;
+    double _TempWarmWater;
+    double _TempCirculationReturn;
+    double _IntensitySolar;
+    double _TempOutside;
+    
+    double Input;
+    PID PIDWarmWater;
   
     
   public:
@@ -50,26 +54,29 @@ class cHeating
     
     cTemp Temperatures;
     
-    double SetpointTempWarmWater;
+    double SpTempWarmWater;
     
     cHeating(void);
     
-    float TempHeatingLead();
-    float TempHeatingReturn();
-    float TempHeatSource1Lead();
-    float TempHeatSource1Return();
-    float TempHeatSource1Operation();
-    float TempSolarReturn();
-    float TempSolarLead();
-    float TempBoilerCharge();
-    float TempBoilerReserve1();
-    float TempBoilerReserve2();
-    float TempBoilerHead();
-    float TempBoilerTop();
-    float TempWarmWater();
-    float TempCirculationReturn();
-    float IntensitySolar();
-    float TempOutside();
+    double TempHeatingLead();
+    double TempHeatingReturn();
+    double TempHeatSource1Lead();
+    double TempHeatSource1Return();
+    double TempHeatSource1Operation();
+    double TempSolarReturn();
+    double TempSolarLead();
+    double TempBoilerCharge();
+    double TempBoilerReserve1();
+    double TempBoilerReserve2();
+    double TempBoilerHead();
+    double TempBoilerTop();
+    double TempWarmWater();
+    double TempCirculationReturn();
+    double IntensitySolar();
+    double TempOutside();
+    
+    void ControlWarmWater();
+    void BurnerControl();
 };
 
 #endif
