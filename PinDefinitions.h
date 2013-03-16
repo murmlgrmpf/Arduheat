@@ -32,11 +32,7 @@ void PinInitialization(void);
 #define PinMixerClose             7
 #define PinPulseCounter          19
 #define PinHeatControl            3
-// Valve Motor Sense Pins
-#define PinValveWarmWaterMotorSense   65 // A11 = 65
-#define PinValveBoilerMotorSense      64 // A10 = 64
-#define PinValveSolarMotorSense       63 // A9 = 63
-#define PinValveHeatSource1MotorSense 62 // A8 = 62
+
 // Room Heating
 #define Room1                    23
 #define Room2                    24
@@ -57,8 +53,8 @@ void PinInitialization(void);
 
 // System Temperatures on Multiplexer 3
 #define SystempMultiplexer                3
-#define MultiplexTempHeatingLead          1
-#define MultiplexTempHeatingReturn        0
+#define MultiplexTempHeatingLead          0
+#define MultiplexTempHeatingReturn        1
 #define MultiplexTempHeatSource1Lead      2 
 #define MultiplexTempHeatSource1Return    3
 #define MultiplexTempHeatSource1Operation 4
@@ -101,9 +97,6 @@ void PinInitialization(void);
 #define MultiplexInput1 66 // A12 = 66
 #define MultiplexInput2 67 // A13 = 67
 #define MultiplexInput3 68 // A14 = 68
-
-// PT1000 Sensor Pin
-#define TempHeatControl 69 // A15 = 69
 
 // Filter Coefficient
 #define AlphaFilter 0

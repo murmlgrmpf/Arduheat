@@ -12,15 +12,9 @@ void PinInitialization(void)
   pinMode(MultiplexControl4, OUTPUT);
  
  // TempHeatControl Initialization
-  pinMode(TempHeatControl, INPUT);
+  pinMode(TempHeatControl, OUTPUT);
 
-  // Motor Sense Initialization
-  pinMode(PinValveWarmWaterMotorSense, INPUT);
-  pinMode(PinValveBoilerMotorSense, INPUT);
-  pinMode(PinValveSolarMotorSense, INPUT);
-  pinMode(PinValveHeatSource1MotorSense, INPUT);
-
-  // Pumps and Valves intialization
+ // Pumps and Valves intialization
   pinMode(PinPumpCirculation, OUTPUT);
   pinMode(PinValveWarmWaterOpen, OUTPUT);
   pinMode(PinValveBoilerOpen, OUTPUT);
