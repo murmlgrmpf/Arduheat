@@ -28,6 +28,7 @@ class cPump
   public:
   
   float _Power;
+  double Power;
     /// Creates a pump object without a certain pin.
     cPump(void);
     /// Creates a pump object with a certain pin.
