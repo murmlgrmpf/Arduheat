@@ -3,14 +3,17 @@
 
 cHeating::cHeating(void)
 :ValveWarmWater(PinValveWarmWaterOpen,PinValveWarmWaterClose), 
-ValveBoiler(PinValveBoilerOpen,PinValveBoilerClose),
 ValveHeatSource1(PinValveHeatSource1Open,PinValveHeatSource1Close),
-PIDWarmWater(&_TempWarmWater, &PumpWarmWater.Power, &SpTempWarmWater, 0.01, 0.001, 0.05, DIRECT)
+PIDWarmWater(&_TempWarmWater, &PumpWarmWater.Power, &_SpTempWarmWater, 0.01, 0.001, 0.05, DIRECT)
 {
+   _chargeWarmWater = false;
+   _chargeHeating   = false;
+  
+  Boiler;
   Temperatures;
   FlowMeter;
   HxWarmWater;
-  SpTempWarmWater = 45.0;
+  _SpTempWarmWater = SpTempWarmWater;
   
   // Initialize room numbers and Pins
   for(int i = 0; i<16; i++)
@@ -21,23 +24,41 @@ PIDWarmWater(&_TempWarmWater, &PumpWarmWater.Power, &SpTempWarmWater, 0.01, 0.00
   // Initialize Pumps
   PumpWarmWater.setPinPump(PinPumpWarmWater);
   PumpWarmWater.setMaxMassFlowRate(PumpWarmWaterMaxMassFlowRate);
-  PumpBoiler.setPinPump(PinPumpBoiler);
+  
   PumpSolar.setPinPump(PinPumpSolar);
+  
   PumpHeating.setPinPump(PinPumpHeating);
+  
   PumpCirculation.setPinPump(PinPumpCirculation);
   
   // Initialize PID controller
   PIDWarmWater.SetOutputLimits(0.0, 1.0);
 }
 
-void cHeating::BurnerControl(){
-  // If temperature of Boiler top is lower than required for WarmWater
-  if (TempBoilerTop() < SpTempWarmWater+2){
-    //
-    //SpTempBoilerCharge = SpTempWarmWater+4;
+void cHeating::Control(void){
+  double _TempBoilerCharge = 0.0;
+  
+  // If Warmwater is full, load into heating
+  if(Boiler.haveWarmWater() > 0.0){
+    _TempBoilerCharge = Boiler.TempChargeHeating();
+  }
+  else { // Else choose maximum Charging temperature
+    _TempBoilerCharge = max(Boiler.TempChargeWarmWater(), Boiler.TempChargeHeating());
   }
   
+  // Ignite Burner
+  if (Boiler.needWarmWater() > 0.0) {
+    Burner.run(true);
+  }
   
+  if(_TempBoilerCharge<Burner.haveTemp()+3) {
+    Burner.run(false);
+    Boiler.charge(_TempBoilerCharge);
+  }
+  else{
+    Boiler.stop();
+    Burner.stop();
+  }
   
   
   
@@ -109,21 +130,11 @@ double cHeating::TempSolarReturn(){
     return (OffsetTempSolarReturn + Temperatures.getTemp(SystempMultiplexer,MultiplexTempSolarReturn));}
 double cHeating::TempSolarLead(){
     return (OffsetTempSolarLead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempSolarLead));}
-double cHeating::TempBoilerCharge(){
-    return (OffsetTempBoilerCharge + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerCharge));}
-double cHeating::TempBoilerReserve1(){
-    return (OffsetTempBoilerReserve1 + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerReserve1));}
-double cHeating::TempBoilerReserve2(){
-    return (OffsetTempBoilerReserve2 + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerReserve2));}
-double cHeating::TempBoilerHead(){
-    return (OffsetTempBoilerHead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerHead));}
-double cHeating::TempBoilerTop(){
-    return (OffsetTempBoilerTop + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerTop));}
 double cHeating::TempWarmWater(){
     return (OffsetTempWarmWater + Temperatures.getTemp(SystempMultiplexer,MultiplexTempWarmWater));}
 double cHeating::TempCirculationReturn(){
     return (OffsetTempCirculationReturn + Temperatures.getTemp(SystempMultiplexer,MultiplexTempCirculationReturn));}
 double cHeating::IntensitySolar(){
-    return (OffsetIntensitySolar + Temperatures.getTemp(SystempMultiplexer,MultiplexIntensitySolar));}
+    return (OffsetSolarIntensity + Temperatures.getTemp(SystempMultiplexer,MultiplexSolarIntensity));}
 double cHeating::TempOutside(){
     return (OffsetTempOutside + Temperatures.getTemp(SystempMultiplexer,MultiplexTempOutside));}

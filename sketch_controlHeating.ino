@@ -46,7 +46,7 @@ void  setup()
   SerialDebug();
   DataAcquisition(true);
   // Overwrite Setpoint Temperature for WarmWater
-  Heating.SpTempWarmWater = 45;
+  //Heating.SpTempWarmWater = 45.0;
 
 }
 
@@ -60,7 +60,7 @@ void loop()
 {
   // Wärmequellen management
   // #1 Brenner
-  Heating.BurnerControl();
+  //Heating.ControlBurner();
 //  float fmaxHeatflow =0;
   
   
@@ -97,7 +97,7 @@ void loop()
   //Heating.PumpBoiler.set(0.50);
   //Heating.PumpWarmWater.set(0.5);
   
-  Heating.ControlWarmWater(); 
+  Heating.ControlWarmWater();
   
   DataAcquisition(false);
   CheckTime();
@@ -123,9 +123,9 @@ void DataAcquisition(boolean bfirstRun)
   {
     printValue(time);
     printValue(Heating.TempWarmWater());
-    printValue(Heating.TempBoilerTop());
+    printValue(Heating.Boiler.TempBoilerTop());
     printValue(Heating.TempCirculationReturn());
-    printValue(Heating.TempBoilerHead());
+    printValue(Heating.Boiler.TempBoilerHead());
     printValue(Heating.PumpWarmWater.Power);
     //printValue();
     
