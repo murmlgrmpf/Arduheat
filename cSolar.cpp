@@ -25,4 +25,4 @@ float cSolar::TempLead(){
 float cSolar::TempReturn(){
    return readTemperature(SystempMultiplexer,MultiplexTempSolarReturn);}
 float cSolar::Intensity(){
-   return readTemperature(SystempMultiplexer,MultiplexIntensitySolar);}
+   return readTemperature(SystempMultiplexer,MultiplexSolarIntensity);}
