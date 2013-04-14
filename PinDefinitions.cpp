@@ -10,9 +10,6 @@ void PinInitialization(void)
   pinMode(MultiplexControl2, OUTPUT);
   pinMode(MultiplexControl3, OUTPUT);
   pinMode(MultiplexControl4, OUTPUT);
- 
- // TempHeatControl Initialization
-  pinMode(TempHeatControl, OUTPUT);
 
  // Pumps and Valves intialization
   pinMode(PinPumpCirculation, OUTPUT);

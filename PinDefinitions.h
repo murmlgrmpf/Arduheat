@@ -13,17 +13,19 @@ void PinInitialization(void);
 // #define PumpWarmWaterMaxMassFlowRate 0.9 //[kg/s /power]
 #define PumpWarmWaterMaxMassFlowRate 0.626 //[kg/s /power]
 
+#define PumpBoilerChargeMaxMassFlowRate 0.626 //[kg/s /power] Not measured yet!!
+
 // Pin mapping Arduino
 #define PinPumpCirculation        9
 #define PinValveWarmWaterOpen    39
 #define PinValveBoilerOpen       41
+#define PinValveSolarClose       42
 #define PinValveSolarOpen        43
+#define PinValveHeatSource1Close 44
 #define PinValveHeatSource1Open  45
 #define PinStartHeatSource1      13
 #define PinValveWarmWaterClose   38
 #define PinValveBoilerClose      40
-#define PinValveSolarClose       42
-#define PinValveHeatSource1Close 44
 #define PinPumpWarmWater         10
 #define PinPumpBoiler            11
 #define PinPumpSolar             12
@@ -67,7 +69,7 @@ void PinInitialization(void);
 #define MultiplexTempBoilerTop           11
 #define MultiplexTempWarmWater           12
 #define MultiplexTempCirculationReturn   13
-#define MultiplexIntensitySolar          14
+#define MultiplexSolarIntensity          14
 #define MultiplexTempOutside             15
 // System Temperatures 
 #define OffsetTempHeatingLead             0
@@ -77,6 +79,7 @@ void PinInitialization(void);
 #define OffsetTempHeatSource1Operation    0
 #define OffsetTempSolarReturn             0
 #define OffsetTempSolarLead               0
+#define OffsetSolarIntensity              0
 #define OffsetTempBoilerCharge            0
 #define OffsetTempBoilerReserve1          0
 #define OffsetTempBoilerReserve2          0
@@ -84,9 +87,12 @@ void PinInitialization(void);
 #define OffsetTempBoilerTop               1
 #define OffsetTempWarmWater               2.35
 #define OffsetTempCirculationReturn       0
-#define OffsetIntensitySolar              0
 #define OffsetTempOutside                 0 
 #define OffsetTempHeatControl             0
+// Setpoint System Temperatures
+#define SpTempHeatingLead                40
+#define SpTempHeatingLeadReturn          10
+#define SpTempWarmWater                  50
 
 // Multiplexer Control Pins
 #define MultiplexControl1 48
