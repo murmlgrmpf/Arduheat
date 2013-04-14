@@ -66,7 +66,7 @@ void cRoomValve::run(void)
 {
   if(_bState==true)
   {
-    digitalWrite(_iPinOpen, LOW); // Valve gets openedPinValveWarmWaterOpen
+    digitalWrite(_iPinOpen, LOW); // Valve gets opened
   }
   else
   {
