@@ -5,7 +5,7 @@ cTemp::cTemp(void)
   // Initialize temperatures
   for (int j=0; j<16; j++){
     for (int i = 0; i<3; i++) {
-       _TempFilt[j][i] = 0;
+       _TempFilt[j][i] = readTemperature(i+1,j);
     }
   }
   
