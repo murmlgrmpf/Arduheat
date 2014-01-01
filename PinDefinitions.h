@@ -13,7 +13,8 @@ void PinInitialization(void);
 // #define PumpWarmWaterMaxMassFlowRate 0.9 //[kg/s /power]
 #define PumpWarmWaterMaxMassFlowRate 0.626 //[kg/s /power]
 
-#define PumpBoilerChargeMaxMassFlowRate 0.626 //[kg/s /power] Not measured yet!!
+//#define PumpBoilerChargeMaxMassFlowRate 0.626 //[kg/s /power] Not measured yet!!
+#define PumpBoilerChargeMaxMassFlowRate 1
 
 // Pin mapping Arduino
 #define PinPumpCirculation        9
@@ -36,25 +37,35 @@ void PinInitialization(void);
 #define PinHeatControl            3
 
 // Room Heating
-#define Room1                    23
-#define Room2                    24
-#define Room3                    22
-#define Room4                    25
-#define Room5                    15
-#define Room6                    26
-#define Room7                    14
-#define Room8                    27
-#define Room9                     5
-#define Room10                   28
-#define Room11                   34
-#define Room12                   29
-#define Room13                   33
-#define Room14                   30
-#define Room15                   32
-#define Room16                   31
+
+#define nRooms					16
+
+// Calibration needed!
+const double RoomIsOffset[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// Calibration by measurements
+const double RoomSpOffset[] = {0, -0.61, 0.62, 0.31, -0.3, 1.07, 1.99, -0.61, -4.43, -0.27, -0.12, 0.95, 0.95, 0.64, 1.25, 0.18};
+
+// Pinout definition
+const int RoomValvePin[] = {23, 24, 22, 25, 15, 26, 14, 27, 5, 28, 34, 29, 33, 30, 32, 31};
+//#define Room1                    23
+//#define Room2                    24
+//#define Room3                    22
+//#define Room4                    25
+//#define Room5                    15
+//#define Room6                    26
+//#define Room7                    14
+//#define Room8                    27
+//#define Room9                     5
+//#define Room10                   28
+//#define Room11                   34
+//#define Room12                   29
+//#define Room13                   33
+//#define Room14                   30
+//#define Room15                   32
+//#define Room16                   31
 
 // System Temperatures on Multiplexer 3
-#define SystempMultiplexer                3
+#define SystemMultiplexer                3
 #define MultiplexTempHeatingLead          0
 #define MultiplexTempHeatingReturn        1
 #define MultiplexTempHeatSource1Lead      2 
@@ -90,9 +101,9 @@ void PinInitialization(void);
 #define OffsetTempOutside                 0 
 #define OffsetTempHeatControl             0
 // Setpoint System Temperatures
-#define SpTempHeatingLead                40
-#define SpTempHeatingLeadReturn          10
-#define SpTempWarmWater                  50
+#define ChargeHeatingOffset				4.0
+#define ChargeWarmWaterOffset			4.0
+#define SpTempWarmWater                  50.0
 
 // Multiplexer Control Pins
 #define MultiplexControl1 48
