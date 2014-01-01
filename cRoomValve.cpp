@@ -49,6 +49,8 @@ void cRoomValve::setPinOpen(int iPinOpen)
 {
   _iPinOpen = iPinOpen;
   pinMode(_iPinOpen, OUTPUT);
+  
+  set(_bState);
 }
 
 /// Sets the _PinClose. This is necessary for the rooms, where the constructor cannot initialize the pins.
@@ -56,6 +58,8 @@ void cRoomValve::setPinClose(int iPinClose)
 {
   _iPinClose = iPinClose;
   pinMode(_iPinClose, OUTPUT);
+  
+  set(_bState);
 }
 
 /// Reads the state of the valve.
