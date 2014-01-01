@@ -2,68 +2,109 @@
 
 
 cRoom::cRoom(void)
+:pid(&_dIsTemp, &_need, &_dSpTemp, 0.01, 0.0, 0.05, DIRECT)
 {
-  _iRoomNumber =1;
-  _fTempActual = 20.0;
-  _fTempRef = 20.0;
-  _iMultiplexNumber = 0;
-  _iMultiplexConnectorActual = 0;
-  _iMultiplexConnectorRef = 0;
-  cRoomValve Valve();
-  
-  //cRoom::readTemp();
+	_dIsTemp = 0;
+	_dSpTemp = 0;
+	_need = 0;
+	_dSpTemp = 20.0;
+	_dSpTempSchedule = 20.0;
+	setRoomNumber(1);
 }
+
+ cRoom::cRoom( int iRoomNumber ) /*~cRoom()*/
+ :pid(&_dIsTemp, &_need, &_dSpTemp, 0.01, 0.0, 0.05, DIRECT),
+ Valve(RoomValvePin[iRoomNumber-1])
+ {
+	 init(iRoomNumber);
+ }
+
+
+void cRoom::init( int iRoomNumber )
+{
+	_dIsTemp = 0;
+	_dSpTemp = 0;
+	_need = 0;
+	_dSpTemp = 20.0;
+	_dSpTempSchedule = 20.0;
+	setRoomNumber(iRoomNumber);
+	//Set the pin of the valve according to pinout scheme.
+	Valve.setPinOpen(RoomValvePin[iRoomNumber-1]);
+	
+	pid.SetOutputLimits(0, 1);
+}
+
 
 void cRoom::setRoomNumber(int iRoomNumber)
 {
-  // Set RoomNumber
-  _iRoomNumber = iRoomNumber;
-  
-  // Calculate Pinout
-  _iMultiplexNumber = 1;
-  _iMultiplexConnectorActual = 2*(_iRoomNumber);
-  if (_iMultiplexConnectorActual>16)
-  {
-    _iMultiplexConnectorActual = _iMultiplexConnectorActual -16;
-    _iMultiplexNumber =2;
-  }
-  // Adaption to multiplexer pinout
-  _iMultiplexConnectorActual = 16-_iMultiplexConnectorActual;
-  _iMultiplexConnectorRef = _iMultiplexConnectorActual +1;
-  
-  // Set the pin of the valve according to pinout scheme.
-  Valve.setPinOpen(iRoomNumber+25);
+	int _iMultiplexNumber;
+	int _iMultiplexConnectorIs;
+	int _iMultiplexConnectorSp;
+	
+	// Set RoomNumber
+	_iRoomNumber = iRoomNumber;
+	
+	//**********************
+	// Calculate pinout
+	_iMultiplexNumber = 1;
+	_iMultiplexConnectorIs = 2*(_iRoomNumber);
+	if (_iMultiplexConnectorIs>16)
+	{
+		_iMultiplexConnectorIs = _iMultiplexConnectorIs -16;
+		_iMultiplexNumber =2;
+	}
+	// Adaption to multiplexer pinout
+	_iMultiplexConnectorIs = 16-_iMultiplexConnectorIs;
+	_iMultiplexConnectorSp = _iMultiplexConnectorIs +1;
+	//**********************
+	
+	//IsTemp.set(_iMultiplexNumber,_iMultiplexConnectorIs,RoomIsOffset[iRoomNumber-1]);
+	IsTemp.set(_iMultiplexNumber,_iMultiplexConnectorIs,0);
+	SpTemp.set(_iMultiplexNumber,_iMultiplexConnectorSp,RoomSpOffset[iRoomNumber-1]);
+	
 }
 
-void cRoom::setTempRefSchedule(float fTempRefSchedule)
+double cRoom::getSpTempSchedule(void)
 {
-  _fTempRefSchedule = fTempRefSchedule;
+	return _dSpTempSchedule;
 }
 
-float cRoom::getTempActual(void)
+void cRoom::setSpTempSchedule(double TempRefSchedule)
 {
-  _fTempActual =0.7*_fTempActual + (1-0.7)*readTemperature(_iMultiplexNumber, _iMultiplexConnectorActual);
-  return _fTempActual;
+	_dSpTempSchedule = TempRefSchedule;
 }
 
-float cRoom::getTempRef(void)
+double cRoom::getIsTemp(void)
 {
-  _fTempRef = readTemperature(_iMultiplexNumber, _iMultiplexConnectorRef);
-  
-  // Check if manual override is not valid
-  if(!((_fTempRef<TempHigh)&&(_fTempRef>TempLow)))
-  {
-    _fTempRef = _fTempRefSchedule;
-  }
-  
-  return _fTempRef;
+	_dIsTemp = IsTemp.get();
+	return _dIsTemp;
 }
 
-float cRoom::getHeatflow(void)
+double cRoom::getSpTemp(void)
 {
-  cRoom::getTempActual();
-  cRoom::getTempRef();
-  _Heatflow = _fTempRef - _fTempActual;
-  
-  return _Heatflow;
+	// Check if manual override is valid
+	if((SpTemp.get()<TempHigh)&&(SpTemp.get()>TempLow))
+	{
+		_dSpTemp = SpTemp.get();
+	}
+	else
+	{
+		_dSpTemp = getSpTempSchedule();
+	}
+	
+	return _dSpTemp;
+}
+
+double cRoom::getNeed(void)
+{
+	getSpTemp();
+	getIsTemp();
+	// Compute need
+	pid.SetMode(AUTOMATIC);
+	pid.Compute();
+	
+	// Open Valve if heat is needed
+	Valve.set((_need>0));
+	
+	return _need;
 }
