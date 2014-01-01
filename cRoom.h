@@ -2,39 +2,41 @@
 #define cRoom_h
 
 #include "Arduino.h"
-#include "Temperatures.h"
+#include "cTemp.h"
 #include "cRoomValve.h"
-
-// Highest and lowest value for manual reference override
-#define TempLow 5
-#define TempHigh 30
+#include <PID_v1.h>
+//#include "cHeating.h"
+// Highest and lowest value for manual setpoint override
+#define TempLow 10
+#define TempHigh 40
 
 class cRoom
 {
-  private:
-    int _iRoomNumber;
-    float _fTempActual;
-    float _fTempRef;
-    int _iMultiplexNumber;
-    int _iMultiplexConnectorActual;
-    int _iMultiplexConnectorRef;
-    //int _iPinValve;
-    float _Heatflow;
-    float _fTempRefSchedule;
-    
-  public:
-    /// Creates a room.
-    /** As the rooms get created in an array, only the default constructor can be used */
-    cRoom(void);
-    //~cRoom();
-    /// Each room has a valve
-    cRoomValve Valve;
-    
-    void setRoomNumber(int iRoomNumber);
-    void setTempRefSchedule(float fTempRefSchedule);
-    float getTempActual(void);
-    float getTempRef(void);
-    float getHeatflow(void);
+	private:
+	int _iRoomNumber;
+	double _dIsTemp;
+	double _dSpTemp;
+	double _need;
+	double _dSpTempSchedule;
+	
+	public:
+	/// Creates a room.
+	/** As the rooms get created in an array, only the default constructor can be used */
+	cRoom(void);
+	cRoom(int iRoomNumber);
+	//~cRoom();
+	/// Each room has a valve
+	void init(int iRoomNumber);
+	cRoomValve Valve;
+	PID pid;
+	cTempSingle IsTemp;
+	cTempSingle SpTemp;
+	void setRoomNumber(int iRoomNumber);
+	void setSpTempSchedule(double fSpTempSchedule);
+	double getIsTemp(void);
+	double getSpTemp(void);
+	double getNeed(void);
+	double getSpTempSchedule(void);
 };
 
 #endif

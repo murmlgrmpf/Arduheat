@@ -10,9 +10,9 @@ class cPump
     int _PinPump;
     
     float _Period;
-    long _TimePeriod;
-    long _TimeSwitch;
-    long _LastTimePeriod;
+    unsigned long _TimePeriod;
+    unsigned long _TimeSwitch;
+    unsigned long _LastTimePeriod;
     float _fMaxMassFlowRate;
     
     /// Execute the pump. 
@@ -28,6 +28,7 @@ class cPump
   public:
   
   float _Power;
+  double Power;
     /// Creates a pump object without a certain pin.
     cPump(void);
     /// Creates a pump object with a certain pin.

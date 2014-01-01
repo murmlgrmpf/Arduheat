@@ -3,8 +3,6 @@
 
 #include "Arduino.h"
 
-#define SenseThreshold 250 // 0.6V threshold 5V max, 1023 resolution
-
 class cValve
 {
   private:

@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 #include "PinDefinitions.h"
-#include "Temperatures.h"
+//#include "cTemp.h"
 
 // solving Cr
 #define maxIter 15  // max number of iterations
@@ -11,7 +11,8 @@
 
 // Properties of heat exchanger
 // Identified by measurements & regression
-#define N 4.3       // Übertragungsfähigkeit
+// #define N 4.3       // Übertragungsfähigkeit
+// #define N 4.3       // Übertragungsfähigkeit
 #define setTheta_c_Threshold 0.81135 // threshold between limiting Cc and Ch
 
 class cHeatExchanger
@@ -19,7 +20,7 @@ class cHeatExchanger
   private:
     float CrLimitCc(float theta);
     float CrLimitCh(float theta);
-    
+    float N;
     
     
   public:

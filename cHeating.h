@@ -3,71 +3,72 @@
 
 #include "Arduino.h"
 #include "PinDefinitions.h"
-#include "Temperatures.h"
+#include "cBoiler.h"
+#include "cTemp.h"
 #include "cPump.h"
 #include "cValve.h"
 #include "cRoom.h"
 #include "cFlowMeter.h"
 #include "cHeatExchanger.h"
+#include "cBurner.h"
+#include "cSpHeating.h"
+#include "cMixer.h"
+#include <PID_v1.h>
 
-class cHeating 
+class cHeating
 {
-  private:
-    float TempHeatingLeadFilter;
-    float TempHeatingReturnFilter;
-    float TempHeatSource1LeadFilter;
-    float TempHeatSource1ReturnFilter;
-    float TempHeatSource1OperationFilter;
-    float TempSolarReturnFilter;
-    float TempSolarLeadFilter;
-    float TempBoilerChargeFilter;
-    float TempBoilerReserve1Filter;
-    float TempBoilerReserve2Filter;
-    float TempBoilerHeadFilter;
-    float TempBoilerTopFilter;
-    float TempWarmWaterFilter;
-    float TempCirculationReturnFilter;
-    float IntensitySolarFilter;
-    float TempOutsideFilter;
-  
-    
-  public:
-    cRoom Rooms[16];
-  
-    cPump PumpWarmWater;
-    cPump PumpBoiler;
-    cPump PumpSolar;
-    cPump PumpHeating;
-    cPump PumpCirculation;
-    
-    cValve ValveWarmWater;
-    cValve ValveBoiler;
-    cValve ValveHeatSource1;
-    
-    cHeatExchanger HxWarmWater;
-    
-    cFlowMeter FlowMeter;
-    
-    float SetpointTempWarmWater;
-    
-    cHeating(void);
-    
-    float TempHeatingLead();
-    float TempHeatingReturn();
-    float TempHeatSource1Lead();
-    float TempHeatSource1Return();
-    float TempHeatSource1Operation();
-    float TempSolarReturn();
-    float TempSolarLead();
-    float TempBoilerCharge();
-    float TempBoilerReserve1();
-    float TempBoilerReserve2();
-    float TempBoilerHead();
-    float TempBoilerTop();
-    float TempWarmWater();
-    float TempCirculationReturn();
-    float IntensitySolar();
-    float TempOutside();
+	private:
+	double _dIsTempHeatingLead;
+	double _dSpTempHeatingLead;
+	double _dIsTempHeatingReturn;
+	double _dSpTempHeatingReturn;
+	
+	double _TempSolarReturn;
+	double _TempSolarLead;
+	double _TempWarmWater;
+	double _IntensitySolar;
+	double _SpTempWarmWater;
+	double Input;
+	double _dPowerMixer;
+	boolean _bneedHeating;
+	
+	PID PIDWarmWater;
+	PID PIDPumpHeating;
+	PID PIDMixer;
+	cSpHeating SpHeating;
+	cMixer Mixer;
+	
+	
+	public:
+	cRoom Rooms[16];
+	
+	cPump PumpWarmWater;
+	cPump PumpSolar;
+	cPump PumpHeating;
+	cPump PumpCirculation;
+	
+	cValve ValveWarmWater;
+	cValve ValveHeatSource1;
+	
+	cTempSingle IsTempHeatingLead;
+	cTempSingle IsTempHeatingReturn;
+	
+	//     cHeatExchanger HxWarmWater;
+	//
+	cFlowMeter FlowMeter;
+	cBoiler Boiler;
+	cBurner Burner;
+	cTemp Temperatures;
+	
+	cHeating(void);
+	
+	double TempSolarReturn();
+	double TempSolarLead();
+	double TempWarmWater();
+	double IntensitySolar();
+	
+	void ControlWarmWater();
+	void Control(void);
 };
 
 #endif
