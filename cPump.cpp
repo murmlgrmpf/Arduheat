@@ -18,7 +18,7 @@ cPump::cPump(int PinPump, float fMaxMassFlowRate, float fMassFlowRate)
   _fMaxMassFlowRate = fMaxMassFlowRate;
   //Set the time to switch on and off the Pump
   _LastTimePeriod = millis();
-  _Period = 2000;
+  _Period = 4000;
   Power = 0;
 
   cPump::setMassFlowRate(fMassFlowRate);
