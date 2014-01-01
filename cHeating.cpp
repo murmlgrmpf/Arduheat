@@ -2,139 +2,187 @@
 
 
 cHeating::cHeating(void)
-:ValveWarmWater(PinValveWarmWaterOpen,PinValveWarmWaterClose), 
+:ValveWarmWater(PinValveWarmWaterOpen,PinValveWarmWaterClose),
 ValveHeatSource1(PinValveHeatSource1Open,PinValveHeatSource1Close),
-PIDWarmWater(&_TempWarmWater, &PumpWarmWater.Power, &_SpTempWarmWater, 0.01, 0.001, 0.05, DIRECT)
+PIDWarmWater(&_TempWarmWater, &PumpWarmWater.Power, &_SpTempWarmWater, 0.01, 0.001, 0.05, DIRECT),
+PIDPumpHeating(&_dIsTempHeatingReturn, &PumpHeating.Power, &_dSpTempHeatingReturn, 0.001, 0.0001, 0.005, DIRECT),
+PIDMixer(&_dIsTempHeatingLead, &_dPowerMixer, &_dSpTempHeatingLead, 0.001, 0.0, 0.005, DIRECT),
+IsTempHeatingLead(SystemMultiplexer,MultiplexTempHeatingLead,OffsetTempHeatingLead),
+IsTempHeatingReturn(SystemMultiplexer,MultiplexTempHeatingReturn,OffsetTempHeatingReturn)
 {
-   _chargeWarmWater = false;
-   _chargeHeating   = false;
-  
-  Boiler;
-  Temperatures;
-  FlowMeter;
-  HxWarmWater;
-  _SpTempWarmWater = SpTempWarmWater;
-  
-  // Initialize room numbers and Pins
-  for(int i = 0; i<16; i++)
-  {
-    // The rooms know their multiplexers and pinout by the room number
-    Rooms[i].setRoomNumber(i+1);
-  }
-  // Initialize Pumps
-  PumpWarmWater.setPinPump(PinPumpWarmWater);
-  PumpWarmWater.setMaxMassFlowRate(PumpWarmWaterMaxMassFlowRate);
-  
-  PumpSolar.setPinPump(PinPumpSolar);
-  
-  PumpHeating.setPinPump(PinPumpHeating);
-  
-  PumpCirculation.setPinPump(PinPumpCirculation);
-  
-  // Initialize PID controller
-  PIDWarmWater.SetOutputLimits(0.0, 1.0);
+	_dPowerMixer = 0;
+	_SpTempWarmWater = SpTempWarmWater;
+	
+	// Initialize room numbers and Pins
+	for(int i = 0; i<16; i++)
+	{
+		// The rooms know their multiplexers and pin out by the room number
+		Rooms[i].init(i+1);
+	}
+	
+	// Initialize Pumps and PID controllers
+	PumpWarmWater.setPinPump(PinPumpWarmWater);
+	PumpWarmWater.setMaxMassFlowRate(PumpWarmWaterMaxMassFlowRate);
+	PIDWarmWater.SetOutputLimits(0.0, 1.0);
+	PIDWarmWater.SetMode(MANUAL);
+	
+	PumpSolar.setPinPump(PinPumpSolar);
+	PumpSolar.setMaxMassFlowRate(1);
+	
+	PumpHeating.setPinPump(PinPumpHeating);
+	PumpHeating.setMaxMassFlowRate(1);
+	PIDPumpHeating.SetOutputLimits(0.4, 1.0);
+	PIDPumpHeating.SetMode(MANUAL);
+	
+	PumpCirculation.setPinPump(PinPumpCirculation);
+	
+	PIDMixer.SetOutputLimits(-1.0, 1.0);
+	PIDMixer.SetMode(MANUAL);
+	
 }
 
 void cHeating::Control(void){
-  double _TempBoilerCharge = 0.0;
-  
-  // If Warmwater is full, load into heating
-  if(Boiler.haveWarmWater() > 0.0){
-    _TempBoilerCharge = Boiler.TempChargeHeating();
-  }
-  else { // Else choose maximum Charging temperature
-    _TempBoilerCharge = max(Boiler.TempChargeWarmWater(), Boiler.TempChargeHeating());
-  }
-  
-  // Ignite Burner
-  if (Boiler.needWarmWater() > 0.0) {
-    Burner.run(true);
-  }
-  
-  if(_TempBoilerCharge<Burner.haveTemp()+3) {
-    Burner.run(false);
-    Boiler.charge(_TempBoilerCharge);
-  }
-  else{
-    Boiler.stop();
-    Burner.stop();
-  }
-  
-  
-  
+	double SpTempBoilerCharge = 77.0;
+	double SpTempHeating = 0 ;
+	double needBurner = 0.0;
+	boolean bneedBurner = false;
+	boolean bBurnerReady = false;
+	double dMaxDiff =0;
+	double dMaxSp = 0;
+	double dneedHeating = 0;
+	
+	// Read state of rooms
+	for(int i = 0; i<nRooms; i++)
+	{
+		// Store maximum set point
+		if (Rooms[i].getSpTemp()>dMaxSp){
+			dMaxSp = Rooms[i].getSpTemp();
+		}
+		// Store maximum sp-is difference
+		if ((Rooms[i].getSpTemp() - Rooms[i].getIsTemp()) > dMaxDiff){
+			dMaxDiff = Rooms[i].getSpTemp() - Rooms[i].getIsTemp();
+		}
+		// Check for rooms needing heat
+		if(Rooms[i].getNeed()>dneedHeating){
+			dneedHeating = Rooms[i].getNeed();
+		}
+	}
+	
+	// Calculate setpoint for heating
+	_dSpTempHeatingLead = SpHeating.get(dMaxSp, dMaxDiff);
+	Boiler.setSpTempHeatingLead(_dSpTempHeatingLead);
+	_dIsTempHeatingLead = IsTempHeatingLead.get();
+	_dSpTempHeatingReturn = _dIsTempHeatingLead-10;
+	_dIsTempHeatingReturn = IsTempHeatingReturn.get();
+	
+	// Determine whether there is need for heating
+	_bneedHeating = (dneedHeating>0);
+	
+	// Run Heating only if it is needed and no warm water is needed
+	if ((!(Boiler.needWarmWater()>0.0))&& (_bneedHeating))
+	{
+		// Run Mixer and PID
+		PIDMixer.SetMode(AUTOMATIC);
+		PIDMixer.Compute();
+		Mixer.run(_dPowerMixer);
+		
+		// Run heating pump and PID
+		PIDPumpHeating.SetMode(AUTOMATIC);
+		PIDPumpHeating.Compute();
+		PumpHeating.setMassFlowRate(PumpHeating.Power);
+	}
+	else
+	{
+		// Stop Pump Heating and PID
+		PIDPumpHeating.SetMode(MANUAL);
+		PumpHeating.setMassFlowRate(0.0);
+		// Stop mixer PID and run Mixer to closed position
+		PIDMixer.SetMode(MANUAL);
+		Mixer.run(-1.0);
+	}
+	
+	// Run solar pump to avoid boiling
+	PumpSolar.setMassFlowRate(0.0*PumpSolar.getMaxMassFlowRate());
+	
+	if(Boiler.haveWarmWater() > 0.0)
+	{ // If Warmwater is full, load into heating
+		SpTempBoilerCharge = Boiler.SpTempChargeHeating();
+	}
+	else
+	{ // Else choose maximum Charging temperature
+		SpTempBoilerCharge = max(Boiler.SpTempChargeWarmWater(), Boiler.SpTempChargeHeating());
+	}
+	
+	// Ignite Burner
+	bneedBurner = ((Boiler.needWarmWater()>0.0) || ((Boiler.needHeating()>0.0)&&(dneedHeating>0.0)));
+	bBurnerReady = Burner.burn(bneedBurner, SpTempBoilerCharge);
+	// Charge Boiler
+	Boiler.charge(bBurnerReady, SpTempBoilerCharge);
+	
 }
 
 
 void cHeating::ControlWarmWater(){
-  
-  if(FlowMeter.get()>0.0)
-  {
-   _TempWarmWater = TempWarmWater();
-    
-   // timeoptimal control until 5 degrees below Setpoint
-   if(TempWarmWater()<=SpTempWarmWater - 7)
-   {
-     // turn the PID on
-     PIDWarmWater.SetMode(MANUAL);
-     // open Valve
-     ValveWarmWater.set(true);
-     // Set Pump to maximum mass flow rate
-     PumpWarmWater.setMassFlowRate(PumpWarmWater.getMaxMassFlowRate());
-   }
-   // Close valve if overshoot is occuring
-   else if (TempWarmWater()>=SpTempWarmWater+2)
-   {
-    PIDWarmWater.SetMode(MANUAL);
-    // stop pump
-    PumpWarmWater.setMassFlowRate(0.0);
-    // close valve
-    ValveWarmWater.set(false);
-   }
-   else
-   {
-     // open Valve
-     ValveWarmWater.set(true);
-     
-     // open loop control
-//      fMassFlowPumpWarmWater = HxWarmWater.calcMassflow(SetpointTempWarmWater, 8.1560, TempBoilerTop(), FlowMeter.get() );
-//      PumpWarmWater.setMassFlowRate(fMassFlowPumpWarmWater);
-     
-     // closed loop control
-     // turn the PID on
-     // It takes over the last ouput value of the pid controller to be the initial value for integral part
-     PIDWarmWater.SetMode(AUTOMATIC);
-     PIDWarmWater.Compute();
-     PumpWarmWater.setMassFlowRate(PumpWarmWater.Power*PumpWarmWater.getMaxMassFlowRate());
-   }
-  }
-  else
-  {
-    // stop pump
-    PumpWarmWater.setMassFlowRate(0.0);
-    // close valve
-    ValveWarmWater.set(false);
-  }
+	
+	// Warm Water needed
+	if(FlowMeter.get()>0.0)
+	{
+		// Set Variable value to actual temperature for PID
+		_TempWarmWater = TempWarmWater();
+		
+		//    timeoptimal control until 7 degrees below Setpoint
+		if(TempWarmWater()<=SpTempWarmWater - 7)
+		{
+			//      turn the PID on
+			PIDWarmWater.SetMode(MANUAL);
+			//      open Valve
+			ValveWarmWater.set(true);
+			//      Set Pump to maximum mass flow rate
+			PumpWarmWater.setMassFlowRate(PumpWarmWater.getMaxMassFlowRate());
+		}
+		//    Close valve if overshoot is occuring
+		else if (TempWarmWater()>=SpTempWarmWater+2)
+		{
+			PIDWarmWater.SetMode(MANUAL);
+			//     stop pump
+			PumpWarmWater.setMassFlowRate(0.0);
+			//     close valve
+			ValveWarmWater.set(false);
+		}
+		else
+		{
+			//      open Valve
+			ValveWarmWater.set(true);
+			
+			//************************
+			//      open loop control
+			//      fMassFlowPumpWarmWater = HxWarmWater.calcMassflow(SetpointTempWarmWater, 8.1560, TempBoilerTop(), FlowMeter.get() );
+			//      PumpWarmWater.setMassFlowRate(fMassFlowPumpWarmWater);
+			//************************
+			
+			//      closed loop control
+			//      turn the PID on
+			//      It takes over the last ouput value of the pid controller to be the initial value for integral part
+			PIDWarmWater.SetMode(AUTOMATIC);
+			PIDWarmWater.Compute();
+			PumpWarmWater.setMassFlowRate(PumpWarmWater.Power*PumpWarmWater.getMaxMassFlowRate());
+		}
+	}
+	else
+	{
+		//     stop pump
+		PumpWarmWater.setMassFlowRate(0.0);
+		//     close valve
+		ValveWarmWater.set(false);
+	}
 }
 
-double cHeating::TempHeatingLead(){
-    return (OffsetTempHeatingLead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempHeatingLead));}
-double cHeating::TempHeatingReturn(){
-    return (OffsetTempHeatingReturn + Temperatures.getTemp(SystempMultiplexer,MultiplexTempHeatingReturn));}
-double cHeating::TempHeatSource1Lead(){
-    return (OffsetTempHeatSource1Lead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempHeatSource1Lead));}
-double cHeating::TempHeatSource1Return(){
-    return (OffsetTempHeatSource1Lead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempHeatSource1Return));}
-double cHeating::TempHeatSource1Operation(){
-    return (OffsetTempHeatSource1Operation + Temperatures.getTemp(SystempMultiplexer,MultiplexTempHeatSource1Operation));}
+
 double cHeating::TempSolarReturn(){
-    return (OffsetTempSolarReturn + Temperatures.getTemp(SystempMultiplexer,MultiplexTempSolarReturn));}
+return (OffsetTempSolarReturn + Temperatures.getTemp(SystemMultiplexer,MultiplexTempSolarReturn));}
 double cHeating::TempSolarLead(){
-    return (OffsetTempSolarLead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempSolarLead));}
+return (OffsetTempSolarLead + Temperatures.getTemp(SystemMultiplexer,MultiplexTempSolarLead));}
 double cHeating::TempWarmWater(){
-    return (OffsetTempWarmWater + Temperatures.getTemp(SystempMultiplexer,MultiplexTempWarmWater));}
-double cHeating::TempCirculationReturn(){
-    return (OffsetTempCirculationReturn + Temperatures.getTemp(SystempMultiplexer,MultiplexTempCirculationReturn));}
+return (OffsetTempWarmWater + Temperatures.getTemp(SystemMultiplexer,MultiplexTempWarmWater));}
 double cHeating::IntensitySolar(){
-    return (OffsetSolarIntensity + Temperatures.getTemp(SystempMultiplexer,MultiplexSolarIntensity));}
-double cHeating::TempOutside(){
-    return (OffsetTempOutside + Temperatures.getTemp(SystempMultiplexer,MultiplexTempOutside));}
+return (OffsetSolarIntensity + Temperatures.getTemp(SystemMultiplexer,MultiplexSolarIntensity));}

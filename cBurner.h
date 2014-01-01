@@ -9,28 +9,22 @@
 class cBurner
 {
   private:
+  cValve Valve;
+  cTempSingle TempLead;
+  cTempSingle TempReturn;
+  cTempSingle TempOperation;// 80 Grad Notabschaltung
+  
+  boolean _bResidualHeat;
+
+  
+  public:
     boolean _bFlame;
-    boolean _bRemainingHeat;
-    double _fTempHave;
-    
-    
-    
     unsigned long _StartTime;
     unsigned long _MinBurnTime;
-    
-  public:
-    cBurner(void);
-    
-    cValve Valve;
-    void run(boolean);
-    double haveTemp(void);
-    boolean Burn(boolean bFlame);
-    void stop(void);
-    float TempLead();
-    float TempReturn();
-    float TempOperation();// 80 Grad Notabschaltung
-    // Probing: Valveopen, Pulsen, Heizungladen, Vorrang, regeln!
-    
+  
+  cBurner(void);
+  boolean burn(boolean, double); 
+  
 };
 
 #endif

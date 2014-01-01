@@ -3,62 +3,70 @@
 
 cBoiler::cBoiler(void)
 :Valve(PinValveBoilerOpen,PinValveBoilerClose),
-PIDBoilerCharge(&_TempBoilerCharge, &PumpBoilerCharge.Power, &_SpTempBoilerCharge, 0.01, 0.001, 0.05, DIRECT)
+PIDBoilerCharge(&_TempBoilerCharge, &PumpBoilerCharge.Power, &_SpTempBoilerCharge, 0.02, 0.005, 0, REVERSE),
+TempBoilerCharge(SystemMultiplexer,MultiplexTempBoilerCharge,OffsetTempBoilerCharge),
+TempBoilerReserve1(SystemMultiplexer,MultiplexTempBoilerReserve1,OffsetTempBoilerReserve1),
+TempBoilerReserve2(SystemMultiplexer,MultiplexTempBoilerReserve2,OffsetTempBoilerReserve2),
+TempBoilerHead(SystemMultiplexer,MultiplexTempBoilerHead,OffsetTempBoilerHead),
+TempBoilerTop(SystemMultiplexer,MultiplexTempBoilerTop,OffsetTempBoilerTop)
 {
   // Set minimal Pump Power to about 10%
-  PIDBoilerCharge.SetOutputLimits(0.1, 1);
-  
-  Temperatures;
-  PumpBoilerCharge.setPinPump(PinPumpBoiler);
-  PumpBoilerCharge.setMaxMassFlowRate(PumpBoilerChargeMaxMassFlowRate);
-  _needHeating =false;
-}
-
-
-double cBoiler::TempChargeWarmWater(void)
-{
-  _TempChargeWarmWater = SpTempWarmWater+2;
-  
-  return _TempChargeWarmWater;
-}
-
-
-double cBoiler::TempChargeHeating(void)
-{
-  _TempChargeHeating = max(SpTempHeatingLead+2, TempBoilerReserve2()+4);
-  
-  return _TempChargeHeating;
-}
-
-
-void cBoiler::charge(double SpCharge)
-{
-  // Open Charge valve
-  Valve.set(true);
-  
-  // Set setpoint for PID Controller
-  _SpTempBoilerCharge = SpCharge;
-
-  // Run PID for Pump
-  PIDBoilerCharge.SetMode(AUTOMATIC);
-  PIDBoilerCharge.Compute();
-  
-  // Run Pump
-  PumpBoilerCharge.setMassFlowRate(PumpBoilerCharge.Power*PumpBoilerCharge.getMaxMassFlowRate());
-}
-
-
-void cBoiler::stop(void)
-{
-  // Stop PID
+  PIDBoilerCharge.SetOutputLimits(0.2, 1);
   PIDBoilerCharge.SetMode(MANUAL);
   
-  // Stop Pump
-  PumpBoilerCharge.setMassFlowRate(0.0);
+  PumpBoilerCharge.setPinPump(PinPumpBoiler);
+  PumpBoilerCharge.setMaxMassFlowRate(PumpBoilerChargeMaxMassFlowRate);
+}
+
+
+double cBoiler::SpTempChargeWarmWater(void)
+{
+  double TempChargeWarmWater = SpTempWarmWater+ChargeWarmWaterOffset;
   
-  // Close Charge valve
-  Valve.set(false);
+  return TempChargeWarmWater;
+}
+
+
+double cBoiler::SpTempChargeHeating(void)
+{
+  double TempChargeHeating = max(_SpTempHeatingLead+ChargeHeatingOffset, TempBoilerReserve1.get()+ChargeHeatingOffset);
   
+  return TempChargeHeating;
+}
+
+
+void cBoiler::charge(boolean bSourceReady,double SpCharge)
+{
+	if (bSourceReady)
+	{
+		// Open Charge valve
+		Valve.set(true);
+		
+		// Set setpoint for PID Controller
+		_SpTempBoilerCharge = SpCharge;
+		// Read in charging temperature for PID Controller
+		_TempBoilerCharge = TempBoilerCharge.get();
+
+		// Run PID for Pump
+		//   Time optimal control
+		//   if _SpTempBoilerCharge
+		PIDBoilerCharge.SetMode(AUTOMATIC);
+		PIDBoilerCharge.Compute();
+		
+		// Run Pump
+		PumpBoilerCharge.setMassFlowRate(PumpBoilerCharge.Power*PumpBoilerCharge.getMaxMassFlowRate());
+	}
+	else // Stop Charging
+	{
+		// Stop PID
+		PIDBoilerCharge.SetMode(MANUAL);
+		  
+		// Stop Pump
+		PumpBoilerCharge.setMassFlowRate(0.0);
+		  
+		// Close Charge valve
+		Valve.set(false);
+	}	
 }
 
 
@@ -68,16 +76,16 @@ void cBoiler::stop(void)
 double cBoiler::needHeating(void)
 {
   // need = Setpoint - Actual Value
-  _needHeating = SpTempHeatingLead -TempBoilerReserve2();
+  double need = _SpTempHeatingLead -TempBoilerReserve2.get();
   
-  return _needHeating;
+  return need;
 }
 
 
 double cBoiler::haveHeating(void)
 {
-  // need = Setpoint - Actual Value
-  double have = -(SpTempHeatingLead - TempBoilerReserve2());
+  // have = -(Setpoint - Actual Value)
+  double have = -(_SpTempHeatingLead - TempBoilerReserve1.get());
   
   return have;
 }
@@ -86,28 +94,21 @@ double cBoiler::haveHeating(void)
 double cBoiler::needWarmWater(void)
 {
   // need = Setpoint - Actual Value
-  _needWarmWater = SpTempWarmWater - TempBoilerTop();
+  double need = SpTempWarmWater - TempBoilerTop.get();
   
-  return _needWarmWater;
+  return need;
 }
 
 
 double cBoiler::haveWarmWater(void)
 {
-  // need = Setpoint - Actual Value
-  double have = -(SpTempWarmWater - TempBoilerHead());
+  // have = -(Setpoint - Actual Value)
+  double have = -(SpTempWarmWater - TempBoilerHead.get());
   
   return have;
 }
 
-
-double cBoiler::TempBoilerCharge(){
-    return (OffsetTempBoilerCharge + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerCharge));}
-double cBoiler::TempBoilerReserve1(){
-    return (OffsetTempBoilerReserve1 + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerReserve1));}
-double cBoiler::TempBoilerReserve2(){
-    return (OffsetTempBoilerReserve2 + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerReserve2));}
-double cBoiler::TempBoilerHead(){
-    return (OffsetTempBoilerHead + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerHead));}
-double cBoiler::TempBoilerTop(){
-    return (OffsetTempBoilerTop + Temperatures.getTemp(SystempMultiplexer,MultiplexTempBoilerTop));}
+void cBoiler::setSpTempHeatingLead( double SpTempHeatingLead )
+{
+	_SpTempHeatingLead = SpTempHeatingLead;
+}

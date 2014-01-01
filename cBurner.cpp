@@ -1,62 +1,64 @@
 #include "cBurner.h"
 
 cBurner::cBurner()
-:Valve(PinValveHeatSource1Open,PinValveHeatSource1Close)
+:Valve(PinValveHeatSource1Open,PinValveHeatSource1Close),
+TempLead(SystemMultiplexer,MultiplexTempHeatSource1Lead,OffsetTempHeatSource1Lead),
+TempReturn(SystemMultiplexer,MultiplexTempHeatSource1Return,OffsetTempHeatSource1Return),
+TempOperation(SystemMultiplexer,MultiplexTempHeatSource1Operation,OffsetTempHeatSource1Operation)
 {
-  _MinBurnTime = 20*60*1000;// 20 Minutes in Milliseconds
-}
-
-double cBurner::haveTemp(void)
-{
-  _fTempHave = TempOperation();
-  
-  if ((_bFlame==true)&& (TempOperation()>30)){
-    _fTempHave= 100;
-  }
-  
-  
-  return _fTempHave;
+	_bFlame = false;
+	_bResidualHeat = true;
+	_StartTime =  millis();
+	//_MinBurnTime = 240000;// 20 Minutes in Milliseconds
+	_MinBurnTime = 5*60*1000;// 5 Minutes in Milliseconds
 }
 
 
-void cBurner::run(boolean bBurn)
+boolean cBurner::burn(boolean bShallBurn, double SpTempBoilerCharge)
 {
-  unsigned long time = millis();
-  
-  if ((bBurn == true) && (_bFlame == false)){
-    _StartTime = time;
-    _bFlame = true;
-  }
-  
-  if ((bBurn == false) && (time > _StartTime + _MinBurnTime)) {
-    _bFlame = false;
-    
-    _bRemainingHeat = true; // Remaining Heat sequence triggered
-  }
-  
-  if (_bFlame){
-    Valve.set(true);
-    digitalWrite(PinStartHeatSource1, LOW); // Start Burner (start on Low)
-  }
-  else {
-    digitalWrite(PinStartHeatSource1, HIGH); // Stop Burner (stop on High)
-  }
+	boolean bReady;
+	
+	// Start Burner flame and residual heat sequence
+	if (bShallBurn && !_bFlame)
+	{
+		_StartTime = millis();
+		_bFlame = true;
+		_bResidualHeat = true;
+	}
+	
+	// Stop Burner flame sequence
+	if (!bShallBurn && (millis() > _StartTime + _MinBurnTime))
+	{
+		_bFlame = false;
+	}
+	
+	// Execute State
+	// Start Burner (start on Low), Stop Burner (stop on High)
+	digitalWrite(PinStartHeatSource1, !_bFlame);
+	
+	// Is there residual heat?
+	if (TempOperation.get() < SpTempBoilerCharge-2)
+	{
+		_bResidualHeat = false;
+	}
+	else if (TempOperation.get() > SpTempBoilerCharge+5)
+	{
+		_bResidualHeat = true;
+	}
+	
+	bReady = (_bFlame || _bResidualHeat);
+	
+	// If yes, open valve
+	Valve.set(bReady);
+	//if (bReady)
+	//{
+		//Valve.set(true);
+	//}
+	//else
+	//{
+		//Valve.set(false);
+	//}
+	
+	// Return if there is residual heat so that charging of boiler continues
+	return bReady;
 }
-
-void cBurner::stop(void)
-{
-  // Shut off Flame
-  _bFlame= false;
-  run(false);
-  
-  // Close Valve
-  Valve.set(false);
-  
-}
-
-float cBurner::TempLead(){
-    return readTemperature(SystempMultiplexer,MultiplexTempHeatSource1Lead);}
-float cBurner::TempReturn(){
-    return readTemperature(SystempMultiplexer,MultiplexTempHeatSource1Return);}
-float cBurner::TempOperation(){
-    return readTemperature(SystempMultiplexer,MultiplexTempHeatSource1Operation);}
