@@ -3,90 +3,31 @@
 
 cMixer::cMixer(void)
 {
-  //Set the time to switch on and off the Pump
-  _LastTimePeriod = millis();
-  cMixer::set(0);
-}
-
-cMixer::cMixer(float Power)
-{
-  //Set the time to switch on and off the Mixer
-  _LastTimePeriod = millis();
-  cMixer::set(Power);
+	PWM;
+	PWM.setPeriod(5000);
 }
 
 /* Switches the Pump on and off corresponding to the power level
-   After each Period the length of the period gets adjusted.
+After each Period the length of the period gets adjusted.
 */
-void cMixer::run(void)
+void cMixer::run(double Power)
 {
-  // Calculate the Period
-  cMixer::calcPeriod();
-  // Set the end time of the current Period
-  _TimePeriod = round(_LastTimePeriod + _Period);
-  // Set the next switching Time
-  _TimeSwitch = round(_LastTimePeriod + _Power*_Period);
-  // TimeSwitch reached
-  
-  if (_Power>=0)
-  {
-    digitalWrite(PinMixerClose, HIGH); // Do not drive in negative direction
-    
-    if(millis()>=_TimeSwitch)
-    {
-      digitalWrite(PinMixerOpen, LOW); // Pump switched off
-    }
-    // The Switching time got readjusted and the Pump 
-    // needs to be switched on again
-    else
-    {
-      digitalWrite(PinMixerOpen, HIGH); // Pump switched on
-    }
-    // TimePeriod is over and new period starts
-    if(millis()>=_TimePeriod)
-    {
-      //Set the next Last Period Time
-      _LastTimePeriod = millis();
-    }
-  }
-  else
-  {
-    digitalWrite(PinMixerOpen, HIGH); // Do not drive in negative direction
-    
-    if(millis()>=_TimeSwitch)
-    {
-      digitalWrite(PinMixerClose, LOW); // Pump switched off
-    }
-    // The Switching time got readjusted and the Pump 
-    // needs to be switched on again
-    else
-    {
-      digitalWrite(PinMixerClose, HIGH); // Pump switched on
-    }
-    // TimePeriod is over and new period starts
-    if(millis()>=_TimePeriod)
-    {
-      //Set the next Last Period Time
-      _LastTimePeriod = millis();
-    }
-  }
+	boolean direction;
+	
+	direction = (Power>=0);
+	
+	// Check PWM and hysteresis
+	if(PWM.get(Power)&&(abs(Power)> 0.1))
+	{
+		// Drive in direction
+		digitalWrite(PinMixerClose, direction);
+		digitalWrite(PinMixerOpen, !direction);
+	}
+	else
+	{
+		// Stop
+		digitalWrite(PinMixerClose, HIGH);
+		digitalWrite(PinMixerOpen, HIGH);
+	}
 }
 
-float cMixer::get()
-{
-  return _Power;
-}
-
-void cMixer::set(float Power)
-{
-  //this->_Value = Value;
-  _Power = Power;  
-  cMixer::run();
-
-}
-
-void cMixer::calcPeriod()
-{
-  //Default _Period = 10 sec = 10000ms
-  _Period = 10000;
-}
