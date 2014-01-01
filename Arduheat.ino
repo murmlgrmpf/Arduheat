@@ -36,7 +36,7 @@ cHeating Heating;
  */
 void  setup()
 {
-  Serial.begin(57600);
+  Serial.begin(115200);
   Serial.println("Steuerung");
   attachInterrupt(4,incCounter,RISING);
   PinInitialization();
