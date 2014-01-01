@@ -6,22 +6,21 @@
 
 class cRoomValve
 {
-  private:
-    int _iPinOpen;
-    int _iPinClose;
-    boolean _bState;
-    
-    void run(void);
-    
-  public:
-    cRoomValve(void);
-    cRoomValve(int iPinOpen,int iPinClose);
-    cRoomValve(int iPinOpen,int iPinClose, boolean bState);
-    //~Pump();
-    void setPinOpen(int iPinOpen);
-    void setPinClose(int iPinClose);
-    boolean get();
-    void set(boolean bState);
+	private:
+	int _iPinOpen;
+	int _iPinClose;
+	boolean _bState;
+	
+	public:
+	cRoomValve(void);
+	cRoomValve(int iPinOpen);
+	cRoomValve(int iPinOpen,int iPinClose);
+	cRoomValve(int iPinOpen,int iPinClose, boolean bState);
+	//~Pump();
+	void setPinOpen(int iPinOpen);
+	void setPinClose(int iPinClose);
+	boolean get();
+	void set(boolean bState);
 };
 
 #endif
