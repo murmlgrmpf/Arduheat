@@ -19,19 +19,23 @@ class cRoom
 	double _need;
 	double _dSpTempSchedule;
 	
+	PID pid;
+	/// Each room has a valve
+	cRoomValve Valve;
+	cTempSingle IsTemp;
+	cTempSingle SpTemp;
+
+	void setRoomNumber(int iRoomNumber);
+	
 	public:
 	/// Creates a room.
 	/** As the rooms get created in an array, only the default constructor can be used */
 	cRoom(void);
 	cRoom(int iRoomNumber);
 	//~cRoom();
-	/// Each room has a valve
+	/// To initialize the rooms
 	void init(int iRoomNumber);
-	cRoomValve Valve;
-	PID pid;
-	cTempSingle IsTemp;
-	cTempSingle SpTemp;
-	void setRoomNumber(int iRoomNumber);
+	
 	void setSpTempSchedule(double fSpTempSchedule);
 	double getIsTemp(void);
 	double getSpTemp(void);

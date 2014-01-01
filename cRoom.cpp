@@ -32,6 +32,7 @@ void cRoom::init( int iRoomNumber )
 	Valve.setPinOpen(RoomValvePin[iRoomNumber-1]);
 	
 	pid.SetOutputLimits(0, 1);
+	pid.SetMode(AUTOMATIC);
 }
 
 
@@ -97,10 +98,11 @@ double cRoom::getSpTemp(void)
 
 double cRoom::getNeed(void)
 {
+	// Get updates of temperatures
 	getSpTemp();
 	getIsTemp();
+	
 	// Compute need
-	pid.SetMode(AUTOMATIC);
 	pid.Compute();
 	
 	// Open Valve if heat is needed
