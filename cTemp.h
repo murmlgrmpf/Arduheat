@@ -49,6 +49,26 @@ class cTemp
     
 };
 
+class cTempSingle
+{
+	private:
+	float _TempFilt;
+	double _dOffset;
+	
+	float _alphaT;
+	int _iMultiplexNumber;
+	int _iMultiplexConnector;
+
+	unsigned long _TimePeriod;
+	unsigned long _LastTime;
+	
+	public:
+	cTempSingle(int iMultiplexNumber,int iMultiplexConnector, double dOffset);
+	cTempSingle(void);
+	double get(void);
+	void set(int iMultiplexNumber,int iMultiplexConnector, double Offset);
+};
+
 float readTemperature(int iMultiplexNumber,int iMultiplexConnector);
 void setMultiplexer(int i);
 #endif

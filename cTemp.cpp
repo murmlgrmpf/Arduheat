@@ -5,7 +5,8 @@ cTemp::cTemp(void)
   // Initialize temperatures
   for (int j=0; j<16; j++){
     for (int i = 0; i<3; i++) {
-       _TempFilt[j][i] = readTemperature(i+1,j);
+//        _TempFilt[j][i] = readTemperature(i+1,j);
+       _TempFilt[j][i] = 60;
     }
   }
   
@@ -38,6 +39,42 @@ float cTemp::getTemp(int iMultiplexNumber,int iMultiplexConnector)
   cTemp::run();
   
   return(_TempFilt[iMultiplexConnector][iMultiplexNumber-1]);
+}
+
+cTempSingle::cTempSingle(void)
+{
+	set(0,0,0);
+}
+
+cTempSingle::cTempSingle(int iMultiplexNumber,int iMultiplexConnector, double Offset)
+{
+	set(iMultiplexNumber,iMultiplexConnector,Offset);
+}
+
+void cTempSingle::set(int iMultiplexNumber,int iMultiplexConnector, double Offset)
+{
+	_iMultiplexNumber = iMultiplexNumber;
+	_iMultiplexConnector = iMultiplexConnector;
+	_dOffset = Offset;
+	
+	// Initialize temperatures
+	_TempFilt = 60;
+	
+	_LastTime = millis();
+	_TimePeriod = 100;
+	// exponential filtering coefficient [1/#Measurements]
+	_alphaT = AlphaT*_TimePeriod/1000;
+}
+
+double cTempSingle::get(void)
+{
+	if(millis() > _LastTime+_TimePeriod)
+	{
+		_TempFilt = (_alphaT/(_alphaT+1))*readTemperature(_iMultiplexNumber,_iMultiplexConnector)  + 1/(_alphaT+1)*_TempFilt;
+		_LastTime = millis();
+	}
+	
+	return(_TempFilt+_dOffset);
 }
 
 
@@ -86,13 +123,13 @@ float readTemperature(int iMultiplexNumber,int iMultiplexConnector)
  * @brief The function sets the steering pins A0..A3 of the multiplexers to the correct values.
  * @param i Number of the sensor input channel to be read from the multiplexers
  */
-void setMultiplexer(int i)
+void setMultiplexer(int iMultiplexConnector)
 {
   //delay(2000);
   //Serial.println("DebugMultiplexer");
   //
-  digitalWrite(MultiplexControl1,HIGH && (i & B00000001));
-  digitalWrite(MultiplexControl2,HIGH && (i & B00000010));
-  digitalWrite(MultiplexControl3,HIGH && (i & B00000100));
-  digitalWrite(MultiplexControl4,HIGH && (i & B00001000));
+  digitalWrite(MultiplexControl1,HIGH && (iMultiplexConnector & B00000001));
+  digitalWrite(MultiplexControl2,HIGH && (iMultiplexConnector & B00000010));
+  digitalWrite(MultiplexControl3,HIGH && (iMultiplexConnector & B00000100));
+  digitalWrite(MultiplexControl4,HIGH && (iMultiplexConnector & B00001000));
 }
