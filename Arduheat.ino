@@ -4,6 +4,7 @@
 #include "cPump.h"
 #include "cRoom.h"
 #include "cHeating.h"
+#include "cWarmWater.h"
 #include <PID_v1.h>
 
 #define LiterPerImpuls 0.009263548
@@ -27,6 +28,7 @@ boolean trigger = false;
 
 float PumpState =0;
 
+cWarmWater WarmWater;
 cHeating Heating;
 
 
@@ -59,7 +61,7 @@ void  setup()
 void loop()
 {
    Heating.Control();
-   Heating.ControlWarmWater();
+   WarmWater.Control();
   
   DataAcquisition(false);
   CheckTime();
@@ -68,7 +70,7 @@ void loop()
 
 void incCounter()
 {
-   Heating.FlowMeter.incCounter();
+   WarmWater.FlowMeter.incCounter();
 }
 
 

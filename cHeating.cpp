@@ -1,21 +1,17 @@
 #include "cHeating.h"
 
 
-cHeating::cHeating(void)
-:ValveWarmWater(PinValveWarmWaterOpen,PinValveWarmWaterClose),
+cHeating::cHeating(void):
 ValveHeatSource1(PinValveHeatSource1Open,PinValveHeatSource1Close),
-PIDWarmWater(&_TempWarmWater, &PumpWarmWater.Power, &_SpTempWarmWater, 0.01, 0.001, 0.05, DIRECT),
 PIDPumpHeating(&_dIsTempHeatingReturn, &PumpHeating.Power, &_dSpTempHeatingReturn, 0.001, 0.0001, 0.005, DIRECT),
 PIDMixer(&_dIsTempHeatingLead, &_dPowerMixer, &_dSpTempHeatingLead, 0.001, 0.0, 0.005, DIRECT),
 IsTempHeatingLead(SystemMultiplexer,MultiplexTempHeatingLead,OffsetTempHeatingLead),
 IsTempHeatingReturn(SystemMultiplexer,MultiplexTempHeatingReturn,OffsetTempHeatingReturn),
-PumpWarmWater(PinPumpWarmWater),
 PumpSolar(PinPumpSolar),
 PumpHeating(PinPumpHeating),
 PumpCirculation(PinPumpCirculation)
 {
 	_dPowerMixer = 0;
-	_SpTempWarmWater = SpTempWarmWater;
 	
 	// Initialize room numbers and Pins
 	for(int i = 0; i<16; i++)
@@ -25,9 +21,6 @@ PumpCirculation(PinPumpCirculation)
 	}
 	
 	// Initialize PID controllers for pumps
-	PIDWarmWater.SetOutputLimits(0.0, 1.0);
-	PIDWarmWater.SetMode(MANUAL);
-	
 	PIDPumpHeating.SetOutputLimits(0.4, 1.0);
 	PIDPumpHeating.SetMode(MANUAL);
 	
@@ -116,68 +109,3 @@ void cHeating::Control(void){
 	
 }
 
-
-void cHeating::ControlWarmWater(){
-	
-	// Warm Water needed
-	if(FlowMeter.get()>0.0)
-	{
-		// Set Variable value to actual temperature for PID
-		_TempWarmWater = TempWarmWater();
-		
-		//    timeoptimal control until 7 degrees below Setpoint
-		if(TempWarmWater()<=SpTempWarmWater - 7)
-		{
-			//      turn the PID on
-			PIDWarmWater.SetMode(MANUAL);
-			//      open Valve
-			ValveWarmWater.set(true);
-			//      Set Pump to maximum mass flow rate
-			PumpWarmWater.setPower(1.0);
-		}
-		//    Close valve if overshoot is occuring
-		else if (TempWarmWater()>=SpTempWarmWater+2)
-		{
-			PIDWarmWater.SetMode(MANUAL);
-			//     stop pump
-			PumpWarmWater.setPower(0.0);
-			//     close valve
-			ValveWarmWater.set(false);
-		}
-		else
-		{
-			//      open Valve
-			ValveWarmWater.set(true);
-			
-			//************************
-			//      open loop control
-			//      fMassFlowPumpWarmWater = HxWarmWater.calcMassflow(SetpointTempWarmWater, 8.1560, TempBoilerTop(), FlowMeter.get() );
-			//      PumpWarmWater.setMassFlowRate(fMassFlowPumpWarmWater);
-			//************************
-			
-			//      closed loop control
-			//      turn the PID on
-			//      It takes over the last ouput value of the pid controller to be the initial value for integral part
-			PIDWarmWater.SetMode(AUTOMATIC);
-			PIDWarmWater.Compute();
-			PumpWarmWater.setPower(PumpWarmWater.Power);
-		}
-	}
-	else
-	{
-		//     stop pump
-		PumpWarmWater.setPower(0.0);
-		//     close valve
-		ValveWarmWater.set(false);
-	}
-}
-
-
-double cHeating::TempSolarReturn(){
-return (OffsetTempSolarReturn + Temperatures.getTemp(SystemMultiplexer,MultiplexTempSolarReturn));}
-double cHeating::TempSolarLead(){
-return (OffsetTempSolarLead + Temperatures.getTemp(SystemMultiplexer,MultiplexTempSolarLead));}
-double cHeating::TempWarmWater(){
-return (OffsetTempWarmWater + Temperatures.getTemp(SystemMultiplexer,MultiplexTempWarmWater));}
-double cHeating::IntensitySolar(){
-return (OffsetSolarIntensity + Temperatures.getTemp(SystemMultiplexer,MultiplexSolarIntensity));}
