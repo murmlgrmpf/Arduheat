@@ -9,8 +9,6 @@
 #include "WProgram.h"
 #endif
 
-// Default period is 10sec
-#define DefaulTimePeriod 10000
 
 class cLFPWM
 {
@@ -22,8 +20,8 @@ class cLFPWM
 	void setPower(double Power);
 
 	public:
-	cLFPWM(void);
-	cLFPWM(unsigned long TimePeriod);
+	// Default period is 10sec
+	cLFPWM(unsigned long TimePeriod = 10000);
 	void setPeriod(unsigned long TimePeriod);
 
 	boolean get(double Power);

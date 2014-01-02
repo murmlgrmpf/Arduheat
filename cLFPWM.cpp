@@ -4,10 +4,6 @@
 
 #include "cLFPWM.h"
 
-cLFPWM::cLFPWM( void )
-{
-	cLFPWM( DefaulTimePeriod );
-}
 
 cLFPWM::cLFPWM( unsigned long TimePeriod )
 {
@@ -30,7 +26,7 @@ void cLFPWM::setPower( double Power )
 
 boolean cLFPWM::get( double Power )
 {
-	//Adjust power level
+	// Adjust power level
 	setPower(Power);
 	// get state of PWM cycle
 	return get();
