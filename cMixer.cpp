@@ -1,10 +1,10 @@
 #include "cMixer.h"
 
 
-cMixer::cMixer(void)
+cMixer::cMixer(void):
+PWM(5000)
 {
-	PWM;
-	PWM.setPeriod(5000);
+
 }
 
 /* Switches the Pump on and off corresponding to the power level
