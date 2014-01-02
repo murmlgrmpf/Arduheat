@@ -2,7 +2,10 @@
 
 cSolar::cSolar()
 :Valve(PinValveSolarOpen,PinValveSolarClose),
-Pump(PinPumpSolar)
+Pump(PinPumpSolar),
+TempLead(SystemMultiplexer,MultiplexTempSolarLead,OffsetTempSolarLead),
+TempReturn(SystemMultiplexer,MultiplexTempSolarReturn,OffsetTempSolarReturn),
+Intensity(SystemMultiplexer,MultiplexSolarIntensity,OffsetSolarIntensity)
 {
   Probe(true);
 }
@@ -16,10 +19,3 @@ void cSolar::run(void)
 {
   
 }
-
-float cSolar::TempLead(){
-   return readTemperature(SystemMultiplexer,MultiplexTempSolarLead);}
-float cSolar::TempReturn(){
-   return readTemperature(SystemMultiplexer,MultiplexTempSolarReturn);}
-float cSolar::Intensity(){
-   return readTemperature(SystemMultiplexer,MultiplexSolarIntensity);}

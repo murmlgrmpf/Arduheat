@@ -9,21 +9,21 @@
 
 class cSolar
 {
-  private:
-  boolean _bFlame;
-  void run(void);
+	private:
+	boolean _bFlame;
+	void run(void);
+	cTempSingle TempLead;
+	cTempSingle TempReturn;
+	cTempSingle Intensity;
+	cValve Valve;
+	cPump Pump;
+	
+	public:
+	cSolar();
+	
 
-    
-  public:
-    cSolar();
-    
-    cValve Valve;
-    cPump Pump;
-    
-    void Probe(boolean bFlame);
-    float TempLead();
-    float TempReturn();
-    float Intensity();
+	
+	void Probe(boolean bFlame);
 };
 
 #endif
