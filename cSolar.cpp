@@ -1,16 +1,15 @@
 #include "cSolar.h"
 
 cSolar::cSolar()
-:Valve(PinValveSolarOpen,PinValveSolarClose)
+:Valve(PinValveSolarOpen,PinValveSolarClose),
+Pump(PinPumpSolar)
 {
-  Pump.setPinPump(PinPumpSolar);
-  Pump.setMaxMassFlowRate(1);
   Probe(true);
 }
 
 void cSolar::Probe(boolean bFlame)
 {
-  Pump.setMassFlowRate(0.5*Pump.getMaxMassFlowRate());
+  Pump.setPower(0.5);
 }
 
 void cSolar::run(void)

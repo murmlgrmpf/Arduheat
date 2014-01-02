@@ -8,14 +8,12 @@ TempBoilerCharge(SystemMultiplexer,MultiplexTempBoilerCharge,OffsetTempBoilerCha
 TempBoilerReserve1(SystemMultiplexer,MultiplexTempBoilerReserve1,OffsetTempBoilerReserve1),
 TempBoilerReserve2(SystemMultiplexer,MultiplexTempBoilerReserve2,OffsetTempBoilerReserve2),
 TempBoilerHead(SystemMultiplexer,MultiplexTempBoilerHead,OffsetTempBoilerHead),
-TempBoilerTop(SystemMultiplexer,MultiplexTempBoilerTop,OffsetTempBoilerTop)
+TempBoilerTop(SystemMultiplexer,MultiplexTempBoilerTop,OffsetTempBoilerTop),
+PumpBoilerCharge(PinPumpBoiler)
 {
   // Set minimal Pump Power to about 10%
   PIDBoilerCharge.SetOutputLimits(0.2, 1);
   PIDBoilerCharge.SetMode(MANUAL);
-  
-  PumpBoilerCharge.setPinPump(PinPumpBoiler);
-  PumpBoilerCharge.setMaxMassFlowRate(PumpBoilerChargeMaxMassFlowRate);
 }
 
 
@@ -54,7 +52,7 @@ void cBoiler::charge(boolean bSourceReady,double SpCharge)
 		PIDBoilerCharge.Compute();
 		
 		// Run Pump
-		PumpBoilerCharge.setMassFlowRate(PumpBoilerCharge.Power*PumpBoilerCharge.getMaxMassFlowRate());
+		PumpBoilerCharge.setPower(PumpBoilerCharge.Power);
 	}
 	else // Stop Charging
 	{
@@ -62,7 +60,7 @@ void cBoiler::charge(boolean bSourceReady,double SpCharge)
 		PIDBoilerCharge.SetMode(MANUAL);
 		  
 		// Stop Pump
-		PumpBoilerCharge.setMassFlowRate(0.0);
+		PumpBoilerCharge.setPower(0.0);
 		  
 		// Close Charge valve
 		Valve.set(false);

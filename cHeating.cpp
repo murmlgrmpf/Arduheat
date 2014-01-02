@@ -8,7 +8,11 @@ PIDWarmWater(&_TempWarmWater, &PumpWarmWater.Power, &_SpTempWarmWater, 0.01, 0.0
 PIDPumpHeating(&_dIsTempHeatingReturn, &PumpHeating.Power, &_dSpTempHeatingReturn, 0.001, 0.0001, 0.005, DIRECT),
 PIDMixer(&_dIsTempHeatingLead, &_dPowerMixer, &_dSpTempHeatingLead, 0.001, 0.0, 0.005, DIRECT),
 IsTempHeatingLead(SystemMultiplexer,MultiplexTempHeatingLead,OffsetTempHeatingLead),
-IsTempHeatingReturn(SystemMultiplexer,MultiplexTempHeatingReturn,OffsetTempHeatingReturn)
+IsTempHeatingReturn(SystemMultiplexer,MultiplexTempHeatingReturn,OffsetTempHeatingReturn),
+PumpWarmWater(PinPumpWarmWater),
+PumpSolar(PinPumpSolar),
+PumpHeating(PinPumpHeating),
+PumpCirculation(PinPumpCirculation)
 {
 	_dPowerMixer = 0;
 	_SpTempWarmWater = SpTempWarmWater;
@@ -20,21 +24,12 @@ IsTempHeatingReturn(SystemMultiplexer,MultiplexTempHeatingReturn,OffsetTempHeati
 		Rooms[i].init(i+1);
 	}
 	
-	// Initialize Pumps and PID controllers
-	PumpWarmWater.setPinPump(PinPumpWarmWater);
-	PumpWarmWater.setMaxMassFlowRate(PumpWarmWaterMaxMassFlowRate);
+	// Initialize PID controllers for pumps
 	PIDWarmWater.SetOutputLimits(0.0, 1.0);
 	PIDWarmWater.SetMode(MANUAL);
 	
-	PumpSolar.setPinPump(PinPumpSolar);
-	PumpSolar.setMaxMassFlowRate(1);
-	
-	PumpHeating.setPinPump(PinPumpHeating);
-	PumpHeating.setMaxMassFlowRate(1);
 	PIDPumpHeating.SetOutputLimits(0.4, 1.0);
 	PIDPumpHeating.SetMode(MANUAL);
-	
-	PumpCirculation.setPinPump(PinPumpCirculation);
 	
 	PIDMixer.SetOutputLimits(-1.0, 1.0);
 	PIDMixer.SetMode(MANUAL);
@@ -89,20 +84,20 @@ void cHeating::Control(void){
 		// Run heating pump and PID
 		PIDPumpHeating.SetMode(AUTOMATIC);
 		PIDPumpHeating.Compute();
-		PumpHeating.setMassFlowRate(PumpHeating.Power);
+		PumpHeating.setPower(PumpHeating.Power);
 	}
 	else
 	{
 		// Stop Pump Heating and PID
 		PIDPumpHeating.SetMode(MANUAL);
-		PumpHeating.setMassFlowRate(0.0);
+		PumpHeating.setPower(0.0);
 		// Stop mixer PID and run Mixer to closed position
 		PIDMixer.SetMode(MANUAL);
 		Mixer.run(-1.0);
 	}
 	
 	// Run solar pump to avoid boiling
-	PumpSolar.setMassFlowRate(0.0*PumpSolar.getMaxMassFlowRate());
+	PumpSolar.setPower(0.0);
 	
 	if(Boiler.haveWarmWater() > 0.0)
 	{ // If Warmwater is full, load into heating
@@ -138,14 +133,14 @@ void cHeating::ControlWarmWater(){
 			//      open Valve
 			ValveWarmWater.set(true);
 			//      Set Pump to maximum mass flow rate
-			PumpWarmWater.setMassFlowRate(PumpWarmWater.getMaxMassFlowRate());
+			PumpWarmWater.setPower(1.0);
 		}
 		//    Close valve if overshoot is occuring
 		else if (TempWarmWater()>=SpTempWarmWater+2)
 		{
 			PIDWarmWater.SetMode(MANUAL);
 			//     stop pump
-			PumpWarmWater.setMassFlowRate(0.0);
+			PumpWarmWater.setPower(0.0);
 			//     close valve
 			ValveWarmWater.set(false);
 		}
@@ -165,13 +160,13 @@ void cHeating::ControlWarmWater(){
 			//      It takes over the last ouput value of the pid controller to be the initial value for integral part
 			PIDWarmWater.SetMode(AUTOMATIC);
 			PIDWarmWater.Compute();
-			PumpWarmWater.setMassFlowRate(PumpWarmWater.Power*PumpWarmWater.getMaxMassFlowRate());
+			PumpWarmWater.setPower(PumpWarmWater.Power);
 		}
 	}
 	else
 	{
 		//     stop pump
-		PumpWarmWater.setMassFlowRate(0.0);
+		PumpWarmWater.setPower(0.0);
 		//     close valve
 		ValveWarmWater.set(false);
 	}
