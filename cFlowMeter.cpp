@@ -1,11 +1,10 @@
 #include "cFlowMeter.h"
 
 
-cFlowMeter::cFlowMeter(void)
+cFlowMeter::cFlowMeter(void):
+Trigger(TriggerTimePeriod)
 {
   //Set the time to read the MassFlowMeter
-  _lTimePeriod = 1000;
-  _lLastTime = millis();
   _bFlowing = false;
   _fMassFlowRate = 0.0;
   _iLastCounter = 0;
@@ -40,12 +39,12 @@ float cFlowMeter::get()
 //  */
 //  else
 //  {
-    if(millis()>_lLastTime+_lTimePeriod)
+    if(Trigger.get())
     {
       if (_iCounter-_iLastCounter > 0)
       {
         // Lowpass filtered mass flow rate in [kg/s] is calculated
-        _fMassFlowRate = AlphaFilter*_fMassFlowRate + (1-AlphaFilter)*(DensityWater*LiterPerImpuls*(_iCounter-_iLastCounter)/(float(millis() - _lLastTime))*1000);
+        _fMassFlowRate = AlphaFilter*_fMassFlowRate + (1-AlphaFilter)*(DensityWater*LiterPerImpuls*(_iCounter-_iLastCounter)/(TriggerTimePeriod)*1000);
         //_fMassFlowRate = (DensityWater*LiterPerImpuls*(_iCounter-_iLastCounter)/(float(millis() - _lLastTime))*1000);
         _iLastCounter = _iCounter;
       }
@@ -54,7 +53,6 @@ float cFlowMeter::get()
         _fMassFlowRate = 0.0;
         _bFlowing = false;
       }
-      _lLastTime = millis();
     }
 //  }
   

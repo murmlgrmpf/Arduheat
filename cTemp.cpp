@@ -41,17 +41,19 @@ float cTemp::getTemp(int iMultiplexNumber,int iMultiplexConnector)
   return(_TempFilt[iMultiplexConnector][iMultiplexNumber-1]);
 }
 
-cTempSingle::cTempSingle(void)
+cTempSingle::cTempSingle(void):
+Trigger(FilterTimePeriod)
 {
 	set(0,0,0);
 }
 
-cTempSingle::cTempSingle(int iMultiplexNumber,int iMultiplexConnector, double Offset)
+cTempSingle::cTempSingle(int iMultiplexNumber,int iMultiplexConnector, float Offset):
+Trigger(FilterTimePeriod)
 {
 	set(iMultiplexNumber,iMultiplexConnector,Offset);
 }
 
-void cTempSingle::set(int iMultiplexNumber,int iMultiplexConnector, double Offset)
+void cTempSingle::set(int iMultiplexNumber,int iMultiplexConnector, float Offset)
 {
 	_iMultiplexNumber = iMultiplexNumber;
 	_iMultiplexConnector = iMultiplexConnector;
@@ -60,18 +62,15 @@ void cTempSingle::set(int iMultiplexNumber,int iMultiplexConnector, double Offse
 	// Initialize temperatures
 	_TempFilt = 60;
 	
-	_LastTime = millis();
-	_TimePeriod = 100;
 	// exponential filtering coefficient [1/#Measurements]
-	_alphaT = AlphaT*_TimePeriod/1000;
+	_alphaT = AlphaT*FilterTimePeriod/1000;
 }
 
-double cTempSingle::get(void)
+float cTempSingle::get( void )
 {
-	if(millis() > _LastTime+_TimePeriod)
+	if(Trigger.get())
 	{
 		_TempFilt = (_alphaT/(_alphaT+1))*readTemperature(_iMultiplexNumber,_iMultiplexConnector)  + 1/(_alphaT+1)*_TempFilt;
-		_LastTime = millis();
 	}
 	
 	return(_TempFilt+_dOffset);

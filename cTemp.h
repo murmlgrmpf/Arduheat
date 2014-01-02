@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "PinDefinitions.h"
+#include "cTrigger.h"
 
 
 //! Resistor Values in Ohm
@@ -30,6 +31,7 @@
 #define RM3 50.309//330.853
 
 #define AlphaT 10
+#define FilterTimePeriod 100
 
 class cTemp
 {
@@ -53,20 +55,28 @@ class cTempSingle
 {
 	private:
 	float _TempFilt;
-	double _dOffset;
+	float _dOffset;
 	
 	float _alphaT;
 	int _iMultiplexNumber;
 	int _iMultiplexConnector;
-
-	unsigned long _TimePeriod;
-	unsigned long _LastTime;
+	
+	cTrigger Trigger;
 	
 	public:
-	cTempSingle(int iMultiplexNumber,int iMultiplexConnector, double dOffset);
+	/**
+	 * \brief Constructor for temperature sensors.
+	 * Temperature sensors use an exponential filter to smooth the sensor measurements. 
+	 * 
+	 * \param iMultiplexNumber
+	 * \param iMultiplexConnector
+	 * \param dOffset
+	 * 
+	 */
+	cTempSingle(int iMultiplexNumber,int iMultiplexConnector, float dOffset);
 	cTempSingle(void);
-	double get(void);
-	void set(int iMultiplexNumber,int iMultiplexConnector, double Offset);
+	float get(void);
+	void set(int iMultiplexNumber,int iMultiplexConnector, float Offset);
 };
 
 float readTemperature(int iMultiplexNumber,int iMultiplexConnector);
