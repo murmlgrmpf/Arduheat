@@ -11,7 +11,6 @@ cLFPWM::cLFPWM( unsigned long TimePeriod )
 }
 
 
-
 void cLFPWM::setPeriod( unsigned long TimePeriod )
 {
 	_TimePeriod = TimePeriod;
@@ -32,6 +31,7 @@ boolean cLFPWM::get( double Power )
 	return get();
 }
 
+
 boolean cLFPWM::get( void )
 {
 	boolean active = false;
@@ -44,13 +44,15 @@ boolean cLFPWM::get( void )
 	_SwitchTime = round(_StartTime + _Power*_TimePeriod);
 	
 	// active if Time is less than TimeSwitch
-	active = (millis()<_SwitchTime);
+	active = (millis()<=_SwitchTime);
 
 	// TimePeriod is over and new period starts
 	if(millis()>=_EndTime)
 	{
 		//Set the next Last Period Time
 		_StartTime = millis();
+		// Set active if switch time for next period is not exceeded
+		active = (millis()<=_SwitchTime+_TimePeriod);
 	}
 	
 	return active;
