@@ -63,8 +63,8 @@ void loop()
    Heating.Control();
    WarmWater.Control();
   
-  DataAcquisition(false);
-  CheckTime();
+  //DataAcquisition(false);
+  //CheckTime();
 }
 
 
@@ -79,25 +79,20 @@ void DataAcquisition(boolean bfirstRun)
 {
   // Header
   if (bfirstRun) {
-    Serial.println("Time; Endtime; _bFLame; TempBoilerTop; SpTempChargeWarmWater; TempBoilerHead; TempBoilerCharge; PID%; haveWarmWater; needWarmWater; SpTempChargeHeating");
-        printValue(Heating.Burner._bFlame);
+    Serial.println("TempBoilerTop; SpTempChargeWarmWater; TempBoilerHead; TempBoilerCharge; PID%; haveWarmWater; needWarmWater; SpTempChargeHeating");
   }
   unsigned long endtime = 0;
   unsigned long time = millis();
   if(trigger)
   {
-    printValue(time);
-    endtime = Heating.Burner._StartTime+Heating.Burner._MinBurnTime;
-    printValue(endtime);
-    printValue(Heating.Burner._bFlame);
-    printValue(Heating.Boiler.TempBoilerTop.get());
+    printValue(Heating.Boiler.TempTop.get());
     printValue(Heating.Boiler.SpTempChargeWarmWater());
-    printValue(Heating.Boiler.TempBoilerHead.get());
-    printValue(Heating.Boiler.TempBoilerCharge.get());
+    printValue(Heating.Boiler.TempHead.get());
+    printValue(Heating.Boiler.TempCharge.get());
     printValue(Heating.Boiler.PumpBoilerCharge.Power);
-    printValue(Heating.Boiler.haveWarmWater());
-    printValue(Heating.Boiler.needWarmWater());
-    printValue(Heating.Boiler.needHeating());
+    printValue(Heating.Boiler.WarmWaterFull());
+    printValue(Heating.Boiler.WarmWaterEmpty());
+    //printValue(Heating.Boiler.needHeating());
     printValue(Heating.Boiler.SpTempChargeHeating());
 
     

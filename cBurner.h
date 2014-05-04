@@ -5,26 +5,29 @@
 #include "PinDefinitions.h"
 #include "cTemp.h"
 #include "cValve.h"
+#define MinBurnTimeMinutes 5
+#define MaxTempOperation 80
 
 class cBurner
 {
-  private:
-  cValve Valve;
-  cTempSingle TempLead;
-  cTempSingle TempReturn;
-  cTempSingle TempOperation;// 80 Grad Notabschaltung
-  
-  boolean _bResidualHeat;
+	private:
+	cValve Valve;
+	
+	unsigned long _StartTime;
+	unsigned long _MinBurnTime;
+	
+	boolean _sufficientHeat;
+	boolean _bFlame;
 
-  
-  public:
-    boolean _bFlame;
-    unsigned long _StartTime;
-    unsigned long _MinBurnTime;
-  
-  cBurner(void);
-  boolean burn(boolean, double); 
-  
+	public:
+	cTempSensor TempLead;
+	cTempSensor TempOperation;
+	cTempSensor TempReturn;
+	
+	cBurner(void);
+	boolean isBurning(void);
+	boolean burn(boolean, double);
+	
 };
 
 #endif

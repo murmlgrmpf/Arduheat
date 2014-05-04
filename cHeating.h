@@ -9,62 +9,40 @@
 
 #include "PinDefinitions.h"
 #include "cBoiler.h"
-#include "cTemp.h"
-#include "cPump.h"
-#include "cValve.h"
 #include "cRoom.h"
 #include "cBurner.h"
-#include "cSpHeating.h"
-#include "cMixer.h"
-#include <PID_v1.h>
+
+#include "cPump.h"
 
 class cHeating
 {
 	private:
-	double _dIsTempHeatingLead;
-	double _dSpTempHeatingLead;
-	double _dIsTempHeatingReturn;
-	double _dSpTempHeatingReturn;
-	
 	double _TempSolarReturn;
 	double _TempSolarLead;
 	double _IntensitySolar;
-
-	double Input;
-	double _dPowerMixer;
-	boolean _bneedHeating;
 	
-
-	PID PIDPumpHeating;
-	PID PIDMixer;
-	cSpHeating SpHeating;
-	cMixer Mixer;
+	double _SpTempSource;
 	
+	boolean needSource;
+	boolean needSink;
+	
+	enum Sinks {SiChargeWarmWater=1, SiChargeHeating=2, SiChargeRooms=3, SiOff=5} Sink;
+	enum Sources {SoBurner=1, SoBurnerResHeat=2, SoSolar=3, SoBoiler=4, SoOff=5} Source;
 	
 	public:
-	cRoom Rooms[16];
-	
-
 	cPump PumpSolar;
-	cPump PumpHeating;
-	cPump PumpCirculation;
 	
-	cValve ValveHeatSource1;
-	
-	cTempSingle IsTempHeatingLead;
-	cTempSingle IsTempHeatingReturn;
-
-	
-	//     cHeatExchanger HxWarmWater;
-	//
-
+	cRooms Rooms;
 	cBoiler Boiler;
 	cBurner Burner;
-	cTemp Temperatures;
 	
 	cHeating(void);
 	
 	void Control(void);
+	void checkSinks(void);
+	void checkSources(void);
+	void selectSink( int Sink );
+	void selectSource( int Source );
 };
 
 #endif

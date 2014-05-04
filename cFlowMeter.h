@@ -6,7 +6,7 @@
 #include "cTrigger.h"
 
 #define LiterPerImpuls 0.009263548
-#define TriggerTimePeriod 1000
+#define TriggerTimePeriod 500
 
 class cFlowMeter
 {
@@ -15,7 +15,6 @@ class cFlowMeter
 	/// Trigger to execute flow detection in fixed intervals
 	cTrigger Trigger;
 
-	float _fMassFlowRate;
 	unsigned int _iLastCounter;
 
 	boolean _bFlowing;
@@ -27,7 +26,7 @@ class cFlowMeter
 	cFlowMeter(void);
 	/// Get the actual mass flow rate in kg/second
 	/** \return the actual mass flow rate in kg/second */
-	float get();
+	boolean get();
 	/// Set the power in percent
 	/** Drives the mixer with a certain power into a direction (open or close)
 	\param Power the desired power in percent */

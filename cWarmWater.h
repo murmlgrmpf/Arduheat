@@ -10,22 +10,18 @@
 #endif
 
 #include "cFlowMeter.h"
-#include "cValve.h"
 #include "cTemp.h"
 #include "cPump.h"
-#include <PID_v1.h>
 #include "PinDefinitions.h"
+#include "cPID.h"
 
 
 class cWarmWater
 {
 	private:
 	cPump Pump;
-	cTempSingle IsTempWarmWater;
-	cValve Valve;
-	PID pid;
-	double _SpTempWarmWater;
-	double _TempWarmWater;
+	cTempSensor IsTempWarmWater;
+	cPID pid;
 
 	public:
 	cWarmWater();

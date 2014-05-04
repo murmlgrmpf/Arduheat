@@ -2,110 +2,186 @@
 
 
 cHeating::cHeating(void):
-ValveHeatSource1(PinValveHeatSource1Open,PinValveHeatSource1Close),
-PIDPumpHeating(&_dIsTempHeatingReturn, &PumpHeating.Power, &_dSpTempHeatingReturn, 0.001, 0.0001, 0.005, DIRECT),
-PIDMixer(&_dIsTempHeatingLead, &_dPowerMixer, &_dSpTempHeatingLead, 0.001, 0.0, 0.005, DIRECT),
-IsTempHeatingLead(SystemMultiplexer,MultiplexTempHeatingLead,OffsetTempHeatingLead),
-IsTempHeatingReturn(SystemMultiplexer,MultiplexTempHeatingReturn,OffsetTempHeatingReturn),
-PumpSolar(PinPumpSolar),
-PumpHeating(PinPumpHeating),
-PumpCirculation(PinPumpCirculation)
+PumpSolar(PinPumpSolar)
 {
-	_dPowerMixer = 0;
-	
-	// Initialize room numbers and Pins
-	for(int i = 0; i<16; i++)
-	{
-		// The rooms know their multiplexers and pin out by the room number
-		Rooms[i].init(i+1);
-	}
-	
-	// Initialize PID controllers for pumps
-	PIDPumpHeating.SetOutputLimits(0.4, 1.0);
-	PIDPumpHeating.SetMode(MANUAL);
-	
-	PIDMixer.SetOutputLimits(-1.0, 1.0);
-	PIDMixer.SetMode(MANUAL);
-	
+	_SpTempSource=0.0;
 }
 
 void cHeating::Control(void){
-	double SpTempBoilerCharge = 77.0;
-	double SpTempHeating = 0 ;
-	double needBurner = 0.0;
-	boolean bneedBurner = false;
-	boolean bBurnerReady = false;
-	double dMaxDiff =0;
-	double dMaxSp = 0;
-	double dneedHeating = 0;
+	// Set setpoint for heating
+	Boiler.setSpTempHeatingLead(Rooms.getSpHeating()); 
 	
-	// Read state of rooms
-	for(int i = 0; i<nRooms; i++)
+	checkSinks();
+	checkSources();
+	
+	if(needSource||needSink)
 	{
-		// Store maximum set point
-		if (Rooms[i].getSpTemp()>dMaxSp){
-			dMaxSp = Rooms[i].getSpTemp();
-		}
-		// Store maximum sp-is difference
-		if ((Rooms[i].getSpTemp() - Rooms[i].getIsTemp()) > dMaxDiff){
-			dMaxDiff = Rooms[i].getSpTemp() - Rooms[i].getIsTemp();
-		}
-		// Check for rooms needing heat
-		if(Rooms[i].getNeed()>dneedHeating){
-			dneedHeating = Rooms[i].getNeed();
-		}
-	}
-	
-	// Calculate setpoint for heating
-	_dSpTempHeatingLead = SpHeating.get(dMaxSp, dMaxDiff);
-	Boiler.setSpTempHeatingLead(_dSpTempHeatingLead);
-	_dIsTempHeatingLead = IsTempHeatingLead.get();
-	_dSpTempHeatingReturn = _dIsTempHeatingLead-10;
-	_dIsTempHeatingReturn = IsTempHeatingReturn.get();
-	
-	// Determine whether there is need for heating
-	_bneedHeating = (dneedHeating>0);
-	
-	// Run Heating only if it is needed and no warm water is needed
-	if ((!(Boiler.needWarmWater()>0.0))&& (_bneedHeating))
-	{
-		// Run Mixer and PID
-		PIDMixer.SetMode(AUTOMATIC);
-		PIDMixer.Compute();
-		Mixer.run(_dPowerMixer);
-		
-		// Run heating pump and PID
-		PIDPumpHeating.SetMode(AUTOMATIC);
-		PIDPumpHeating.Compute();
-		PumpHeating.setPower(PumpHeating.Power);
+		selectSink(Sink);
+		selectSource(Source);
 	}
 	else
 	{
-		// Stop Pump Heating and PID
-		PIDPumpHeating.SetMode(MANUAL);
-		PumpHeating.setPower(0.0);
-		// Stop mixer PID and run Mixer to closed position
-		PIDMixer.SetMode(MANUAL);
-		Mixer.run(-1.0);
+		selectSink(SiOff);
+		selectSource(SoOff);
 	}
 	
 	// Run solar pump to avoid boiling
 	PumpSolar.setPower(0.0);
-	
-	if(Boiler.haveWarmWater() > 0.0)
-	{ // If Warmwater is full, load into heating
-		SpTempBoilerCharge = Boiler.SpTempChargeHeating();
-	}
-	else
-	{ // Else choose maximum Charging temperature
-		SpTempBoilerCharge = max(Boiler.SpTempChargeWarmWater(), Boiler.SpTempChargeHeating());
-	}
-	
-	// Ignite Burner
-	bneedBurner = ((Boiler.needWarmWater()>0.0) || ((Boiler.needHeating()>0.0)&&(dneedHeating>0.0)));
-	bBurnerReady = Burner.burn(bneedBurner, SpTempBoilerCharge);
-	// Charge Boiler
-	Boiler.charge(bBurnerReady, SpTempBoilerCharge);
-	
 }
 
+
+void cHeating::checkSinks(void)
+{
+	// Aggregate needs of heat sinks according to priority
+	// #1 Determine need to charge warm water
+	if(Boiler.needChargeWarmWater())
+	{
+		Sink = SiChargeWarmWater;
+		_SpTempSource = Boiler.getSpTempCharge();
+		needSource = true;
+	}
+	// #2 Determine whether there is need for heating the rooms
+	else if (Rooms.need())
+	{
+		Sink = SiChargeRooms;
+		_SpTempSource = Rooms.getSpHeating();
+		needSource = true;
+	}
+	// #3 Determine need to charge heating
+	else if (Boiler.needChargeHeating(Rooms.need()))
+	{
+		Sink = SiChargeHeating;
+		_SpTempSource = Boiler.getSpTempCharge();
+		needSource = true;
+	}
+	else
+	{
+		Sink = SiChargeHeating;
+		_SpTempSource = Boiler.getSpTempCharge();
+		needSource = false;
+	}
+}
+
+void cHeating::checkSources(void)
+{
+	// Priority of Heat sources:
+	// #1 If burner is burning: execute burner
+	if(Burner.isBurning())
+	{
+		Source = SoBurner;
+		needSink = true;
+	}
+	// #2 If burner is not burning: Burner residual heat: true if temperature high enough
+	else if (Burner.burn(false,_SpTempSource))
+	{
+		Source = SoBurnerResHeat;
+		needSink = true;
+	}
+	// #3 Solar
+	else if (false)
+	{
+		Source = SoSolar;
+		needSink = true;
+	}
+	// #4 Boiler
+	else if (! (Boiler.needCharge(Rooms.need())) )
+	{
+		Source = SoBoiler;
+		needSink = false;
+	}
+	// #5 Start Burner
+	else if (needSource)
+	{
+		Source = SoBurner;
+		needSink = true;
+		Boiler.triggerChargeWarmWater();
+	}
+}
+
+void cHeating::selectSource( int Source )
+{
+	switch (Source)
+	{
+		case SoBurner:
+		{
+			if( Boiler.needCharge(Rooms.need()) )
+			{
+				Burner.burn(true, _SpTempSource);
+			}
+			else
+			{
+				Burner.burn(false, _SpTempSource);
+			}
+			
+			// Deactivate other heat sources
+			Boiler.discharge(false);
+			break;
+		}
+		case SoBurnerResHeat:
+		{
+			// Residual heat mode
+			// Deactivate other heat sources
+			Burner.burn(false, _SpTempSource);
+			Boiler.discharge(false);
+			break;
+		}
+		case SoSolar:
+		{
+			//// Solar mode
+			//// Deactivate other heat sources
+			//Burner.burn(false, _SpTempSource);
+			//Boiler.discharge(false);
+			//break;
+		}
+		case SoBoiler:
+		{
+			// Boiler source mode
+			Boiler.discharge(true);
+			// Deactivate other heat sources
+			Burner.burn(false, _SpTempSource);
+			break;
+		}
+		case SoOff: default:
+		{
+			// Deactivate all heat sources
+			// Solar
+			Boiler.discharge(false);
+			Burner.burn(false, _SpTempSource);
+			break;
+		}
+	}
+}
+
+void cHeating::selectSink( int Sink )
+{
+	boolean ChargeBoilerAndRooms = false;
+	switch (Sink)
+	{
+		case SiChargeWarmWater:
+		{
+			Boiler.charge(true);
+			Rooms.ChargeRooms(false);
+			break;
+		}
+		case SiChargeRooms:
+		{
+			// TODO: Solar überschuss abholen
+			ChargeBoilerAndRooms = (Boiler.getSpTempCharge() < Burner.TempReturn.get()-3);
+			Rooms.ChargeRooms(true, ChargeBoilerAndRooms);
+			Boiler.charge(ChargeBoilerAndRooms);
+			break;
+		}
+		case SiChargeHeating:
+		{
+			Rooms.ChargeRooms(false);
+			Boiler.charge(true);
+			break;
+		}
+		case SiOff: default:
+		{
+			Rooms.ChargeRooms(false);
+			Boiler.charge(false);
+			break;
+		}
+	}
+}
