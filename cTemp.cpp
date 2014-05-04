@@ -1,72 +1,32 @@
 #include "cTemp.h"
 
-cTemp::cTemp(void)
-{
-  // Initialize temperatures
-  for (int j=0; j<16; j++){
-    for (int i = 0; i<3; i++) {
-//        _TempFilt[j][i] = readTemperature(i+1,j);
-       _TempFilt[j][i] = 60;
-    }
-  }
-  
-  _LastTime = millis();
-  _TimePeriod = 100;
-  // exponential filtering coefficient [1/#Measurements]
-  _alphaT = AlphaT*_TimePeriod/1000;
-}
-
-void cTemp::run(void)
-{
-  unsigned long now = millis();
-  unsigned long _NextTime = _LastTime+_TimePeriod;
-  if(_NextTime < now) {
-    
-  for (int j=0; j<16; j++){
-    for (int i = 0; i<3; i++)
-    {
-      _TempFilt[j][i] = (_alphaT/(_alphaT+1))*readTemperature(i+1,j)  + 1/(_alphaT+1)*_TempFilt[j][i];
-    }
-  }
-  
-  _LastTime = now;
-  }
-}
-
-
-float cTemp::getTemp(int iMultiplexNumber,int iMultiplexConnector)
-{
-  cTemp::run();
-  
-  return(_TempFilt[iMultiplexConnector][iMultiplexNumber-1]);
-}
-
-cTempSingle::cTempSingle(void):
+cTempSensor::cTempSensor(void):
 Trigger(FilterTimePeriod)
 {
 	set(0,0,0);
 }
 
-cTempSingle::cTempSingle(int iMultiplexNumber,int iMultiplexConnector, float Offset):
+cTempSensor::cTempSensor(int iMultiplexNumber,int iMultiplexConnector, float Offset):
 Trigger(FilterTimePeriod)
 {
 	set(iMultiplexNumber,iMultiplexConnector,Offset);
 }
 
-void cTempSingle::set(int iMultiplexNumber,int iMultiplexConnector, float Offset)
+void cTempSensor::set(int iMultiplexNumber,int iMultiplexConnector, float Offset)
 {
 	_iMultiplexNumber = iMultiplexNumber;
 	_iMultiplexConnector = iMultiplexConnector;
 	_dOffset = Offset;
 	
-	// Initialize temperatures
+	// Initialize temperature using high value to avoid switching on the burner
+	// during initialization
 	_TempFilt = 60;
 	
 	// exponential filtering coefficient [1/#Measurements]
 	_alphaT = AlphaT*FilterTimePeriod/1000;
 }
 
-float cTempSingle::get( void )
+float cTempSensor::get( void )
 {
 	if(Trigger.get())
 	{
@@ -124,9 +84,6 @@ float readTemperature(int iMultiplexNumber,int iMultiplexConnector)
  */
 void setMultiplexer(int iMultiplexConnector)
 {
-  //delay(2000);
-  //Serial.println("DebugMultiplexer");
-  //
   digitalWrite(MultiplexControl1,HIGH && (iMultiplexConnector & B00000001));
   digitalWrite(MultiplexControl2,HIGH && (iMultiplexConnector & B00000010));
   digitalWrite(MultiplexControl3,HIGH && (iMultiplexConnector & B00000100));

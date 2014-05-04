@@ -30,30 +30,15 @@
 //!Resistance of Multiplexer 3
 #define RM3 50.309//330.853
 
-#define AlphaT 10
-#define FilterTimePeriod 100
+#define AlphaT 10 // smoothing filter coefficient
+#define FilterTimePeriod 100 // filter sampling interval
 
-class cTemp
-{
-  private:
-    float _TempFilt[16][3];
-    
-    void run(void);
-    
-    float _alphaT;
 
-    unsigned long _TimePeriod;
-    unsigned long _LastTime;
-    
-  public:
-    cTemp(void);
-    float getTemp(int iMultiplexNumber,int iMultiplexConnector);
-    
-};
-
-class cTempSingle
+class cTempSensor
 {
 	private:
+	unsigned long _TimePeriod;
+	unsigned long _StartTime;
 	float _TempFilt;
 	float _dOffset;
 	
@@ -65,16 +50,16 @@ class cTempSingle
 	
 	public:
 	/**
-	 * \brief Constructor for temperature sensors.
-	 * Temperature sensors use an exponential filter to smooth the sensor measurements. 
-	 * 
-	 * \param iMultiplexNumber
-	 * \param iMultiplexConnector
-	 * \param dOffset
-	 * 
-	 */
-	cTempSingle(int iMultiplexNumber,int iMultiplexConnector, float dOffset);
-	cTempSingle(void);
+	* \brief Constructor for temperature sensors.
+	* Temperature sensors use an exponential filter to smooth the sensor measurements.
+	*
+	* \param iMultiplexNumber
+	* \param iMultiplexConnector
+	* \param dOffset
+	*
+	*/
+	cTempSensor(int iMultiplexNumber,int iMultiplexConnector, float dOffset);
+	cTempSensor(void);
 	float get(void);
 	void set(int iMultiplexNumber,int iMultiplexConnector, float Offset);
 };
