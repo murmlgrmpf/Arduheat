@@ -2,6 +2,7 @@
 #define cValve_h
 
 #include "Arduino.h"
+#define iDefaultPeriod 2000
 
 class cValve
 {
@@ -16,7 +17,7 @@ class cValve
     void run(void);
     
   public:
-    cValve(int iPinOpen,int iPinClose, unsigned long iTimePeriod = 1500);
+    cValve(int iPinOpen,int iPinClose, unsigned long iTimePeriod = iDefaultPeriod);
 
     boolean get();
     void set(boolean bsetOpen);
