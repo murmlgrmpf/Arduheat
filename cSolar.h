@@ -12,9 +12,9 @@ class cSolar
 	private:
 	boolean _bFlame;
 	void run(void);
-	cTempSingle TempLead;
-	cTempSingle TempReturn;
-	cTempSingle Intensity;
+	cTempSensor TempLead;
+	cTempSensor TempReturn;
+	cTempSensor Intensity;
 	cValve Valve;
 	cPump Pump;
 	
