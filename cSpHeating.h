@@ -20,7 +20,7 @@ class cSpHeating
 	double _dverst;
 	double _dminvl;
 	double _dmaxvl;
-	cTempSingle TempOutside;
+	cTempSensor TempOutside;
 
 
  public:
