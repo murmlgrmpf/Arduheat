@@ -4,11 +4,15 @@
 #include "Arduino.h"
 #include "cTemp.h"
 #include "cRoomValve.h"
-#include <PID_v1.h>
+#include "cPID.h"
+#include "cPump.h"
+#include "cSpHeating.h"
+#include "cMixer.h"
 //#include "cHeating.h"
 // Highest and lowest value for manual setpoint override
 #define TempLow 10
 #define TempHigh 40
+
 
 class cRoom
 {
@@ -19,11 +23,11 @@ class cRoom
 	double _need;
 	double _dSpTempSchedule;
 	
-	PID pid;
+	cPID pid;
 	/// Each room has a valve
 	cRoomValve Valve;
-	cTempSingle IsTemp;
-	cTempSingle SpTemp;
+	cTempSensor IsTemp;
+	cTempSensor SpTemp;
 
 	void setRoomNumber(int iRoomNumber);
 	
@@ -41,6 +45,38 @@ class cRoom
 	double getSpTemp(void);
 	double getNeed(void);
 	double getSpTempSchedule(void);
+};
+
+class cRooms
+{
+	private:
+	double _dIsTempHeatingLead;
+	double _dSpTempHeatingLead;
+	double _dIsTempHeatingReturn;
+	double _dSpTempHeatingReturn;
+	
+	double dMaxDiff;
+	double dneedChargeRooms;
+	double dMaxSp;
+	
+	public:
+	cRooms(void);
+	
+	cTempSensor IsTempHeatingLead;
+	cTempSensor IsTempHeatingReturn;
+	
+	cRoom Room[16];
+	cPump PumpHeating;
+	cPID PIDPumpHeating;
+	cPID PIDMixer;
+	cMixer Mixer;
+	cSpHeating SpHeating;
+	
+	boolean need();
+	double getSpHeating();
+	
+	void ChargeRooms(boolean bneedChargeRooms, boolean BoilerCharges = false);
+	
 };
 
 #endif
