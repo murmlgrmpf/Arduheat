@@ -2,36 +2,29 @@
 
 
 cRoom::cRoom(void)
-:pid(0.1, 0, 0, DIRECT)
+//:pid(0.1, 0, 0, DIRECT)
 {
-	_dIsTemp = 0;
-	_need = 0;
 	_dSpTemp = 20.0;
-	_dSpTempSchedule = 20.0;
 	setRoomNumber(1);
 }
 
 cRoom::cRoom( int iRoomNumber ) /*~cRoom()*/
-:pid(0.1, 0, 0, DIRECT),
-Valve(RoomValvePin[iRoomNumber-1])
+//:pid(0.1, 0, 0, DIRECT),
+:Valve(RoomValvePin[iRoomNumber-1])
 {
 	init(iRoomNumber);
 }
 
-
 void cRoom::init( int iRoomNumber )
 {
-	_dIsTemp = 0;
-	_need = 0;
+	RoomType = Living;
 	_dSpTemp = 20.0;
-	_dSpTempSchedule = 20.0;
 	setRoomNumber(iRoomNumber);
 	//Set the pin of the valve according to pinout scheme.
 	Valve.setPinOpen(RoomValvePin[iRoomNumber-1]);
 	
-	pid.SetOutputLimits(0, 1);
+	//pid.SetOutputLimits(0, 1);
 }
-
 
 void cRoom::setRoomNumber(int iRoomNumber)
 {
@@ -57,47 +50,15 @@ void cRoom::setRoomNumber(int iRoomNumber)
 	//**********************
 	
 	//IsTemp.set(_iMultiplexNumber,_iMultiplexConnectorIs,RoomIsOffset[iRoomNumber-1]);
-	IsTemp.set(_iMultiplexNumber,_iMultiplexConnectorIs,0);
-	SpTemp.set(_iMultiplexNumber,_iMultiplexConnectorSp,RoomSpOffset[iRoomNumber-1]);
-	
-}
-
-double cRoom::getSpTempSchedule(void)
-{
-	return _dSpTempSchedule;
-}
-
-void cRoom::setSpTempSchedule(double TempRefSchedule)
-{
-	_dSpTempSchedule = TempRefSchedule;
-}
-
-double cRoom::getIsTemp(void)
-{
-	_dIsTemp = IsTemp.get();
-	return _dIsTemp;
-}
-
-double cRoom::getSpTemp(void)
-{
-	// Check if manual override is valid
-	if((SpTemp.get()<TempHigh)&&(SpTemp.get()>TempLow))
-	{
-		_dSpTemp = SpTemp.get();
-	}
-	else
-	{
-		_dSpTemp = getSpTempSchedule();
-	}
-	
-	return _dSpTemp;
+	IsTemp.set(_iMultiplexNumber,_iMultiplexConnectorIs,RoomIsOffset[iRoomNumber-1]);
+	SpTempOverride.set(_iMultiplexNumber,_iMultiplexConnectorSp,RoomSpOffset[iRoomNumber-1]);
 }
 
 double cRoom::getNeed(void)
 {
 	// Compute need
-	_need = pid.run(getSpTemp(),getIsTemp());
-	
+	//double _need = pid.run(getSpTemp(),IsTemp.get());
+	double _need = getSpTemp()-IsTemp.get();
 	// Open Valve if heat is needed
 	Valve.set((_need>0));
 	
@@ -105,6 +66,7 @@ double cRoom::getNeed(void)
 }
 
 
+///////////////////////////////////////////////
 cRooms::cRooms( void ):
 IsTempHeatingLead(SystemMultiplexer,MultiplexTempHeatingLead,OffsetTempHeatingLead),
 IsTempHeatingReturn(SystemMultiplexer,MultiplexTempHeatingReturn,OffsetTempHeatingReturn),
@@ -112,29 +74,109 @@ PIDPumpHeating( 0.2, 0.1, 0.05, DIRECT),
 PIDMixer( 0.5, 0.0, 0.005, DIRECT),
 PumpHeating(PinPumpHeating)
 {
+	SetType = Normal;
+
+	
 	// Initialize PID controllers for pumps
 	PIDPumpHeating.SetOutputLimits(0.4, 1.0);
-	
 	PIDMixer.SetOutputLimits(-1.0, 1.0);
 	PIDMixer.SetSampleTime(500);
+	
+	dMaxDiff =0;
+	dMaxSp = 0;
 	
 	// Initialize room numbers and Pins
 	for(int i = 0; i<16; i++)
 	{
 		// The rooms know their multiplexers and pin out by the room number
 		Room[i].init(i+1);
+		// Initialize the Room setpoints by executing need()
+		//need();
 	}
 	
-	dMaxDiff =0;
-	dMaxSp = 0;
-	dneedChargeRooms = 0;
+	initDefaultSetpoint();
+	initDefaultRoomtypes();
+	
 }
+
+void cRooms::initDefaultRoomtypes()
+{
+	Room[0].RoomType = Side;
+	Room[1].RoomType = Side;
+	Room[2].RoomType = Side;
+	Room[3].RoomType = Side;
+	Room[4].RoomType = Living;
+	Room[5].RoomType = Living;
+	Room[6].RoomType = Living;
+	Room[7].RoomType = Hallway;
+	Room[8].RoomType = Hallway;
+	Room[9].RoomType = Hallway;
+	Room[10].RoomType = Sleeping;
+	Room[11].RoomType = Sleeping;
+	Room[12].RoomType = Bath;
+	Room[13].RoomType = Side;
+	Room[14].RoomType = Side;
+	Room[15].RoomType = Hallway;
+}
+
+void cRooms::initDefaultSetpoint()
+{
+	RoomTemps[Living] = 20.0;//15;//
+	RoomTemps[Sleeping] =20.0;//15;//
+	RoomTemps[Hallway] = 19.0;//15;//
+	RoomTemps[Bath] = 22.0;//15;//
+	RoomTemps[Side] = 16.0;//15;//
+	
+	double temp[nSwitch];
+	temp[0] = 0.0;
+	temp[1] = -2.0;//0.0;//
+	temp[2] = 0.0;
+	temp[3] = -2.0;//0.0;//
+	TimeSpan switchtime[nSwitch];
+	switchtime[0].set(0,6,0,0);
+	switchtime[1].set(0,8,0,0);
+	switchtime[2].set(0,18,0,0);
+	switchtime[3].set(0,21,00,0);
+	// Iterate over all sets (At home, away)
+	for(int iSet = 0; iSet<nSet; iSet++)
+	{
+		for(int iDayType = 0; iDayType<nDayType; iDayType++)
+		{
+			for(int iSwitch = 0; iSwitch<nSwitch; iSwitch++)
+			{
+				// Discriminate between Rooms that do not reduce temperature during the day and those who do
+				if((iSwitch==1)){
+					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].temp = temp[iSwitch-1];
+					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].temp = temp[iSwitch-1];
+					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].temp = temp[iSwitch-1];
+				}
+				else {
+					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].temp = temp[iSwitch];
+					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].temp = temp[iSwitch];
+					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].temp = temp[iSwitch];
+				}
+				
+				TempOffsetSchedule[iSet][Sleeping][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+				TempOffsetSchedule[iSet][Sleeping][iDayType][iSwitch].temp = temp[iSwitch];
+				TempOffsetSchedule[iSet][Bath][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+				TempOffsetSchedule[iSet][Bath][iDayType][iSwitch].temp = temp[iSwitch];
+			}
+		}
+	}
+}
+
 
 void cRooms::ChargeRooms( boolean bneedChargeRooms, boolean BoilerCharges )
 {
 	_dSpTempHeatingLead = getSpHeating();
 	_dIsTempHeatingLead = IsTempHeatingLead.get();
-	_dSpTempHeatingReturn = _dIsTempHeatingLead-5;
+	_dSpTempHeatingReturn = _dIsTempHeatingLead-DiffTempHeatingLeadReturn;
 	_dIsTempHeatingReturn = IsTempHeatingReturn.get();
 	
 	if (bneedChargeRooms)
@@ -145,6 +187,8 @@ void cRooms::ChargeRooms( boolean bneedChargeRooms, boolean BoilerCharges )
 		// Run heating pump and PID
 		if (BoilerCharges)
 		{
+			// If Boiler is charged, run heating pump at full speed.
+			// The Boiler is collecting the remaining heat from the source.
 			PIDPumpHeating.run();
 			PumpHeating.setPower(1.0);
 		}
@@ -164,17 +208,50 @@ void cRooms::ChargeRooms( boolean bneedChargeRooms, boolean BoilerCharges )
 	}
 }
 
-boolean cRooms::need()
+boolean cRooms::need(void)
 {
+	double dneedChargeRooms = 0.0;
+	dMaxSp = 0.0;
+	dMaxDiff = 0.0;
+	
+	DayTypes DayType = getDayType( TimeNow.dayOfWeek() );
+	
+	TimeSpan rel;
+	rel.set(0, TimeNow.hour(), TimeNow.minute(), 0);
+	
+	// Apply heating set point temperature schedule
+	for(int i = 0; i<nRooms; i++)
+	{
+		
+		// Check if manual override is valid
+		double MasterSPTemp = 0.0;
+		double SPTemp = 0.0;
+		if((Room[i].SpTempOverride.get()<TempRoomHigh)&&(Room[i].SpTempOverride.get()>TempRoomLow))
+		{
+			MasterSPTemp = Room[i].SpTempOverride.get();
+		}
+		else
+		{
+			MasterSPTemp = RoomTemps[(Room[i].RoomType)];
+		}
+		
+		for(int iSwitch=0; iSwitch<nSwitch; iSwitch++)
+		{
+			if (TempOffsetSchedule[SetType][Room[i].RoomType][DayType][iSwitch].time.totalseconds() < rel.totalseconds())
+			{
+				SPTemp = MasterSPTemp + TempOffsetSchedule[SetType][Room[i].RoomType][DayType][iSwitch].temp;
+				// Apply offset according to schedule
+				
+				if((SPTemp<TempRoomHigh)&&(SPTemp>TempRoomLow))	Room[i].setSpTemp(SPTemp);
+				else if (SPTemp<=TempRoomLow) Room[i].setSpTemp(TempRoomLow);
+				else if (SPTemp>=TempRoomHigh)  Room[i].setSpTemp(TempRoomHigh);
+			}
+
+		}
+	}
 	// Read state of rooms
 	for(int i = 0; i<nRooms; i++)
 	{
-		// Set setpoints
-		Room[i].setSpTempSchedule(10);
-		if(i==3)
-		{
-			Room[i].setSpTempSchedule(20);
-		}
 		
 		// Store maximum set point
 		if (Room[i].getSpTemp()>dMaxSp)
@@ -196,8 +273,211 @@ boolean cRooms::need()
 	return (dneedChargeRooms>0);
 }
 
-double cRooms::getSpHeating()
+double cRooms::getSpHeating(void)
 {
 	need();
 	return SpHeating.get(dMaxSp, dMaxDiff);
+}
+
+DayTypes cRooms::getDayType( uint8_t day  )
+{
+	if ((day == 0)||(day == 6) )
+	{
+		DayType = Weekend;
+	}
+	else
+	{
+		DayType = Workday;
+	}
+	return DayType;
+}
+
+void cRooms::getOffsetTime( JsonObject& root )
+{
+	JsonArray&  times  = root.createNestedArray("times");
+	// Iterate over all sets (At home, away)
+	for(int iSet = 0; iSet<nSet; iSet++)
+	{
+		for(int iRoomType = 0; iRoomType<nRoomType; iRoomType++) // Iterate over all Roomtypes (Living, sleeping, hallway, side)
+		{
+			for(int iDayType = 0; iDayType<nDayType; iDayType++)
+			{
+				for(int iSwitch = 0; iSwitch<nSwitch; iSwitch++)
+				{
+					times.add(TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time.totalseconds());
+				}
+			}
+		}
+	}
+}
+
+int cRooms::setOffsetTime( JsonObject& root )
+{
+	if(root.containsKey("times")) {
+		if(root["times"].is<JsonArray&>()){
+			JsonArray& times = root["times"];
+			
+			if (times.size()==(nSet*nRoomType*nDayType*nSwitch))
+			{
+				for(int iSet = 0; iSet<nSet; iSet++)
+				{
+					for(int iRoomType = 0; iRoomType<nRoomType; iRoomType++) // Iterate over all Roomtypes (Living, sleeping, hallway, side)
+					{
+						for(int iDayType = 0; iDayType<nDayType; iDayType++)
+						{
+							for(int iSwitch = 0; iSwitch<nSwitch; iSwitch++)
+							{
+								// Last iteration
+								//int idx = (nSwitch-1)+(nDayType-1)*(nSwitch)+(nRoomType-1)*(nDayType)*(nSwitch)+(nSet-1)*(nRoomType)*(nDayType)*(nSwitch);
+								int idx = iSwitch+iDayType*(nSwitch)+iRoomType*(nDayType)*(nSwitch)+iSet*(nRoomType)*(nDayType)*(nSwitch);
+								TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time.set(times[idx].as<long>());
+							}
+						}
+					}
+				}
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+
+void cRooms::getOffsetTemp( JsonObject& root )
+{
+	JsonArray&  temps  = root.createNestedArray("temps");
+	// Iterate over all sets (At home, away)
+	for(int iSet = 0; iSet<nSet; iSet++)
+	{
+		for(int iRoomType = 0; iRoomType<nRoomType; iRoomType++) // Iterate over all Roomtypes (Living, sleeping, hallway, side)
+		{
+			for(int iDayType = 0; iDayType<nDayType; iDayType++)
+			{
+				for(int iSwitch = 0; iSwitch<nSwitch; iSwitch++)
+				{
+					temps.add(TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].temp);
+				}
+			}
+		}
+	}
+}
+
+
+int cRooms::setOffsetTemp( JsonObject& root )
+{
+	if(root.containsKey("temps")) {
+		if(root["temps"].is<JsonArray&>()){
+			JsonArray& temps = root["temps"];
+			
+			if (temps.size()==(nSet*nRoomType*nDayType*nSwitch))
+			{
+				for(int iSet = 0; iSet<nSet; iSet++)
+				{
+					for(int iRoomType = 0; iRoomType<nRoomType; iRoomType++) // Iterate over all Roomtypes (Living, sleeping, hallway, side)
+					{
+						for(int iDayType = 0; iDayType<nDayType; iDayType++)
+						{
+							for(int iSwitch = 0; iSwitch<nSwitch; iSwitch++)
+							{
+								// Last iteration
+								//int idx = (nSwitch-1)+(nDayType-1)*(nSwitch)+(nRoomType-1)*(nDayType)*(nSwitch)+(nSet-1)*(nRoomType)*(nDayType)*(nSwitch);
+								int idx = iSwitch+iDayType*(nSwitch)+iRoomType*(nDayType)*(nSwitch)+iSet*(nRoomType)*(nDayType)*(nSwitch);
+								TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].temp = temps[idx].as<double>();
+							}
+						}
+					}
+				}
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+void cRooms::getRooms( JsonObject& root )
+{
+	JsonArray& RoomsTypes = root.createNestedArray("RoomTypes");
+	JsonArray& RoomsTemps = root.createNestedArray("RoomTemps");
+	
+	for (int i = 0; i<nRooms;i++){
+		RoomsTypes.add(Room[i].RoomType);
+	}
+	
+	for (int i = 0; i<nRoomType;i++){
+		RoomsTemps.add(RoomTemps[i]);
+	}
+	
+	root["SetType"] = SetType;
+}
+
+int cRooms::setRooms( JsonObject& root )
+{
+	int posReturn = 0;
+	int fail = 0;
+	
+	if(root.containsKey("RoomTypes")) {
+		if(root["RoomTypes"].is<JsonArray&>()){
+			JsonArray& RoomsTypes = root["RoomTypes"];
+			if (RoomsTypes.size()==nRooms) {
+				for (int i = 0; i<nRooms;i++){
+					if ( RoomsTypes[i].is<long>())	Room[i].RoomType = static_cast<RoomTypes>(RoomsTypes[i].as<long>());
+					else fail=1;
+				}
+			}
+			else fail=1;
+		}
+		else fail=1;
+		posReturn++;
+	}
+	
+	if(root.containsKey("RoomTemps")) {
+		if(root["RoomTemps"].is<JsonArray&>()){
+			JsonArray& RoomsTemps = root["RoomTemps"];
+			if (RoomsTemps.size()==nRoomType) {
+				for (int i = 0; i<nRoomType;i++){
+					if ( RoomsTemps[i].is<double>())	RoomTemps[i] = RoomsTemps[i].as<double>();
+					else fail=1;
+				}
+			}
+			else fail=1;
+		}
+		else fail=1;
+		posReturn++;
+	}
+	
+	if(root.containsKey("SetType")) {
+		if(root["SetType"].is<long>()) {
+			SetType =  static_cast<SetTypes>(root["SetType"].as<long>());
+			posReturn++;
+		}
+		else fail=1;
+	}
+	else fail=1;
+	
+	if (fail == 0) { // If all three parameter objects were successfully filled
+		return posReturn;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+void cRooms::getData( JsonObject& root )
+{
+	JsonArray& RoomsIsTemps = root.createNestedArray("RoomIs");
+	JsonArray& RoomsSPTemps = root.createNestedArray("RoomSP");
+	
+	for (int i = 0; i<nRooms;i++){
+		RoomsIsTemps.add(Room[i].getIsTemp());
+		RoomsSPTemps.add(Room[i].getSpTemp());
+	}
+	
+	root["TempOutside"] = SpHeating.TempOutside.get();
+	root["RoomNeed"] = need();
+	root["SpHeating"] = SpHeating.get(dMaxSp, dMaxDiff);
+	
+	root["IsTempHeatingLead"] = IsTempHeatingLead.get();
+	root["IsTempHeatingReturn"] = IsTempHeatingReturn.get();
+	root["PumpHeating"] = PumpHeating.getPower();
 }

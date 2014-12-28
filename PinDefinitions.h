@@ -27,22 +27,22 @@ void PinInitialization(void);
 #define PinStartHeatSource1      13
 #define PinValveWarmWaterClose   38
 #define PinValveBoilerClose      40
-#define PinPumpWarmWater         10
+#define PinPumpWarmWater         2
 #define PinPumpBoiler            11
 #define PinPumpSolar             12
 #define PinPumpHeating            8
 #define PinMixerOpen              6
 #define PinMixerClose             7
-#define PinPulseCounter          19
+#define PinWarmWaterSwitch       19
 #define PinHeatControl            3
 
 // Room Heating
 #define nRooms					16
 
 // Calibration needed!
-const double RoomIsOffset[] = {2, 1.5, 1.0, 1.0, 0.0, 4.0, 0.5, 0.5, 1.0, 1.0, 2.0, 2.5, 2.0, 0.0, 1.0, 2.0};
+const double RoomIsOffset[] = {-2.2, -1.6, -2.1, 0.6, -1.5, 0.75, -1.7, 0.09, -2.21, -1, -1, 0.55, 0.3, -2, -2.2, -0.61};
 // Calibration by measurements
-const double RoomSpOffset[] = {0, -0.61, 0.62, 0.31, -0.3, 1.07, 1.99, -0.61, -4.43, -0.27, -0.12, 0.95, 0.95, 0.64, 1.25, 0.18};
+const double RoomSpOffset[] = {2.6722851365013511, 2.0436198179979925, 1.6490293225480279, 1.4206471183013285, 1.0462285136502452, 1.0153993933264864, 2.1353791708794319, 2.4985338725986033, 5.2720930232559837, 2.1375530839231054, 2.2762386248736455, 1.225520728008032, 0.36619817997989657, 1.0406370070778195, 1.5027704752275994, 1.5950556117289487};
 
 // Pinout definition
 const int RoomValvePin[] = {23, 24, 22, 25, 15, 26, 14, 27, 5, 28, 34, 29, 33, 30, 32, 31};
@@ -102,7 +102,6 @@ const int RoomValvePin[] = {23, 24, 22, 25, 15, 26, 14, 27, 5, 28, 34, 29, 33, 3
 // Setpoint System Temperatures
 #define ChargeHeatingOffset				4.0
 #define ChargeWarmWaterOffset			4.0
-#define SpTempWarmWater                  42.0
 
 // Multiplexer Control Pins
 #define MultiplexControl1 48

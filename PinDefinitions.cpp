@@ -28,7 +28,7 @@ void PinInitialization(void)
   pinMode(PinPumpHeating, OUTPUT);
   pinMode(PinMixerOpen, OUTPUT);
   pinMode(PinMixerClose, OUTPUT);
-  pinMode(PinPulseCounter, INPUT);
+  pinMode(PinWarmWaterSwitch, INPUT);
   pinMode(PinHeatControl, OUTPUT);
 
   digitalWrite(PinPumpCirculation, HIGH);
@@ -46,6 +46,4 @@ void PinInitialization(void)
 	  pinMode(RoomValvePin[i], OUTPUT);
 	  digitalWrite(RoomValvePin[i], HIGH);
   }
-
-
 }

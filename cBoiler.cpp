@@ -1,9 +1,9 @@
 #include "cBoiler.h"
 
 
-cBoiler::cBoiler(void)
+cBoiler::cBoiler(cRooms* _Rooms,cWarmWater* _WarmWater)
 :Valve(PinValveBoilerOpen,PinValveBoilerClose),
-PIDBoilerCharge( 0.02, 0.005, 0, REVERSE),
+PIDBoilerCharge( 0.2, 0.1, 0.05, REVERSE),
 TempCharge(SystemMultiplexer,MultiplexTempBoilerCharge,OffsetTempBoilerCharge),
 TempReserve1(SystemMultiplexer,MultiplexTempBoilerReserve1,OffsetTempBoilerReserve1),
 TempReserve2(SystemMultiplexer,MultiplexTempBoilerReserve2,OffsetTempBoilerReserve2),
@@ -11,38 +11,32 @@ TempHead(SystemMultiplexer,MultiplexTempBoilerHead,OffsetTempBoilerHead),
 TempTop(SystemMultiplexer,MultiplexTempBoilerTop,OffsetTempBoilerTop),
 PumpBoilerCharge(PinPumpBoiler)
 {
-	// Set minimal Pump Power to about 20%
-	PIDBoilerCharge.SetOutputLimits(0.2, 1);
+	Rooms = _Rooms;
+	WarmWater = _WarmWater;
+	_ChargeHeatingAddon = ChargeHeatingOffset;
+	_ChargeWarmWaterAddon = ChargeWarmWaterOffset;
+	// Set minimal Pump Power to about 10%
+	PIDBoilerCharge.SetOutputLimits(0.1, 1);
+	
 }
 
 double cBoiler::getSpTempCharge(void)
 {
+	double TempChargeHeating = max(Rooms->getSpHeating()+_ChargeHeatingAddon, TempReserve1.get()+_ChargeHeatingAddon);
+	double TempChargeWarmWater = WarmWater->getSpTemp()+_ChargeWarmWaterAddon;
+	
 	if(needChargeWarmWater())
 	{
 		// Else choose maximum Charging temperature
-		_SpTempCharge = max(SpTempChargeWarmWater(), SpTempChargeHeating());
+		_SpTempCharge = max(TempChargeWarmWater, TempChargeHeating);
 	}
 	else
 	{
 		// If Warmwater is full, load into heating
-		_SpTempCharge = SpTempChargeHeating();
+		_SpTempCharge = TempChargeHeating;
 	}
 	
 	return _SpTempCharge;
-}
-
-double cBoiler::SpTempChargeWarmWater(void)
-{
-	double TempChargeWarmWater = SpTempWarmWater+ChargeWarmWaterOffset;
-	
-	return TempChargeWarmWater;
-}
-
-double cBoiler::SpTempChargeHeating(void)
-{
-	double TempChargeHeating = max(_SpTempHeatingLead+ChargeHeatingOffset, TempReserve1.get()+ChargeHeatingOffset);
-	
-	return TempChargeHeating;
 }
 
 
@@ -50,103 +44,101 @@ void cBoiler::charge(boolean bCharge)
 {
 	_bCharging = bCharge;
 	if (bCharge)
-	{	
+	{
 		// Run Pump
 		PumpBoilerCharge.setPower(PIDBoilerCharge.run(getSpTempCharge(), TempCharge.get()));
 	}
 	else // Stop Charging
 	{
-		// Stop PID
-		PIDBoilerCharge.run();
-		
-		// Stop Pump
-		PumpBoilerCharge.setPower(0.0);
+		// Stop PID and Pump
+		PumpBoilerCharge.setPower(PIDBoilerCharge.run());
 	}
 	
 	// Open Valve if charging or discharging
 	setValve();
 }
 
-
 /* Switches the Pump on and off corresponding to the power level
 After each Period the length of the period gets adjusted.
 */
-boolean cBoiler::needChargeHeating(boolean needHeating  = false)
-{
-	if( HeatingEmpty() && (needHeating) )
-	_needChargeHeating = true;
-	
-	if( HeatingFull() )
-	_needChargeHeating = false;
-	
-	return _needChargeHeating;
-}
-
-boolean cBoiler::HeatingEmpty(void)
+boolean cBoiler::needChargeHeating(boolean needHeating)
 {
 	// need = Setpoint - Actual Value
-	boolean empty = _SpTempHeatingLead > TempReserve1.get();
+	if( (Rooms->getSpHeating() > TempReserve1.get()) && (needHeating) )
+		_needChargeHeating = true;
 	
-	return empty;
-}
-
-boolean cBoiler::HeatingFull(void)
-{
 	// need = Setpoint - Actual Value
-	boolean full = _SpTempHeatingLead < TempReserve2.get();
+	// Reset hysteresis if boiler is full or no need for heating the rooms
+	if( (Rooms->getSpHeating() < TempReserve2.get()) || (!needHeating) )
+		_needChargeHeating = false;
 	
-	return full;
+	// Loading the boiler is only needed if hysteresis is triggered and rooms need heating.
+	return (_needChargeHeating && needHeating);
 }
-
 
 boolean cBoiler::needChargeWarmWater(void)
 {
-	if (WarmWaterEmpty()>0.0) _needChargeWarmWater = true;
+	// need = Setpoint - Actual Value
+	if (WarmWater->getSpTemp()-1 - TempTop.get()>0.0) _needChargeWarmWater = true;
 	
-	if (WarmWaterFull()>0.0) _needChargeWarmWater = false;
+	// have = -(Setpoint - Actual Value)
+	if (-(WarmWater->getSpTemp()+1 - TempHead.get())>0.0) _needChargeWarmWater = false;
 	
 	return _needChargeWarmWater;
 }
 
-double cBoiler::WarmWaterEmpty(void)
+void cBoiler::getSP( JsonObject& root )
 {
-	// need = Setpoint - Actual Value
-	double need = SpTempWarmWater-1 - TempTop.get();
+	root["BoilerChargeHeatingOffset"] = _ChargeHeatingAddon;
+	root["BoilerChargeWarmWaterOffset"] = _ChargeWarmWaterAddon;
+}
+
+int cBoiler::setSP( JsonObject& root )
+{
+	int fail = 0;
+	int posReturn =0;
 	
-	return need;
-}
-
-double cBoiler::WarmWaterFull(void)
-{
-	// have = -(Setpoint - Actual Value)
-	double have = -(SpTempWarmWater+1 - TempHead.get());
+	if(root.containsKey("BoilerChargeHeatingOffset")) {
+		if(root["BoilerChargeHeatingOffset"].is<double>()) {
+			_ChargeHeatingAddon =  root["BoilerChargeHeatingOffset"].as<double>();
+			posReturn++;
+		}
+		else fail=1;
+	}
+	else fail=1;
+	if(root.containsKey("BoilerChargeWarmWaterOffset")) {
+		if(root["BoilerChargeWarmWaterOffset"].is<double>()) {
+			_ChargeWarmWaterAddon =  root["BoilerChargeWarmWaterOffset"].as<double>();
+			posReturn++;
+		}
+		else fail=1;
+	}
+	else fail=1;
 	
-	return have;
+	if (fail == 0) { // If all three parameter objects were successfully filled
+		return posReturn;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
-void cBoiler::setSpTempHeatingLead( double SpTempHeatingLead )
+void cBoiler::getData( JsonObject& root )
 {
-	_SpTempHeatingLead = SpTempHeatingLead;
-}
+	root["BoilerValve"] =  static_cast<int>( Valve.get());
 
-void cBoiler::discharge( boolean bNeedSourceBoiler )
-{
-	_bDischarging = bNeedSourceBoiler;
+	root["BoilerTempCharge"] = TempCharge.get();
+	root["BoilerTempTop"] = TempTop.get();
+	root["BoilerTempHead"] = TempHead.get();
+	root["BoilerTempReserve1"] = TempReserve1.get();
+	root["BoilerTempReserve2"] = TempReserve2.get();
 	
-	setValve();
-}
-
-boolean cBoiler::needCharge( boolean bneedHeating = false )
-{
-	return (needChargeWarmWater() || needChargeHeating( bneedHeating));
-}
-
-void cBoiler::setValve( void )
-{
-	Valve.set((_bDischarging || _bCharging));
-}
-
-void cBoiler::triggerChargeWarmWater()
-{
-	_needChargeWarmWater = true;
+	root["BoilerPumpBoilerCharge"] =  PumpBoilerCharge.getPower();
+	root["BoilerneedChargeWarmWater"] =  static_cast<int>( _needChargeWarmWater);
+	root["BoilerneedChargeHeating"] =  static_cast<int>( _needChargeHeating);
+	root["BoilerbDischarging"] =  static_cast<int>( _bDischarging);
+	root["BoilerbCharging"] =  static_cast<int>( _bCharging);
+	root["BoilerSpTempWarmWater"] =  WarmWater->getSpTemp();
+	root["BoilerSpTempCharge"] =   _SpTempCharge;
 }

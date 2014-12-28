@@ -4,9 +4,9 @@
 #define _CSPHEATING_h
 
 #if defined(ARDUINO) && ARDUINO >= 100
-	#include "Arduino.h"
+#include "Arduino.h"
 #else
-	#include "WProgram.h"
+#include "WProgram.h"
 #endif
 
 #include "PinDefinitions.h"
@@ -14,18 +14,17 @@
 
 class cSpHeating
 {
- private:
+	public:
+	cSpHeating(void);
+	double get(double,double);
+	cTempSensor TempOutside;
+	
+	private:
 	double _dsteil;
 	double _dkh;
 	double _dverst;
 	double _dminvl;
 	double _dmaxvl;
-	cTempSensor TempOutside;
-
-
- public:
-	cSpHeating(void);
-	double get(double,double);
 	
 };
 

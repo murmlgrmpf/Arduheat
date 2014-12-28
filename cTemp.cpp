@@ -48,7 +48,7 @@ float cTempSensor::get( void )
 float readTemperature(int iMultiplexNumber,int iMultiplexConnector)
 {
   setMultiplexer(iMultiplexConnector);
-  delay(1); // Timing issue: Temperature drops when delay is removed
+  //delay(100); // Timing issue: Temperature drops when delay is removed
   
   float Ua = 0;
   float Ue = 0;
@@ -59,17 +59,20 @@ float readTemperature(int iMultiplexNumber,int iMultiplexConnector)
   if (iMultiplexNumber==1){ // first Multiplexer
     Ua = analogRead(MultiplexInput1)/1023.0*Vcc;
     Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
-    Kt = (Ue*(R+RM1)-Vcc*RM1)/((Vcc-Ue)*R25);
+    //Kt = (Ue*(R+RM1)-Vcc*RM1)/((Vcc-Ue)*R25);
+	Kt = R*Ue/(Vcc-Ue) /R25;
   }
   else if (iMultiplexNumber==2){ //second Multiplexer
     Ua = analogRead(MultiplexInput2)/1023.0*Vcc;
     Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
-    Kt = (Ue*(R+RM2)-Vcc*RM2)/((Vcc-Ue)*R25);
+    //Kt = (Ue*(R+RM2)-Vcc*RM2)/((Vcc-Ue)*R25);
+	Kt = R*Ue/(Vcc-Ue) /R25;
   }
   else{ // third Multiplexer
     Ua = analogRead(MultiplexInput3)/1023.0*Vcc;
     Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
-    Kt = (Ue*(R+RM3)-Vcc*RM3)/((Vcc-Ue)*R25);
+    //Kt = (Ue*(R+RM3)-Vcc*RM3)/((Vcc-Ue)*R25);
+	Kt = R*Ue/(Vcc-Ue) /R25;
   }
   
   fTemp = 25+(sqrt(pow(Alpha, 2)-4*Beta+4*Beta*Kt)-Alpha)/(2*Beta);

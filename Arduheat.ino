@@ -1,124 +1,98 @@
-#include "Arduino.h"
-#include "PinDefinitions.h"
-#include "cTemp.h"
-#include "cPump.h"
-#include "cRoom.h"
+#include <Arduino.h>
+#include <avr/pgmspace.h>
+#include "cWarmWater.h"// important for global TimeNow variable
 #include "cHeating.h"
-#include "cWarmWater.h"
-#include <PID_v1.h>
+#include <cPID.h>
+#include "config.h"
+#include <SdFat.h>
+#include <SdFatUtil.h>
+#include <ArduinoJson.h>
 
-#define LiterPerImpuls 0.009263548
 
-#define TimePeriod 1000
-#define CPumpWarmWater 60
-//#define NWarmWaterHeatExchanger 4.3
-#define NWarmWaterHeatExchanger 
+#include "cTrigger.h"
 
-//! Counter for warm water
-int iLastCounter = 0;
-unsigned long LastTimeCounter = 0;
-float fmassFlux = 0.0;
-float fMassFlux = 0.0;
-float fMassFlowPumpWarmWater = 0.0;
-float fTempRefSchedule[16]={20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0,
-                    20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0};
+// RTC
+#include <Wire.h>
+#include <RTClib.h>
+#include "cRoom.h" // important for global TimeNow variable
 
-unsigned long LastTime = 0;
-boolean trigger = false;
 
-float PumpState =0;
+//// RTC //////////
+RTC_DS1307 rtc;
+DateTime TimeNow;
+////////////////////////
 
-cWarmWater WarmWater;
+cTrigger triggerLog(10000);
 cHeating Heating;
 
-
 /**
- * @fn void setup(void)
- * @brief Initializes the serial connection and defines the in- and outputs.
- */
+* @fn void setup(void)
+* @brief Initializes the serial connection and defines the in- and outputs.
+*/
 void  setup()
 {
-  Serial.begin(115200);
-  Serial.println("Steuerung");
-  attachInterrupt(4,incCounter,RISING);
-  PinInitialization();
-  delay(2000);// Give reader a chance to see the output.
-  analogReference(DEFAULT);
-  
-  DataAcquisition(true);
-  // Overwrite Setpoint Temperature for WarmWater
-  //Heating.SpTempWarmWater = 45.0;
+	pinMode(10, OUTPUT);                       // set the SS pin as an output (necessary!)
+	digitalWrite(10, HIGH);                    // but turn off the W5100 chip!
+	pinMode(53, OUTPUT);
+	
+	//// RTC test //////////
+	Serial.begin(115200);
+	
+	PgmPrint("Free RAM: "); // part of sdFatUtil
+	Serial.println(FreeRam());
+	
+	// RTC
+	Wire.begin();
+	rtc.begin();
+	////////////////////////
+	//// following line sets the RTC to the date & time this sketch was compiled
+	//rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+	
+	PinInitialization();
+	analogReference(DEFAULT);
+	//analogReference(EXTERNAL);
+	
+	initSD();
+	if (!sderror)
+	{
+		writeConf( &Heating ); // write defaults
+		if (!readConfig(&Heating)) {
+			writeConf(&Heating); // If reading config fails, write defaults
+			Serial.println(F("sd config file did not exist, writing defaults."));
+		}
+		writeConf( &Heating); // write defaults
+	}
+
+	
+	//Serial.println(F("Type any character to start logging"));
+	if ((!sderror)&&(!fileerror))
+	{
+		Serial.print(F("Logging to: "));
+		Serial.println(genFile());
+		logWrite(true, &Heating);
+		Serial.println(F("Type any character to stop logging"));
+		logging = true;
+	}
 
 }
-
-
-
 
 /**
- * @fn void loop(void)
- * @brief Runs the main program which controls the system.
- */
+* @fn void loop(void)
+* @brief Runs the main program which controls the system.
+*/
 void loop()
 {
-   Heating.Control();
-   WarmWater.Control();
-  
-  //DataAcquisition(false);
-  //CheckTime();
+	TimeNow = rtc.now();
+	Heating.Control();
+	Heating.WarmWater.Control();
+	
+	
+	if (triggerLog.get()&&logging&&(!sderror)&&(!fileerror)) {
+		logWrite(false, &Heating);
+		// TODO: Check for data rate too high.
+	}
+	
+	if (Serial.available()&&(logging)&&(!sderror)&&(!fileerror)) {
+		stopLogging();
+	}
 }
-
-
-void incCounter()
-{
-   WarmWater.FlowMeter.incCounter();
-}
-
-
-
-void DataAcquisition(boolean bfirstRun)
-{
-  // Header
-  if (bfirstRun) {
-    Serial.println("TempBoilerTop; SpTempChargeWarmWater; TempBoilerHead; TempBoilerCharge; PID%; haveWarmWater; needWarmWater; SpTempChargeHeating");
-  }
-  unsigned long endtime = 0;
-  unsigned long time = millis();
-  if(trigger)
-  {
-    printValue(Heating.Boiler.TempTop.get());
-    printValue(Heating.Boiler.SpTempChargeWarmWater());
-    printValue(Heating.Boiler.TempHead.get());
-    printValue(Heating.Boiler.TempCharge.get());
-    printValue(Heating.Boiler.PumpBoilerCharge.Power);
-    printValue(Heating.Boiler.WarmWaterFull());
-    printValue(Heating.Boiler.WarmWaterEmpty());
-    //printValue(Heating.Boiler.needHeating());
-    printValue(Heating.Boiler.SpTempChargeHeating());
-
-    
-    //printValue();
-    
-    Serial.println(); //carriage return and new line
-  }
-}
-
-void printValue(float fValue)
-{
-  Serial.print(fValue,DEC);
-  Serial.print(" ; "); // separator
-}
-
-void CheckTime()
-{
-  unsigned long time = millis();
-  if(time>LastTime+TimePeriod)
-  {
-    trigger = true;
-    LastTime = time;
-  }
-  else {
-    trigger = false;
-  }
-}
-
-
