@@ -1,83 +1,69 @@
 #include "cTemp.h"
 
-cTempSensor::cTempSensor(void):
+cTempSensor::cTempSensor(int iMultiplexNumber,int MultiplexChannel, float Offset):
 Trigger(FilterTimePeriod)
 {
-	set(0,0,0);
+	// Multiplexer input line initializations
+	pinMode(MultiplexInput[0], INPUT);
+	pinMode(MultiplexInput[1], INPUT);
+	pinMode(MultiplexInput[2], INPUT);
+	// Multiplexer control line initializations
+	pinMode(MultiplexControl[0], OUTPUT);
+	pinMode(MultiplexControl[1], OUTPUT);
+	pinMode(MultiplexControl[2], OUTPUT);
+	pinMode(MultiplexControl[3], OUTPUT);
+	
+	set(iMultiplexNumber,MultiplexChannel,Offset);
 }
 
-cTempSensor::cTempSensor(int iMultiplexNumber,int iMultiplexConnector, float Offset):
-Trigger(FilterTimePeriod)
+void cTempSensor::set(int MultiplexNumber_,int MultiplexChannel_, float Offset_)
 {
-	set(iMultiplexNumber,iMultiplexConnector,Offset);
-}
-
-void cTempSensor::set(int iMultiplexNumber,int iMultiplexConnector, float Offset)
-{
-	_iMultiplexNumber = iMultiplexNumber;
-	_iMultiplexConnector = iMultiplexConnector;
-	_dOffset = Offset;
+	pinMultiplexInput =  MultiplexInput[MultiplexNumber_-1];
+	MultiplexChannel = MultiplexChannel_;
+	Offset = Offset_;
 	
 	// Initialize temperature using high value to avoid switching on the burner
 	// during initialization
-	_TempFilt = 60;
+	TempFilt = 60;
 	
 	// exponential filtering coefficient [1/#Measurements]
-	_alphaT = AlphaT*FilterTimePeriod/1000;
+	alphaFilt = AlphaT*FilterTimePeriod/1000;
 }
 
 float cTempSensor::get( void )
 {
-	if(Trigger.get())
-	{
-		_TempFilt = (_alphaT/(_alphaT+1))*readTemperature(_iMultiplexNumber,_iMultiplexConnector)  + 1/(_alphaT+1)*_TempFilt;
+	if(Trigger.get()) {
+		setMultiplexer(MultiplexChannel);
+		
+		float Ua = analogRead(pinMultiplexInput)/1023.0*Vcc;
+		float Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
+		float Kt = R*Ue/(Vcc-Ue) /R25;
+		float Temp = 25+(sqrt(pow(Alpha, 2)-4*Beta+4*Beta*Kt)-Alpha)/(2*Beta);
+		
+		TempFilt = (alphaFilt/(alphaFilt+1))*Temp  + 1/(alphaFilt+1)*TempFilt;
 	}
 	
-	return(_TempFilt+_dOffset);
+	return(TempFilt+Offset);
 }
 
 
 /**
- * @fn float readTemperature(int iMultiplexNumber,int iMultiplexConnector)
+ * @fn float readTemperature(int pinMultiplexInput,int MultiplexChannel)
  * @brief Reads in and evaluates the Temperature for a given multiplexer and connector index at the multiplexer.
  *
  * Reads in the previously switched channels of the multiplexers (see setMultiplexer()).
  * Then converts the values to temperatures and gives back the result to getTemperatures().
  * @return fTemp
  */
-float readTemperature(int iMultiplexNumber,int iMultiplexConnector)
+float readTemperature(int pinMultiplexInput)
 {
-  setMultiplexer(iMultiplexConnector);
-  //delay(100); // Timing issue: Temperature drops when delay is removed
-  
-  float Ua = 0;
-  float Ue = 0;
-  float Kt = 0;
-  float fTemp =0;
-  
-    // Calculate raw Temperatures (Before Calibration)
-  if (iMultiplexNumber==1){ // first Multiplexer
-    Ua = analogRead(MultiplexInput1)/1023.0*Vcc;
-    Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
-    //Kt = (Ue*(R+RM1)-Vcc*RM1)/((Vcc-Ue)*R25);
-	Kt = R*Ue/(Vcc-Ue) /R25;
-  }
-  else if (iMultiplexNumber==2){ //second Multiplexer
-    Ua = analogRead(MultiplexInput2)/1023.0*Vcc;
-    Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
-    //Kt = (Ue*(R+RM2)-Vcc*RM2)/((Vcc-Ue)*R25);
-	Kt = R*Ue/(Vcc-Ue) /R25;
-  }
-  else{ // third Multiplexer
-    Ua = analogRead(MultiplexInput3)/1023.0*Vcc;
-    Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
-    //Kt = (Ue*(R+RM3)-Vcc*RM3)/((Vcc-Ue)*R25);
-	Kt = R*Ue/(Vcc-Ue) /R25;
-  }
-  
-  fTemp = 25+(sqrt(pow(Alpha, 2)-4*Beta+4*Beta*Kt)-Alpha)/(2*Beta);
-  
-  return fTemp;
+	// Calculate raw Temperatures (Before Calibration)
+	float Ua = analogRead(pinMultiplexInput)/1023.0*Vcc;
+	float Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
+	float Kt = R*Ue/(Vcc-Ue) /R25;
+	float Temp = 25+(sqrt(pow(Alpha, 2)-4*Beta+4*Beta*Kt)-Alpha)/(2*Beta);
+	
+	return Temp;
 }
 
 /**
@@ -85,10 +71,10 @@ float readTemperature(int iMultiplexNumber,int iMultiplexConnector)
  * @brief The function sets the steering pins A0..A3 of the multiplexers to the correct values.
  * @param i Number of the sensor input channel to be read from the multiplexers
  */
-void setMultiplexer(int iMultiplexConnector)
+void setMultiplexer(int MultiplexChannel)
 {
-  digitalWrite(MultiplexControl1,HIGH && (iMultiplexConnector & B00000001));
-  digitalWrite(MultiplexControl2,HIGH && (iMultiplexConnector & B00000010));
-  digitalWrite(MultiplexControl3,HIGH && (iMultiplexConnector & B00000100));
-  digitalWrite(MultiplexControl4,HIGH && (iMultiplexConnector & B00001000));
+	digitalWrite(MultiplexControl[0],HIGH && (MultiplexChannel & B00000001));
+	digitalWrite(MultiplexControl[1],HIGH && (MultiplexChannel & B00000010));
+	digitalWrite(MultiplexControl[2],HIGH && (MultiplexChannel & B00000100));
+	digitalWrite(MultiplexControl[3],HIGH && (MultiplexChannel & B00001000));
 }
