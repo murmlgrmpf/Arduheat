@@ -1,57 +1,43 @@
 #include "cRoom.h"
 
-
-cRoom::cRoom(void)
+cRoom::cRoom( int RoomNumber_ )
 //:pid(0.1, 0, 0, DIRECT)
 {
-	_dSpTemp = 20.0;
-	setRoomNumber(1);
-}
-
-cRoom::cRoom( int iRoomNumber ) /*~cRoom()*/
-//:pid(0.1, 0, 0, DIRECT),
-:Valve(RoomValvePin[iRoomNumber-1])
-{
-	init(iRoomNumber);
-}
-
-void cRoom::init( int iRoomNumber )
-{
 	RoomType = Living;
-	_dSpTemp = 20.0;
-	setRoomNumber(iRoomNumber);
+	SpTemp = 20.0;
+	init(RoomNumber_);
+}
+
+void cRoom::init( int RoomNumber_ )
+{
+	setRoomNumber(RoomNumber_);
 	//Set the pin of the valve according to pinout scheme.
-	Valve.setPinOpen(RoomValvePin[iRoomNumber-1]);
+	Valve.setPinOpen(RoomValvePin[RoomNumber_]);
 	
 	//pid.SetOutputLimits(0, 1);
 }
 
-void cRoom::setRoomNumber(int iRoomNumber)
+void cRoom::setRoomNumber(int RoomNumber_)
 {
-	int _iMultiplexNumber;
-	int _iMultiplexConnectorIs;
-	int _iMultiplexConnectorSp;
-	
 	// Set RoomNumber
-	_iRoomNumber = iRoomNumber;
+	RoomNumber = RoomNumber_;
 	
-	//**********************
-	// Calculate pinout
-	_iMultiplexNumber = 1;
-	_iMultiplexConnectorIs = 2*(_iRoomNumber);
-	if (_iMultiplexConnectorIs>16)
-	{
-		_iMultiplexConnectorIs = _iMultiplexConnectorIs -16;
-		_iMultiplexNumber =2;
-	}
-	// Adaption to multiplexer pinout
-	_iMultiplexConnectorIs = 16-_iMultiplexConnectorIs;
-	_iMultiplexConnectorSp = _iMultiplexConnectorIs +1;
-	//**********************
+// 	//**********************
+// 	// Calculate pinout
+// 	int MultiplexNumber = 0;
+// 	int MultiplexChannelIs = 2*(RoomNumber+1);
+// 	if (MultiplexChannelIs>16)
+// 	{
+// 		MultiplexChannelIs = MultiplexChannelIs -16;
+// 		MultiplexNumber =1;
+// 	}
+// 	// Adaption to multiplexer pinout
+// 	MultiplexChannelIs = 16-MultiplexChannelIs;
+// 	int MultiplexChannelSp = MultiplexChannelIs +1;
+// 	//**********************
 	
-	//IsTemp.set(_iMultiplexNumber,_iMultiplexConnectorIs,RoomIsOffset[iRoomNumber-1]);
-	IsTemp.set(_iMultiplexNumber,_iMultiplexConnectorIs,RoomIsOffset[iRoomNumber-1]);
-	SpTempOverride.set(_iMultiplexNumber,_iMultiplexConnectorSp,RoomSpOffset[iRoomNumber-1]);
+	IsTemp.set(MultiplexNumberRooms[RoomNumber],MultiplexChannelRoomsIs[RoomNumber],RoomIsOffset[RoomNumber]);
+	SpTempOverride.set(MultiplexNumberRooms[RoomNumber],MultiplexChannelRoomsSp[RoomNumber],RoomSpOffset[RoomNumber]);
 }
 
 double cRoom::getNeed(void)
@@ -70,15 +56,16 @@ double cRoom::getNeed(void)
 cRooms::cRooms( void ):
 IsTempHeatingLead(SystemMultiplexer,MultiplexTempHeatingLead,OffsetTempHeatingLead),
 IsTempHeatingReturn(SystemMultiplexer,MultiplexTempHeatingReturn,OffsetTempHeatingReturn),
-PIDPumpHeating( 0.2, 0.1, 0.05, DIRECT),
+TempOutside(SystemMultiplexer,MultiplexTempOutside,OffsetTempOutside),
+PIDPump( 0.2, 0.1, 0.05, DIRECT),
 PIDMixer( 0.5, 0.0, 0.005, DIRECT),
-PumpHeating(PinPumpHeating)
+Pump(PinPumpHeating),
+Mixer(PinMixerOpen,PinMixerClose)
 {
 	SetType = Normal;
-
 	
 	// Initialize PID controllers for pumps
-	PIDPumpHeating.SetOutputLimits(0.4, 1.0);
+	PIDPump.SetOutputLimits(0.4, 1.0);
 	PIDMixer.SetOutputLimits(-1.0, 1.0);
 	PIDMixer.SetSampleTime(500);
 	
@@ -89,9 +76,7 @@ PumpHeating(PinPumpHeating)
 	for(int i = 0; i<16; i++)
 	{
 		// The rooms know their multiplexers and pin out by the room number
-		Room[i].init(i+1);
-		// Initialize the Room setpoints by executing need()
-		//need();
+		Room[i].init(i);
 	}
 	
 	initDefaultSetpoint();
@@ -129,9 +114,9 @@ void cRooms::initDefaultSetpoint()
 	
 	double temp[nSwitch];
 	temp[0] = 0.0;
-	temp[1] = -2.0;//0.0;//
+	temp[1] = -1.0;//0.0;//
 	temp[2] = 0.0;
-	temp[3] = -2.0;//0.0;//
+	temp[3] = -1.0;//0.0;//
 	TimeSpan switchtime[nSwitch];
 	switchtime[0].set(0,6,0,0);
 	switchtime[1].set(0,8,0,0);
@@ -189,19 +174,19 @@ void cRooms::ChargeRooms( boolean bneedChargeRooms, boolean BoilerCharges )
 		{
 			// If Boiler is charged, run heating pump at full speed.
 			// The Boiler is collecting the remaining heat from the source.
-			PIDPumpHeating.run();
-			PumpHeating.setPower(1.0);
+			PIDPump.run();
+			Pump.setPower(1.0);
 		}
 		else
 		{
-			PumpHeating.setPower(PIDPumpHeating.run(_dSpTempHeatingReturn, _dIsTempHeatingReturn));
+			Pump.setPower(PIDPump.run(_dSpTempHeatingReturn, _dIsTempHeatingReturn));
 		}
 	}
 	else
 	{
 		// Stop Pump Heating and PID
-		PIDPumpHeating.run();
-		PumpHeating.setPower(0.0);
+		PIDPump.run();
+		Pump.setPower(0.0);
 		// Stop mixer PID and run Mixer to closed position
 		PIDMixer.run();
 		Mixer.run(-1.0);
@@ -275,8 +260,18 @@ boolean cRooms::need(void)
 
 double cRooms::getSpHeating(void)
 {
+	double t1;
+	double t2;
+	double swhk;
+	double swhkLimit;
+	
 	need();
-	return SpHeating.get(dMaxSp, dMaxDiff);
+	
+	t1 = (TempOutside.get()/(320-4*TempOutside.get()));
+	t2 = pow(dMaxSp,t1);
+	swhk = 0.55*dsteil*t2*(-TempOutside.get()+20)*2+dMaxSp+dkh+dMaxDiff*dverst;
+	swhkLimit = min(max(swhk,dminvl),dmaxvl);
+	return swhkLimit;
 }
 
 DayTypes cRooms::getDayType( uint8_t day  )
@@ -457,8 +452,7 @@ int cRooms::setRooms( JsonObject& root )
 	if (fail == 0) { // If all three parameter objects were successfully filled
 		return posReturn;
 	}
-	else
-	{
+	else {
 		return 0;
 	}
 }
@@ -473,11 +467,11 @@ void cRooms::getData( JsonObject& root )
 		RoomsSPTemps.add(Room[i].getSpTemp());
 	}
 	
-	root["TempOutside"] = SpHeating.TempOutside.get();
+	root["TempOutside"] = TempOutside.get();
 	root["RoomNeed"] = need();
-	root["SpHeating"] = SpHeating.get(dMaxSp, dMaxDiff);
+	root["SpHeating"] = getSpHeating();
 	
 	root["IsTempHeatingLead"] = IsTempHeatingLead.get();
 	root["IsTempHeatingReturn"] = IsTempHeatingReturn.get();
-	root["PumpHeating"] = PumpHeating.getPower();
+	root["RoomsPump"] = Pump.getPower();
 }
