@@ -38,6 +38,8 @@ enum RoomTypes {Living=0, Sleeping=1, Hallway=2, Bath=3, Side=4};
 enum SetTypes {Normal=0, Holiday=1};
 enum DayTypes {Weekend=0, Workday=1};
 
+const RoomTypes DefaultRoomType[] = {Side,Side,Side,Side,Living,Living,Living,Hallway,Hallway,Hallway,Sleeping,Sleeping,Bath,Side,Side,Hallway};
+
 extern DateTime TimeNow;
 
 class cRoom
@@ -45,17 +47,46 @@ class cRoom
 	public:
 	/// Creates a room.
 	/** As the rooms get created in an array, only the default constructor can be used cRoom(void) */
-	cRoom(int RoomNumber_ = 1 );
+	cRoom(int RoomNumber_ = 1 )
+	//:pid(0.1, 0, 0, DIRECT)
+	{
+		init(RoomNumber_);
+		RoomType = DefaultRoomType[RoomNumber];
+		SpTemp = 20.0;
+	}
 	
 	/// To initialize the rooms
-	void init(int RoomNumber_);
+	void init(int RoomNumber_)
+	{
+		RoomNumber = RoomNumber_;
+		
+		IsTemp.set(MultiplexNumberRooms[RoomNumber],MultiplexChannelRoomsIs[RoomNumber],RoomIsOffset[RoomNumber]);
+		SpTempOverride.set(MultiplexNumberRooms[RoomNumber],MultiplexChannelRoomsSp[RoomNumber],RoomSpOffset[RoomNumber]);
+		
+		//Set the pin of the valve according to pinout scheme.
+		Valve.setPinOpen(RoomValvePin[RoomNumber_]);
+		
+		//pid.SetOutputLimits(0, 1);
+	}
+	
+	double getNeed(void)
+	{
+		// Compute need
+		//double _need = pid.run(getSpTemp(),IsTemp.get());
+		double _need = getSpTemp()-IsTemp.get();
+		// Open Valve if heat is needed
+		Valve.set((_need>0));
+		
+		return _need;
+	}
 	
 	void   setSpTemp(double spTemp_){SpTemp = spTemp_;};
 	double getIsTemp(void){return IsTemp.get();};
 	double getSpTemp(void){return SpTemp;};
-	double getNeed(void);
+	
 	RoomTypes RoomType;
 	cTempSensor SpTempOverride;
+	cTempSensor IsTemp;
 	
 	private:
 	int RoomNumber;
@@ -64,8 +95,7 @@ class cRoom
 	//cPID pid;
 	/// Each room has a valve
 	cRoomValve Valve;
-	cTempSensor IsTemp;
-
+	
 	void setRoomNumber(int iRoomNumber);
 };
 
@@ -85,7 +115,7 @@ class cRooms
 	cTempSensor IsTempHeatingReturn;
 	cTempSensor TempOutside;
 	
-	cRoom Room[16];
+	cRoom Room[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 	cPump Pump;
 	cPID PIDPump;
 	cMixer Mixer;
@@ -101,7 +131,6 @@ class cRooms
 	
 	void ChargeRooms(boolean bneedChargeRooms, boolean BoilerCharges = false);
 	
-	void initDefaultRoomtypes();
 	void initDefaultSetpoint();
 	double RoomTemps[nRoomType];
 	sTempSchedule TempOffsetSchedule[nSet][nRoomType][nDayType][nSwitch];

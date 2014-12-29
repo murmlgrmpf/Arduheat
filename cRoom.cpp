@@ -1,58 +1,5 @@
 #include "cRoom.h"
 
-cRoom::cRoom( int RoomNumber_ )
-//:pid(0.1, 0, 0, DIRECT)
-{
-	RoomType = Living;
-	SpTemp = 20.0;
-	init(RoomNumber_);
-}
-
-void cRoom::init( int RoomNumber_ )
-{
-	setRoomNumber(RoomNumber_);
-	//Set the pin of the valve according to pinout scheme.
-	Valve.setPinOpen(RoomValvePin[RoomNumber_]);
-	
-	//pid.SetOutputLimits(0, 1);
-}
-
-void cRoom::setRoomNumber(int RoomNumber_)
-{
-	// Set RoomNumber
-	RoomNumber = RoomNumber_;
-	
-// 	//**********************
-// 	// Calculate pinout
-// 	int MultiplexNumber = 0;
-// 	int MultiplexChannelIs = 2*(RoomNumber+1);
-// 	if (MultiplexChannelIs>16)
-// 	{
-// 		MultiplexChannelIs = MultiplexChannelIs -16;
-// 		MultiplexNumber =1;
-// 	}
-// 	// Adaption to multiplexer pinout
-// 	MultiplexChannelIs = 16-MultiplexChannelIs;
-// 	int MultiplexChannelSp = MultiplexChannelIs +1;
-// 	//**********************
-	
-	IsTemp.set(MultiplexNumberRooms[RoomNumber],MultiplexChannelRoomsIs[RoomNumber],RoomIsOffset[RoomNumber]);
-	SpTempOverride.set(MultiplexNumberRooms[RoomNumber],MultiplexChannelRoomsSp[RoomNumber],RoomSpOffset[RoomNumber]);
-}
-
-double cRoom::getNeed(void)
-{
-	// Compute need
-	//double _need = pid.run(getSpTemp(),IsTemp.get());
-	double _need = getSpTemp()-IsTemp.get();
-	// Open Valve if heat is needed
-	Valve.set((_need>0));
-	
-	return _need;
-}
-
-
-///////////////////////////////////////////////
 cRooms::cRooms( void ):
 IsTempHeatingLead(SystemMultiplexer,MultiplexTempHeatingLead,OffsetTempHeatingLead),
 IsTempHeatingReturn(SystemMultiplexer,MultiplexTempHeatingReturn,OffsetTempHeatingReturn),
@@ -63,7 +10,6 @@ Pump(PinPumpHeating),
 Mixer(PinMixerOpen,PinMixerClose)
 {
 	SetType = Normal;
-	
 	// Initialize PID controllers for pumps
 	PIDPump.SetOutputLimits(0.4, 1.0);
 	PIDMixer.SetOutputLimits(-1.0, 1.0);
@@ -73,35 +19,13 @@ Mixer(PinMixerOpen,PinMixerClose)
 	dMaxSp = 0;
 	
 	// Initialize room numbers and Pins
-	for(int i = 0; i<16; i++)
-	{
-		// The rooms know their multiplexers and pin out by the room number
-		Room[i].init(i);
-	}
+// 	for(int i = 0; i<16; i++)
+// 	{
+// 		// The rooms know their multiplexers and pin out by the room number
+// 		Room[i].init(i);
+// 	}
 	
 	initDefaultSetpoint();
-	initDefaultRoomtypes();
-	
-}
-
-void cRooms::initDefaultRoomtypes()
-{
-	Room[0].RoomType = Side;
-	Room[1].RoomType = Side;
-	Room[2].RoomType = Side;
-	Room[3].RoomType = Side;
-	Room[4].RoomType = Living;
-	Room[5].RoomType = Living;
-	Room[6].RoomType = Living;
-	Room[7].RoomType = Hallway;
-	Room[8].RoomType = Hallway;
-	Room[9].RoomType = Hallway;
-	Room[10].RoomType = Sleeping;
-	Room[11].RoomType = Sleeping;
-	Room[12].RoomType = Bath;
-	Room[13].RoomType = Side;
-	Room[14].RoomType = Side;
-	Room[15].RoomType = Hallway;
 }
 
 void cRooms::initDefaultSetpoint()
