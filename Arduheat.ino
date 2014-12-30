@@ -14,7 +14,7 @@
 // RTC
 #include <Wire.h>
 #include <RTClib.h>
-#include "cRoom.h" // important for global TimeNow variable
+#include "cRooms.h" // important for global TimeNow variable
 
 
 //// RTC //////////
@@ -47,33 +47,21 @@ void  setup()
 	////////////////////////
 	//// following line sets the RTC to the date & time this sketch was compiled
 	//rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+	TimeNow = rtc.now();
 	
-	PinInitialization();
 	analogReference(DEFAULT);
 	//analogReference(EXTERNAL);
 	
 	initSD();
-	if (!sderror)
-	{
-		writeConf( &Heating ); // write defaults
-		if (!readConfig(&Heating)) {
-			writeConf(&Heating); // If reading config fails, write defaults
-			Serial.println(F("sd config file did not exist, writing defaults."));
-		}
-		writeConf( &Heating); // write defaults
+	writeConf( &Heating ); // write defaults
+	if (!readConfig(&Heating)) {
+		writeConf(&Heating); // If reading config fails, write defaults
+		Serial.println(F("sd config file did not exist, writing defaults."));
 	}
-
+	ini.close();
+	writeConf( &Heating); // write defaults
 	
-	//Serial.println(F("Type any character to start logging"));
-	if ((!sderror)&&(!fileerror))
-	{
-		Serial.print(F("Logging to: "));
-		Serial.println(genFile());
-		logWrite(true, &Heating);
-		Serial.println(F("Type any character to stop logging"));
-		logging = true;
-	}
-
+	startLogging(&Heating);
 }
 
 /**
@@ -86,13 +74,15 @@ void loop()
 	Heating.Control();
 	Heating.WarmWater.Control();
 	
-	
-	if (triggerLog.get()&&logging&&(!sderror)&&(!fileerror)) {
+	if ((triggerLog.get())&&logging) {
+// 		if(fileerror||sderror) {
+// 			initSD();
+// 			startLogging(&Heating);
+// 		}
 		logWrite(false, &Heating);
-		// TODO: Check for data rate too high.
 	}
 	
-	if (Serial.available()&&(logging)&&(!sderror)&&(!fileerror)) {
+	if (Serial.available()&&(logging)) {
 		stopLogging();
 	}
 }

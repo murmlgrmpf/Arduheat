@@ -4,29 +4,32 @@
 cHeating::cHeating(void):
 WarmWater(),
 Rooms(),
-PumpSolar(PinPumpSolar),
-Boiler(&Rooms, &WarmWater)
+Boiler(&Rooms, &WarmWater),
+Solar()
 {
-	_SpTempSource=0.0;
+	// Initialize and deactivate WarmWater Circulation Heating system
+	pinMode(PinPumpCirculation, OUTPUT);
+	digitalWrite(PinPumpCirculation,HIGH);
+	// Initialize Control line for Remote Heating system
+	pinMode(PinHeatControl, OUTPUT);
+	SpTempSource=0.0;
 }
 
 void cHeating::Control(void){
 	checkSinks();
 	checkSources();
 	
-	if(needSource||needSink)
-	{
+	if(needSource||needSink) {
 		selectSink(Sink);
 		selectSource(Source);
 	}
-	else
-	{
+	else {
 		selectSink(SiOff);
 		selectSource(SoOff);
 	}
 	
 	// Run solar pump to avoid boiling
-	PumpSolar.setPower(0.0);
+	Solar.probe(true);
 }
 
 
@@ -34,33 +37,29 @@ void cHeating::checkSinks(void)
 {
 	// Aggregate needs of heat sinks according to priority
 	// #1 Determine need to charge warm water
-	if(Boiler.needChargeWarmWater())
-	{
+	if(Boiler.needChargeWarmWater()) {
 		Sink = SiChargeWarmWater;
-		_SpTempSource = Boiler.getSpTempCharge();
+		SpTempSource = Boiler.getSpTempCharge();
 		needSource = true;
 	}
 	// #2 Determine whether there is need for heating the rooms
-	else if (Rooms.need())
-	{
+	else if (Rooms.need()) {
 		// Trigger hysteresis to keep burner burning
 		Boiler.needChargeHeating(Rooms.need());
 		Sink = SiChargeRooms;
-		_SpTempSource = Rooms.getSpHeating();
+		SpTempSource = Rooms.getSpHeating();
 		needSource = true;
 	}
 	//// #3 Determine need to charge heating
-	//else if (Boiler.needChargeHeating(Rooms.need()))
-	//{
+	//else if (Boiler.needChargeHeating(Rooms.need())) {
 		//// Boiler Heating needs charging and rooms need heat
 		//Sink = SiChargeHeating;
-		//_SpTempSource = Boiler.getSpTempCharge();
+		//SpTempSource = Boiler.getSpTempCharge();
 		//needSource = true;
 	//}
-	else
-	{
+	else {
 		Sink = SiChargeHeating;
-		_SpTempSource = Boiler.getSpTempCharge();
+		SpTempSource = Boiler.getSpTempCharge();
 		needSource = false;
 	}
 	
@@ -70,32 +69,27 @@ void cHeating::checkSources(void)
 {
 	// Priority of Heat sources:
 	// #1 If burner is burning: execute burner
-	if(Burner.isBurning())
-	{
+	if(Burner.isBurning()) {
 		Source = SoBurner;
 		needSink = true;
 	}
 	// #2 If burner is not burning: Burner residual heat: true if temperature high enough
-	else if (Burner.burn(false,_SpTempSource))
-	{
+	else if (Burner.burn(false,SpTempSource)) {
 		Source = SoBurnerResHeat;
 		needSink = true;
 	}
 	// #3 Solar
-	else if (false)
-	{
+	else if (false) {
 		Source = SoSolar;
 		needSink = true;
 	}
 	// #4 Boiler
-	else if (! (Boiler.needChargeWarmWater() || Boiler.needChargeHeating(Rooms.need())) )
-	{
+	else if (! (Boiler.needChargeWarmWater() || Boiler.needChargeHeating(Rooms.need())) ) {
 		Source = SoBoiler;
 		needSink = false;
 	}
 	// #5 Start Burner
-	else if (needSource)
-	{
+	else if (needSource) {
 		Source = SoBurner;
 		needSink = true;
 		Boiler.triggerChargeWarmWater();
@@ -105,54 +99,44 @@ void cHeating::checkSources(void)
 
 void cHeating::selectSource( int Source )
 {
-	switch (Source)
-	{
-		case SoBurner:
-		{
+	switch (Source) {
+		case SoBurner: {
 			// Check hysteresis for charging the boiler
 			if( Boiler.needChargeWarmWater() || Boiler.needChargeHeating(Rooms.need()) )
-			{
-				Burner.burn(true, _SpTempSource);
-			}
+				Burner.burn(true, SpTempSource);
 			else
-			{
-				Burner.burn(false, _SpTempSource);
-			}
+				Burner.burn(false, SpTempSource);
 			
 			// Deactivate other heat sources
 			Boiler.discharge(false);
 			break;
 		}
-		case SoBurnerResHeat:
-		{
+		case SoBurnerResHeat: {
 			// Residual heat mode
 			// Deactivate other heat sources
-			Burner.burn(false, _SpTempSource);
+			Burner.burn(false, SpTempSource);
 			Boiler.discharge(false);
 			break;
 		}
-		case SoSolar:
-		{
+		case SoSolar: {
 			// Solar mode
 			// Deactivate other heat sources
-			Burner.burn(false, _SpTempSource);
+			Burner.burn(false, SpTempSource);
 			Boiler.discharge(false);
 			break;
 		}
-		case SoBoiler:
-		{
+		case SoBoiler: {
 			// Boiler source mode
 			Boiler.discharge(true);
 			// Deactivate other heat sources
-			Burner.burn(false, _SpTempSource);
+			Burner.burn(false, SpTempSource);
 			break;
 		}
-		case SoOff: default:
-		{
+		case SoOff: default: {
 			// Deactivate all heat sources
 			// Solar
 			Boiler.discharge(false);
-			Burner.burn(false, _SpTempSource);
+			Burner.burn(false, SpTempSource);
 			break;
 		}
 	}
@@ -160,31 +144,25 @@ void cHeating::selectSource( int Source )
 
 void cHeating::selectSink( int Sink )
 {
-	boolean ChargeBoilerAndRooms = false;
-	switch (Sink)
-	{
-		case SiChargeWarmWater:
-		{
+	switch (Sink) {
+		case SiChargeWarmWater: {
 			Boiler.charge(true);
 			Rooms.ChargeRooms(false);
 			break;
 		}
-		case SiChargeRooms:
-		{
+		case SiChargeRooms: {
 			// TODO: Solar überschuss abholen
-			ChargeBoilerAndRooms = (Boiler.getSpTempCharge() < Burner.TempOperation.get());
+			boolean ChargeBoilerAndRooms = (Boiler.getSpTempCharge() < Burner.TempOperation.get());
 			Rooms.ChargeRooms(true, ChargeBoilerAndRooms);
 			Boiler.charge(ChargeBoilerAndRooms);
 			break;
 		}
-		case SiChargeHeating:
-		{
+		case SiChargeHeating: {
 			Rooms.ChargeRooms(true);
 			Boiler.charge(true);
 			break;
 		}
-		case SiOff: default:
-		{
+		case SiOff: default: {
 			Rooms.ChargeRooms(false);
 			Boiler.charge(false);
 			break;
@@ -194,11 +172,7 @@ void cHeating::selectSink( int Sink )
 
 void cHeating::getData( JsonObject& root )
 {
-	root["TempSolarReturn"] = _TempSolarReturn;
-	root["TempSolarLead"] = _TempSolarLead;
-	root["IntensitySolar"] = _IntensitySolar;
-	
-	root["SpTempSource"] = _SpTempSource;
+	root["SpTempSource"] = SpTempSource;
 	
 	root["needSource"] = static_cast<int>(needSource);
 	root["needSink"] = static_cast<int>(needSink);

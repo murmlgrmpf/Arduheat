@@ -10,7 +10,7 @@
 class cSolar
 {
 	private:
-	boolean _bFlame;
+	boolean bFlame;
 	void run(void);
 	cTempSensor TempLead;
 	cTempSensor TempReturn;
@@ -21,9 +21,8 @@ class cSolar
 	public:
 	cSolar();
 	
-
 	
-	void Probe(boolean bFlame);
+	void probe(boolean bFlame);
 };
 
 #endif

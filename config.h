@@ -35,13 +35,13 @@ boolean fileerror =  false;
 //------------------------------------------------------------------------------
 void error_P(const char* msg) {
 	//sd.errorHalt_P(msg);
-	Serial.print(msg);
+	Serial.println(msg);
 }
 
 #define errorSD(msg) errorSD_F(F(msg)) 
 
 void errorSD_F(const __FlashStringHelper* msg) {
-	Serial.print((msg));
+	Serial.println((msg));
 	sderror = true;
 }
 
@@ -50,12 +50,9 @@ void errorSD_F(const __FlashStringHelper* msg) {
 void errorFile_F(const __FlashStringHelper* msg) {
 	Serial.print(msg);
 	fileerror =  true;
+	file.close();
 }
 
-
-const uint8_t ANALOG_COUNT = 4;
-
-//const char iniFileName[13] = "System.cfg";
 
 void initSD(void) {
 	// Initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
@@ -63,6 +60,10 @@ void initSD(void) {
 	if (!sd.begin(chipSelect, SPI_HALF_SPEED)) {
 		//sd.initErrorHalt();
 		errorSD("Failed to init SDCard.");
+	}
+	else {
+		fileerror = false;
+		sderror   = false;
 	}
 	
 }
@@ -164,27 +165,24 @@ void writeConfWarmWater(SdFile* ini, cHeating* Heating) {
 }
 
 int writeConf( cHeating* Heating) {
-	// Delete existing config
-	if (sd.exists(iniFileName)) {
-		ini.open(iniFileName, O_CREAT | O_RDWR );
-		ini.remove();
-	}
-	if (ini.open(iniFileName, O_CREAT | O_RDWR )) {
-		
-		writeConfRoomsTimes(&ini,  Heating);
-		writeConfRoomsTemps(&ini,  Heating);
-		writeConfRooms(&ini,  Heating);
-		writeConfBurner(&ini,  Heating);
-		writeConfBoiler(&ini,  Heating);
-		writeConfWarmWater(&ini,  Heating);
-		
-		delay(500);
-		ini.close();
-		return 1;
-	}
-	else {
-		errorFile("ini.open create failed");
-		return 0;
+	if ((!sderror)&&(!fileerror)) {
+		if (ini.open(iniFileName, O_CREAT | O_RDWR | O_TRUNC )) {
+			
+			writeConfRoomsTimes(&ini,  Heating);
+			writeConfRoomsTemps(&ini,  Heating);
+			writeConfRooms(&ini,  Heating);
+			writeConfBurner(&ini,  Heating);
+			writeConfBoiler(&ini,  Heating);
+			writeConfWarmWater(&ini,  Heating);
+			
+			delay(500);
+			ini.close();
+			return 1;
+		}
+		else {
+			errorFile("ini.open create failed.");
+			return 0;
+		}
 	}
 }
 
@@ -223,26 +221,29 @@ int readConfigLine(char* line, cHeating* Heating) {
 }
 
 int readConfig(cHeating* Heating) {
-	char line[LineSize];
-	int n;
-	int posReturn = 0 ;
-	
-	if(sd.exists(iniFileName)){
-		if (ini.open(iniFileName, O_RDWR )){
-			// read in standard parameters
-			while ((n = ini.fgets(line,sizeof(line))) > 0){
-				Serial.println(line);
-				posReturn = readConfigLine(line, Heating);
+	if ((!sderror)&&(!fileerror)) {
+		char line[LineSize];
+		int n;
+		int posReturn = 0 ;
+		
+		if(sd.exists(iniFileName)){
+			if (ini.open(iniFileName, O_RDWR )){
+				// read in standard parameters
+				while ((n = ini.fgets(line,sizeof(line))) > 0){
+					Serial.println(line);
+					posReturn = readConfigLine(line, Heating);
+				}
+				
+				ini.close();
 			}
-			
-			ini.close();
+			else {
+				errorFile("Config file ini.open failed.");
+				return 0;
+			}
 		}
-		else {
-			errorFile("Config file ini.open failed.");
-			return 0;
-		}
+		return 1;
 	}
-	return 1;
+	else return 0;
 }
 
 //////////////Logfile//////////////////
@@ -347,31 +348,37 @@ void logWriteWarmWater( cHeating* Heating, boolean bHeaders ) {
 
 // Log a data record.
 void logWrite(boolean bHeaders, cHeating* Heating) {
-	// Write data to file.  Start with log time in micros. , cWarmWater* WarmWater 
-	if (bHeaders){
-		file.print(F("Time,"));
-		file.print(F("millis"));
+	if ((!sderror)&&(!fileerror)) {
+		// Check SD Card
+		if (bHeaders){
+			file.print(F("Time,"));
+			file.print(F("millis"));
+		}
+		else {
+			file.print(TimeNow.year(), DEC); file.print('/');
+			file.print(TimeNow.month(), DEC); file.print('/');
+			file.print(TimeNow.day(), DEC); file.print(' ');
+			file.print(TimeNow.hour(), DEC); file.print(':');
+			file.print(TimeNow.minute(), DEC); file.print(':');
+			file.print(TimeNow.second(), DEC); file.print(F(","));
+			file.print(millis());
+		}
+		if (!file.sync() || file.getWriteError()) errorFile("write error");
 	}
-	else {
-		file.print(TimeNow.year(), DEC); file.print('/');
-		file.print(TimeNow.month(), DEC); file.print('/');
-		file.print(TimeNow.day(), DEC); file.print(' ');
-		file.print(TimeNow.hour(), DEC); file.print(':');
-		file.print(TimeNow.minute(), DEC); file.print(':');
-		file.print(TimeNow.second(), DEC); file.print(F(","));
-		file.print(millis());
+	
+	if ((!sderror)&&(!fileerror)) {
+		// Write data to file.  Start with log time in micros. , cWarmWater* WarmWater 
+		logWriteRooms(Heating, bHeaders);
+		logWriteHeating(Heating, bHeaders);
+		logWriteBurner(Heating, bHeaders);
+		logWriteBoiler(Heating, bHeaders);
+		logWriteWarmWater(Heating, bHeaders);
+		
+		file.println();
+		
+		// Force data to SD and update the directory entry to avoid data loss.
+		if (!file.sync() || file.getWriteError()) errorFile("write error");
 	}
-	
-	logWriteRooms(Heating, bHeaders);
-	logWriteHeating(Heating, bHeaders);
-	logWriteBurner(Heating, bHeaders);
-	logWriteBoiler(Heating, bHeaders);
-	logWriteWarmWater(Heating, bHeaders);
-	
-	file.println();
-	
-	// Force data to SD and update the directory entry to avoid data loss.
-	if (!file.sync() || file.getWriteError()) errorFile("write error");
 }
 
 
@@ -401,13 +408,27 @@ char* genFile(void) {
 	return fileName;
 }
 
+void startLogging(cHeating* Heating) {
+	if ((!sderror)&&(!fileerror)) {
+		Serial.print(F("Logging to: "));
+		Serial.println(genFile());
+		logWrite(true, Heating);
+		Serial.println(F("Type any character to stop logging."));
+		logging = true;
+	}
+	else Serial.println(F("Failed to start logging."));
+}
+
 void stopLogging() {
-	// Close file and stop.
-	file.close();
-	Serial.read();
-	Serial.println(F("Done"));
-	logging = false;
-	Serial.println(F("Type any character to start logging"));
+	if ((!sderror)&&(!fileerror)) {
+		// Close file and stop.
+		file.close();
+		Serial.read();
+		Serial.println(F("Done"));
+		logging = false;
+		Serial.println(F("Type any character to start logging"));
+	}
+	else Serial.println(F("Failed to stop logging"));
 }
 
 

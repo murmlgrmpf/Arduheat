@@ -1,30 +1,25 @@
 #ifndef cHeating_h
 #define cHeating_h
 
-#if defined(ARDUINO) && ARDUINO >= 100
 #include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
 
 #include "PinDefinitions.h"
 #include "cBoiler.h"
-#include "cRoom.h"
+#include "cRooms.h"
 #include "cBurner.h"
 #include "cWarmWater.h"
+#include "cSolar.h"
 #include <ArduinoJson.h>
-
-#include "cPump.h"
 
 class cHeating
 {	
 	public:
-	cPump PumpSolar;
 	
 	cWarmWater WarmWater;
 	cRooms Rooms;
 	cBoiler Boiler;
 	cBurner Burner;
+	cSolar Solar;
 	
 	
 	cHeating(void);
@@ -39,11 +34,7 @@ class cHeating
 	
 	private:
 	
-	double _TempSolarReturn;
-	double _TempSolarLead;
-	double _IntensitySolar;
-	
-	double _SpTempSource;
+	double SpTempSource;
 	
 	boolean needSource;
 	boolean needSink;
@@ -51,7 +42,6 @@ class cHeating
 	enum Sinks {SiChargeWarmWater=1, SiChargeHeating=2, SiChargeRooms=3, SiOff=5} Sink;
 	enum Sources {SoBurner=1, SoBurnerResHeat=2, SoSolar=3, SoBoiler=4, SoOff=5} Source;
 	
-
 };
 
 #endif

@@ -7,15 +7,15 @@ TempLead(SystemMultiplexer,MultiplexTempSolarLead,OffsetTempSolarLead),
 TempReturn(SystemMultiplexer,MultiplexTempSolarReturn,OffsetTempSolarReturn),
 Intensity(SystemMultiplexer,MultiplexSolarIntensity,OffsetSolarIntensity)
 {
-  Probe(true);
+  probe(true);
 }
 
-void cSolar::Probe(boolean bFlame)
+void cSolar::probe(boolean bFlame_)
 {
-  Pump.setPower(0.5);
+  Pump.setPower(0.0);
 }
 
 void cSolar::run(void)
 {
-  
+  Pump.setPower(0.0);
 }
