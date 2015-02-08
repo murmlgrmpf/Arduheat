@@ -13,8 +13,8 @@
 #include <RTClib.h>
 #include <ArduinoJson.h>
 
-#define DefaultSpTempWarmWater 47.0
-#define DefaultSpTempWarmWaterLower -3.0
+#define DefaultSpTempWarmWater 45.0
+#define DefaultSpTempWarmWaterLower -2.0
 
 extern DateTime TimeNow;
 
@@ -24,9 +24,10 @@ class cWarmWater
 	cWarmWater(void):
 	Pump(PinPumpWarmWater),
 	pid(0.5, 0.01, 0.1, DIRECT),
-	IsTemp(SystemMultiplexer,MultiplexTempWarmWater,OffsetTempWarmWater)
+	IsTemp(&MPNumSys[0], &MPChanSys[idxTempWarmWater], &SysTempOffset[idxTempWarmWater]),
+	IsTempWarmWaterToBoiler(&MPNumSys[0], &MPChanSys[idxTempWarmWaterToBoiler], &SysTempOffset[idxTempWarmWaterToBoiler])
 	{
-		pinMode(PinWarmWaterSwitch, OUTPUT);
+		pinMode(PinWarmWaterSwitch, INPUT_PULLUP);
 		// Initialize WarmWater Schedule
 		TempSchedule[0].time.set(0, 6,0,0);
 		TempSchedule[0].temp = DefaultSpTempWarmWater;
@@ -36,19 +37,11 @@ class cWarmWater
 		pid.SetOutputLimits(0.0, 1.0);
 	}
 	
-	void Control(void){
-		// If Warm Water is needed, execute the pump 
-		// with the power determined by pid controller.
-		// Else switch pid to manual and stop pump.
-		if(digitalRead(PinWarmWaterSwitch))
-			Pump.setPower(pid.run(SpTemp(), IsTemp.get()));
-		else
-			Pump.setPower(pid.run());
-	}
+	void Control(void);
 	
 	double SpTemp(void)
 	{
-		double SpTemp = 0;
+		double SpTemp = TempSchedule[1].temp;
 		TimeSpan rel;
 		rel.set(0, TimeNow.hour(), TimeNow.minute(), 0);
 		
@@ -66,9 +59,10 @@ class cWarmWater
 	
 	sTempSchedule TempSchedule[2];
 
-	private:
+	//private:
 	cPump Pump;
 	cTempSensor IsTemp;
+	cTempSensor IsTempWarmWaterToBoiler;
 	cPID pid;
 };
 

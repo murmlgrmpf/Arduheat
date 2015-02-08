@@ -1,17 +1,17 @@
 #include "cRooms.h"
 
 cRooms::cRooms( void ):
-IsTempHeatingLead(SystemMultiplexer,MultiplexTempHeatingLead,OffsetTempHeatingLead),
-IsTempHeatingReturn(SystemMultiplexer,MultiplexTempHeatingReturn,OffsetTempHeatingReturn),
-TempOutside(SystemMultiplexer,MultiplexTempOutside,OffsetTempOutside),
-PIDPump( 0.2, 0.1, 0.05, DIRECT),
-PIDMixer( 0.5, 0.0, 0.005, DIRECT),
-Pump(PinPumpHeating),
+IsTempHeatingLead((&MPNumSys[0]),(&MPChanSys[idxTempHeatingLead]),(&SysTempOffset[idxTempHeatingLead])),
+IsTempHeatingReturn((&MPNumSys[0]),(&MPChanSys[idxTempHeatingReturn]),(&SysTempOffset[idxTempHeatingReturn])),
+TempOutside((&MPNumSys[0]),(&MPChanSys[idxTempOutside]),(&SysTempOffset[idxTempOutside])),
+PIDPump( 0.5, 0.0, 0.0, DIRECT),
+PIDMixer( 0.2, 0.0, 2.0, DIRECT),
+Pump(PinPumpHeating,0.5, 0.0, 0.0, DIRECT),
 Mixer(PinMixerOpen,PinMixerClose)
 {
 	SetType = Normal;
 	// Initialize PID controllers for pumps
-	PIDPump.SetOutputLimits(0.4, 1.0);
+	PIDPump.SetOutputLimits(0.3, 1.0);
 	PIDMixer.SetOutputLimits(-1.0, 1.0);
 	PIDMixer.SetSampleTime(500);
 	
@@ -23,11 +23,12 @@ Mixer(PinMixerOpen,PinMixerClose)
 
 void cRooms::initDefaultSetpoint()
 {
-	RoomTemps[Living] = 20.0;//15;//
-	RoomTemps[Sleeping] =20.0;//15;//
-	RoomTemps[Hallway] = 19.0;//15;//
-	RoomTemps[Bath] = 22.0;//15;//
-	RoomTemps[Side] = 16.0;//15;//
+//   TempOffsetSchedule =20.0;
+	MasterSpTemps[Living] = 20.0;//15;//
+	MasterSpTemps[Sleeping] =20.0;//15;//
+	MasterSpTemps[Hallway] = 19.0;//15;//
+	MasterSpTemps[Bath] = 22.0;//15;//
+	MasterSpTemps[Side] = 15.0;//15;//
 	
 	double temp[nSwitch];
 	temp[0] = 0.0;
@@ -78,7 +79,7 @@ void cRooms::ChargeRooms( boolean ChargeRooms, boolean BoilerCharges )
 {
 	dSpTempHeatingLead = getSpHeating();
 	dIsTempHeatingLead = IsTempHeatingLead.get();
-	dSpTempHeatingReturn = dIsTempHeatingLead-DiffTempHeatingLeadReturn;
+	dSpTempHeatingReturn = getSpHeating()-DiffTempHeatingLeadReturn;
 	dIsTempHeatingReturn = IsTempHeatingReturn.get();
 	
 	if (ChargeRooms)
@@ -114,9 +115,8 @@ void cRooms::ChargeRooms( boolean ChargeRooms, boolean BoilerCharges )
 boolean cRooms::need(void)
 {
 	// Reset Values
-	double dneedChargeRooms = 0.0;
 	dMaxSp = 0.0;
-	dMaxDiff = 0.0;
+	dMaxDiff = -10.0;
 	
 	// Read state of rooms
 	for(int i = 0; i<nRooms; i++)
@@ -125,16 +125,16 @@ boolean cRooms::need(void)
 		if (Room[i].getSpTemp()>dMaxSp)
 			dMaxSp = Room[i].getSpTemp();
 		// Store maximum sp-is difference
-		if ((Room[i].getSpTemp() - Room[i].IsTemp.get()) > dMaxDiff)
-			dMaxDiff = Room[i].getSpTemp() - Room[i].IsTemp.get();
+// 		if ((Room[i].getSpTemp() - Room[i].IsTemp.get()) > dMaxDiff)
+// 			dMaxDiff = Room[i].getSpTemp() - Room[i].IsTemp.get();
 		// Check for rooms needing heat
-		if (Room[i].getNeed()>dneedChargeRooms)
-			dneedChargeRooms = Room[i].getNeed();
+		if (Room[i].getNeed()>dMaxDiff)
+			dMaxDiff = Room[i].getNeed();
 	}
 	
 	// Hysteresis for charging the rooms
-	if (dneedChargeRooms >  RoomMargin) needCharge = true;
-	if (dneedChargeRooms < -RoomMargin) needCharge = false;
+	if (dMaxDiff-RoomMargin > 0) needCharge = true;
+	if (dMaxDiff+RoomMargin < 0) needCharge = false;
 	
 	return needCharge;
 }
@@ -154,7 +154,7 @@ double cRooms::getSpHeating(void)
 
 void cRooms::getOffsetTime( JsonObject& root )
 {
-	JsonArray&  times  = root.createNestedArray("times");
+	JsonArray&  times  = root.createNestedArray("Rt");
 	// Iterate over all sets (At home, away)
 	for(int iSet = 0; iSet<nSetTypes; iSet++)
 	{
@@ -173,9 +173,9 @@ void cRooms::getOffsetTime( JsonObject& root )
 
 int cRooms::setOffsetTime( JsonObject& root )
 {
-	if(root.containsKey("times")) {
-		if(root["times"].is<JsonArray&>()){
-			JsonArray& times = root["times"];
+	if(root.containsKey("Rt")) {
+		if(root["Rt"].is<JsonArray&>()){
+			JsonArray& times = root["Rt"];
 			
 			if (times.size()==(nSetTypes*nRoomTypes*nDayTypes*nSwitch))
 			{
@@ -205,7 +205,7 @@ int cRooms::setOffsetTime( JsonObject& root )
 
 void cRooms::getOffsetTemp( JsonObject& root )
 {
-	JsonArray&  temps  = root.createNestedArray("temps");
+	JsonArray&  temps  = root.createNestedArray("RTs");
 	// Iterate over all sets (At home, away)
 	for(int iSet = 0; iSet<nSetTypes; iSet++)
 	{
@@ -225,9 +225,9 @@ void cRooms::getOffsetTemp( JsonObject& root )
 
 int cRooms::setOffsetTemp( JsonObject& root )
 {
-	if(root.containsKey("temps")) {
-		if(root["temps"].is<JsonArray&>()){
-			JsonArray& temps = root["temps"];
+	if(root.containsKey("RTs")) {
+		if(root["RTs"].is<JsonArray&>()){
+			JsonArray& temps = root["RTs"];
 			
 			if (temps.size()==(nSetTypes*nRoomTypes*nDayTypes*nSwitch))
 			{
@@ -256,15 +256,15 @@ int cRooms::setOffsetTemp( JsonObject& root )
 
 void cRooms::getRooms( JsonObject& root )
 {
-	JsonArray& RoomsTypes = root.createNestedArray("RoomTypes");
-	JsonArray& RoomsTemps = root.createNestedArray("RoomTemps");
+	JsonArray& RoomsTypes = root.createNestedArray("RTypes");
+	JsonArray& RoomsTemps = root.createNestedArray("RTs");
 	
 	for (int i = 0; i<nRooms;i++){
 		RoomsTypes.add(Room[i].RoomType);
 	}
 	
 	for (int i = 0; i<nRoomTypes;i++){
-		RoomsTemps.add(RoomTemps[i]);
+		RoomsTemps.add(MasterSpTemps[i]);
 	}
 	
 	root["SetType"] = SetType;
@@ -275,9 +275,9 @@ int cRooms::setRooms( JsonObject& root )
 	int posReturn = 0;
 	int fail = 0;
 	
-	if(root.containsKey("RoomTypes")) {
-		if(root["RoomTypes"].is<JsonArray&>()){
-			JsonArray& RoomsTypes = root["RoomTypes"];
+	if(root.containsKey("RTypes")) {
+		if(root["RTypes"].is<JsonArray&>()){
+			JsonArray& RoomsTypes = root["RTypes"];
 			if (RoomsTypes.size()==nRooms) {
 				for (int i = 0; i<nRooms;i++){
 					if ( RoomsTypes[i].is<long>())	Room[i].RoomType = static_cast<RoomTypes>(RoomsTypes[i].as<long>());
@@ -290,12 +290,12 @@ int cRooms::setRooms( JsonObject& root )
 		posReturn++;
 	}
 	
-	if(root.containsKey("RoomTemps")) {
-		if(root["RoomTemps"].is<JsonArray&>()){
-			JsonArray& RoomsTemps = root["RoomTemps"];
+	if(root.containsKey("RTs")) {
+		if(root["RTs"].is<JsonArray&>()){
+			JsonArray& RoomsTemps = root["RTs"];
 			if (RoomsTemps.size()==nRoomTypes) {
 				for (int i = 0; i<nRoomTypes;i++){
-					if ( RoomsTemps[i].is<double>())	RoomTemps[i] = RoomsTemps[i].as<double>();
+					if ( RoomsTemps[i].is<double>())	MasterSpTemps[i] = RoomsTemps[i].as<double>();
 					else fail=1;
 				}
 			}
@@ -324,19 +324,20 @@ int cRooms::setRooms( JsonObject& root )
 
 void cRooms::getData( JsonObject& root )
 {
-	JsonArray& RoomsIsTemps = root.createNestedArray("RoomIs");
-	JsonArray& RoomsSPTemps = root.createNestedArray("RoomSP");
+	JsonArray& RoomsIsTemps = root.createNestedArray("RTi");
+	JsonArray& RoomsSPTemps = root.createNestedArray("RTs");
 	
 	for (int i = 0; i<nRooms;i++){
 		RoomsIsTemps.add(Room[i].IsTemp.get());
 		RoomsSPTemps.add(Room[i].getSpTemp());
 	}
 	
-	root["TempOutside"] = TempOutside.get();
-	root["RoomNeed"] = need();
-	root["SpHeating"] = getSpHeating();
+	root["Toutside"] = TempOutside.get();
+	root["Rn"] = need();
+	root["RTsHeating"] = getSpHeating();
 	
-	root["IsTempHeatingLead"] = IsTempHeatingLead.get();
-	root["IsTempHeatingReturn"] = IsTempHeatingReturn.get();
-	root["RoomsPump"] = Pump.getPower();
+	root["RTitoR"] = IsTempHeatingLead.get();
+	root["RTitoSys"] = IsTempHeatingReturn.get();
+	root["RP"] = PIDPump.get();
+	root["RM"] = PIDMixer.get();
 }

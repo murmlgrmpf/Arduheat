@@ -36,4 +36,8 @@ Visual Micro/
 *.orig
 .directory
 
+*.o
+*.d
+
 /.project
+/Logs

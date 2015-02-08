@@ -11,29 +11,18 @@
 #include <cPID.h>
 #include <ArduinoJson.h>
 
+#include <avr/pgmspace.h>
+
+
 // Setpoint System Temperatures
-#define DefaultChargeMargin	4.0
+#define DefaultChargeMargin	5.0
+#define DefaultSpMargin		3.0
 
 class cBoiler
 {
 	public:
 	/// Creates a Boiler object
-	cBoiler(cRooms* Rooms_,cWarmWater* WarmWater_)
-	:Valve(PinValveBoilerOpen,PinValveBoilerClose),
-	PIDBoilerCharge( 0.2, 0.1, 0.05, REVERSE),
-	TempCharge(SystemMultiplexer,MultiplexTempBoilerCharge,OffsetTempBoilerCharge),
-	TempReserve1(SystemMultiplexer,MultiplexTempBoilerReserve1,OffsetTempBoilerReserve1),
-	TempReserve2(SystemMultiplexer,MultiplexTempBoilerReserve2,OffsetTempBoilerReserve2),
-	TempHead(SystemMultiplexer,MultiplexTempBoilerHead,OffsetTempBoilerHead),
-	TempTop(SystemMultiplexer,MultiplexTempBoilerTop,OffsetTempBoilerTop),
-	PumpBoilerCharge(PinPumpBoiler)
-	{
-		Rooms = Rooms_;
-		WarmWater = WarmWater_;
-		ChargeMargin = DefaultChargeMargin;
-		// Set minimal Pump Power to 10%
-		PIDBoilerCharge.SetOutputLimits(0.1, 1);
-	}
+	cBoiler(cRooms* Rooms_,cWarmWater* WarmWater_);
 	
 	double getSpTempCharge(void)
 	{
@@ -54,8 +43,8 @@ class cBoiler
 	{
 		// Hysteresis by top and head temperature sensors.
 		// If top falls below setpoint: charge. If head gets above setpoint: dont charge.
-		if (WarmWater->SpTemp() > TempTop.get())  bneedChargeWarmWater = true;
-		if (WarmWater->SpTemp() < TempHead.get()) bneedChargeWarmWater = false;
+		if (WarmWater->SpTemp()+DefaultSpMargin > TempTop.get())  bneedChargeWarmWater = true;
+		if (WarmWater->SpTemp()+DefaultSpMargin < TempHead.get()) bneedChargeWarmWater = false;
 		
 		return bneedChargeWarmWater;
 	}
@@ -71,16 +60,16 @@ class cBoiler
 		return bneedChargeHeating;
 	}
 	
-	void charge(boolean bCharge)
+	void charge(boolean bCharge, float TempChargeSource)
 	{
 		bCharging = bCharge;
 		
 		Valve.set((bDischarging || bCharging)); // Open Valve if charging or discharging
 		
 		if (bCharge) // Run Pump
-			PumpBoilerCharge.setPower(PIDBoilerCharge.run(getSpTempCharge(), TempCharge.get()));
+			Pump.setPower(pid.run(getSpTempCharge(), TempChargeSource));
 		else // Stop Charging: Stop PID and Pump
-			PumpBoilerCharge.setPower(PIDBoilerCharge.run());
+			Pump.setPower(pid.run());
 	}
 	
 	void discharge( boolean bNeedSourceBoiler )
@@ -97,8 +86,8 @@ class cBoiler
 	void getData(JsonObject& root);
 	
 	cValve Valve;
-	cPump PumpBoilerCharge;
-	cPID PIDBoilerCharge;
+	cPump Pump;
+	cPID pid;
 	
 	// May become private again (debug)
 	cTempSensor TempCharge;
@@ -117,6 +106,8 @@ class cBoiler
 	boolean bneedChargeHeating;
 	boolean bDischarging;
 	boolean bCharging;
+	
+	
 };
 
 #endif

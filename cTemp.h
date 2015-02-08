@@ -20,7 +20,7 @@
 #define R25 2000.0 
 //! Smoothing filter coefficient
 #define AlphaT 10 //! Filter sampling interval
-#define FilterTimePeriod 100 
+#define TimePeriod 100
 
 typedef struct{
 	TimeSpan time;
@@ -40,63 +40,71 @@ class cTempSensor
 	* \param dOffset
 	*
 	*/
-	cTempSensor(int MultiplexNumber_ = 0,int MultiplexChannel_ = 0, float Offset_ = 0.0):
-	Trigger(FilterTimePeriod)
+	cTempSensor(const int * MultiplexNumber_ , const int* MultiplexChannel_, const float* Offset_)//:
 	{
-		pinMultiplexInput =  MultiplexInput[MultiplexNumber_];
-		MultiplexChannel = MultiplexChannel_;
-		Offset = Offset_;
+		StartTime = millis();
 		
+		pinMultiplexInput = &MPInput[pgm_read_word(MultiplexNumber_)];
+		MultiplexChannel = MultiplexChannel_;
+		//Offset = Offset_;
+		Offset = Offset_;
 		// Initialize temperature using high value to avoid switching on the burner
 		// during initialization
 		TempFilt = 60;
 		
-		// exponential filtering coefficient [1/#Measurements]
-		alphaFilt = AlphaT*FilterTimePeriod/1000;
-		
-		// Multiplexer input line initializations
-		pinMode(MultiplexInput[0], INPUT);
-		pinMode(MultiplexInput[1], INPUT);
-		pinMode(MultiplexInput[2], INPUT);
-		// Multiplexer control line initializations
-		pinMode(MultiplexControl[0], OUTPUT);
-		pinMode(MultiplexControl[1], OUTPUT);
-		pinMode(MultiplexControl[2], OUTPUT);
-		pinMode(MultiplexControl[3], OUTPUT);
+		initMultiplexer();
 	}
 	
 	
 	float get( void )
 	{
-		if(Trigger.get()) {
+		if (millis()-StartTime > TimePeriod) {
+			StartTime = millis();
+			
 			// Set the right multiplexer channel
-			digitalWrite(MultiplexControl[0],HIGH && (MultiplexChannel & B00000001));
-			digitalWrite(MultiplexControl[1],HIGH && (MultiplexChannel & B00000010));
-			digitalWrite(MultiplexControl[2],HIGH && (MultiplexChannel & B00000100));
-			digitalWrite(MultiplexControl[3],HIGH && (MultiplexChannel & B00001000));
+			digitalWrite(pgm_read_word(&MPControl[0]),HIGH && (pgm_read_word(MultiplexChannel) & B00000001));
+			digitalWrite(pgm_read_word(&MPControl[1]),HIGH && (pgm_read_word(MultiplexChannel) & B00000010));
+			digitalWrite(pgm_read_word(&MPControl[2]),HIGH && (pgm_read_word(MultiplexChannel) & B00000100));
+			digitalWrite(pgm_read_word(&MPControl[3]),HIGH && (pgm_read_word(MultiplexChannel) & B00001000));
 			
 			// Determine raw temperature reading
-			float Ua = analogRead(pinMultiplexInput)/1023.0*Vcc;
+			float Ua = analogRead(pgm_read_word(pinMultiplexInput))/1023.0*Vcc;
 			float Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
 			float Kt = R*Ue/(Vcc-Ue) /R25;
 			float Temp = 25+(sqrt(pow(Alpha, 2)-4*Beta+4*Beta*Kt)-Alpha)/(2*Beta);
 			
-			// Apply filtering
+			// Apply filtering: exponential filtering coefficient [1/#Measurements]
+			float alphaFilt = AlphaT*TimePeriod/1000;
 			TempFilt = (alphaFilt/(alphaFilt+1))*Temp  + 1/(alphaFilt+1)*TempFilt;
 		}
 		// Return filtered temperature plus offset
-		return(TempFilt+Offset);
+		return(TempFilt+pgm_read_float(Offset));
 	}
 	
+
+	
 	private:
+	static void initMultiplexer(void)
+	{
+		// Multiplexer input line initializations
+		pinMode(pgm_read_word(&MPInput[0]), INPUT);
+		pinMode(pgm_read_word(&MPInput[1]), INPUT);
+		pinMode(pgm_read_word(&MPInput[2]), INPUT);
+		// Multiplexer control line initializations
+		pinMode(pgm_read_word(&MPControl[0]), OUTPUT);
+		pinMode(pgm_read_word(&MPControl[1]), OUTPUT);
+		pinMode(pgm_read_word(&MPControl[2]), OUTPUT);
+		pinMode(pgm_read_word(&MPControl[3]), OUTPUT);
+	}  
+	
+	unsigned long StartTime;
+	  
 	float TempFilt;
-	float Offset;
+	const float* Offset;
 	
-	float alphaFilt;
-	int pinMultiplexInput;
-	int MultiplexChannel;
+	const int* pinMultiplexInput;
+	const int* MultiplexChannel;
 	
-	cTrigger Trigger;
 };
 
 #endif

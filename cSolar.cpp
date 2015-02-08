@@ -1,21 +1,15 @@
 #include "cSolar.h"
 
-cSolar::cSolar()
-:Valve(PinValveSolarOpen,PinValveSolarClose),
-Pump(PinPumpSolar),
-TempLead(SystemMultiplexer,MultiplexTempSolarLead,OffsetTempSolarLead),
-TempReturn(SystemMultiplexer,MultiplexTempSolarReturn,OffsetTempSolarReturn),
-Intensity(SystemMultiplexer,MultiplexSolarIntensity,OffsetSolarIntensity)
-{
-  probe(true);
-}
 
-void cSolar::probe(boolean bFlame_)
+void cSolar::getData( JsonObject& root )
 {
-  Pump.setPower(0.0);
-}
-
-void cSolar::run(void)
-{
-  Pump.setPower(0.0);
+	root["STfromCol"] =  TempFromCollector.get();
+	root["STtoCol"] =  TempToCollector.get();
+	root["STfromSys"] =  TempFromSystem.get();
+	root["STtoSys"] =  TempToSystem.get();
+	root["SIntensity"] =  Intensity.get();
+	root["SP"] = pid.get();
+	root["SV"] =  static_cast<int>( Valve.get());
+	root["Ssuht"] = static_cast<int>( sufficientHeat);
+	root["Sprobing"] = static_cast<int>( probing);
 }

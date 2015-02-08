@@ -7,12 +7,7 @@
 
 class cMixer
 {
-  private:
-	cLFPWM PWM;
-	int pinOpen;
-	int pinClose;
-    
-  public:
+	public:
 	/// Creates the mixer
 	cMixer(int pinOpen_, int pinClose_):PWM(5000){
 		pinOpen = pinOpen_;
@@ -30,7 +25,7 @@ class cMixer
 		boolean direction = (Power>=0);
 		
 		// Check PWM and hysteresis
-		if(PWM.get(abs(Power))&&(abs(Power)> 0.1)) {
+		if(PWM.get(abs(Power))&&(abs(Power)> 0.0)) {
 			// Drive in direction
 			digitalWrite(pinClose, direction);
 			digitalWrite(pinOpen, !direction);
@@ -41,6 +36,13 @@ class cMixer
 			digitalWrite(pinOpen, HIGH);
 		}
 	}
+	
+	//float get(void){return PWM.getPower();}
+	
+	private:
+	cLFPWM PWM;
+	int pinOpen;
+	int pinClose;
 };
 
 #endif

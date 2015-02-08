@@ -8,12 +8,12 @@ class cRoomValve
 {
 	public:
 	 /// Creates a valve object without setting the pins and closed state (false). This is necessary for the rooms.
-	cRoomValve(int pinOpen_ = 0, int pinClose_ = 0)
+	cRoomValve(const int* pinOpen_ , int pinClose_ = 0)
 	{
 		
 		pinOpen = pinOpen_;
 		//pinClose=0;
-		pinMode(pinOpen, OUTPUT);
+		pinMode(pgm_read_word(pinOpen), OUTPUT);
 		set(false);
 	}
 	
@@ -26,12 +26,12 @@ class cRoomValve
 	
 	void set(boolean bState)
 	{
-		digitalWrite(pinOpen, !bState); // Valve gets opened on low/false
+		digitalWrite(pgm_read_word(pinOpen), !bState); // Valve gets opened on low/false
 // 		digitalWrite(pinClose, !!bState);
 	}
 	
 	private:
-	int pinOpen;
+	const int* pinOpen;
 	//int pinClose;
 };
 

@@ -18,14 +18,14 @@
 #define nSwitch     4 // Number of switching times each day
 #define nRooms     16 // Number of rooms
 
-#define DiffTempHeatingLeadReturn 5 //
+#define DiffTempHeatingLeadReturn 3 //
 
 // Set default parameters for SpHeating curve
 #define dsteil 0.6
 #define dkh    4
 #define dverst 2
 #define dminvl 30
-#define dmaxvl 45
+#define dmaxvl 40
 
 
 class cRooms
@@ -36,7 +36,11 @@ class cRooms
 	cTempSensor IsTempHeatingLead;
 	cTempSensor IsTempHeatingReturn;
 	cTempSensor TempOutside;
-	cRoom Room[nRooms] = {{0, this},{1, this},{2, this},{3, this},{4, this},{5, this},{6, this},{7, this},{8, this},{9, this},{10, this},{11, this},{12, this},{13, this},{14, this},{15, this}};
+	cRoom Room[nRooms] = {{0, this},{1, this},
+	{2, this},{3, this},{4, this},{5, this},
+	{6, this},{7, this},{8, this},{9, this},
+	{10, this},{11, this},{12, this},{13, this},
+	{14, this},{15, this}};
 	cPump Pump;
 	cPID PIDPump;
 	cMixer Mixer;
@@ -49,7 +53,7 @@ class cRooms
 	void ChargeRooms(boolean bneedChargeRooms, boolean BoilerCharges = false);
 	
 	void initDefaultSetpoint();
-	double RoomTemps[nRoomTypes];
+	double MasterSpTemps[nRoomTypes];
 	sTempSchedule TempOffsetSchedule[nSetTypes][nRoomTypes][nDayTypes][nSwitch];
 	
 	void getOffsetTime(JsonObject& root);

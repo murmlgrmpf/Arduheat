@@ -9,6 +9,7 @@
 #include "cBurner.h"
 #include "cWarmWater.h"
 #include "cSolar.h"
+
 #include <ArduinoJson.h>
 
 class cHeating
@@ -20,7 +21,6 @@ class cHeating
 	cBoiler Boiler;
 	cBurner Burner;
 	cSolar Solar;
-	
 	
 	cHeating(void);
 	
@@ -34,13 +34,14 @@ class cHeating
 	
 	private:
 	
-	double SpTempSource;
+	float SpTempSource;
+	float TempSource;
 	
 	boolean needSource;
 	boolean needSink;
 	
-	enum Sinks {SiChargeWarmWater=1, SiChargeHeating=2, SiChargeRooms=3, SiOff=5} Sink;
-	enum Sources {SoBurner=1, SoBurnerResHeat=2, SoSolar=3, SoBoiler=4, SoOff=5} Source;
+	enum Sinks {SiChargeWarmWater, SiChargeHeating, SiChargeRooms, SiOff} Sink;
+	enum Sources {SoBurner, SoBurnerResHeat, SoSolar, SoBoiler, SoOff} Source;
 	
 };
 

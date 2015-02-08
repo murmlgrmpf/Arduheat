@@ -28,15 +28,9 @@ boolean fileerror =  false;
 #define BufferSize 1000
 #define LineSize 500
 
-#define iniFileName "System.cfg"
+#define ConfigFileName "System.cfg"
 
 // Error messages stored in flash.
-//#define error(msg) error_P(PSTR(msg))
-//------------------------------------------------------------------------------
-void error_P(const char* msg) {
-	//sd.errorHalt_P(msg);
-	Serial.println(msg);
-}
 
 #define errorSD(msg) errorSD_F(F(msg)) 
 
@@ -57,127 +51,37 @@ void errorFile_F(const __FlashStringHelper* msg) {
 void initSD(void) {
 	// Initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
 	// breadboards.  use SPI_FULL_SPEED for better performance.
-	if (!sd.begin(chipSelect, SPI_HALF_SPEED)) {
-		//sd.initErrorHalt();
+	if (!sd.begin(chipSelect, SPI_HALF_SPEED))
 		errorSD("Failed to init SDCard.");
-	}
 	else {
+		// Reset Errors
 		fileerror = false;
 		sderror   = false;
 	}
-	
 }
 
-int setObject(JsonObject& root) {
-	long time;
-	double latitude;
-	double longitude;
-	const char* sensor;
-	double spTemp;
-	
-	if (root.containsKey("spTemp")) {
-		spTemp = root["spTemp"];
-		Serial.println(spTemp);
-	}
-	if (root.containsKey("time")) {
-		time = root["time"];
-		Serial.println(time);
-	}
-	
-	if (root.containsKey("data")) {
-		latitude = root["data"][0];
-		longitude = root["data"][1];
-		Serial.println(latitude, 6);
-		Serial.println(longitude, 6);
-	}
-	
-	if (root.containsKey("sensor")) {
-		sensor = root["sensor"];
-		Serial.println(sensor);
-	}
-	else {
-		Serial.println(F("root does not contain key sensor"));
-		return 0;
-	}
-	
-	return 1;
-}
-
-
-void getObject(JsonObject& root) {
-	root["sensor"] = "gps3";
-	root["time"] = 1351824120;
-	root["spTemp"] = double(millis())/1000.5;
-	JsonArray& data = root.createNestedArray("data");
-	data.add(48.756080, 6);  // 6 is the number of decimals to print
-	data.add(2.302038, 6);   // if not specified, 2 digits are printed
-}
-
-
-void writeConfRoomsTimes(SdFile* ini,  cHeating* Heating) {
+template <typename S, typename T>
+void writeConfelement(S* ini, T* Obj, void(T::*func)(ArduinoJson::JsonObject&)) {
 	StaticJsonBuffer<BufferSize> jsonBuffer;
 	JsonObject& root = jsonBuffer.createObject();
 	
-	Heating->Rooms.getOffsetTime(root);
-	
-	root.printTo(*ini); ini->println();
-	PgmPrint("Free RAM: "); Serial.println(FreeRam());// part of sdFatUtil
-}
-void writeConfRoomsTemps(SdFile* ini,  cHeating* Heating) {
-	StaticJsonBuffer<BufferSize> jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
-	
-	Heating->Rooms.getOffsetTemp(root);
-	
-	root.printTo(*ini); ini->println();
-}
-void writeConfRooms(SdFile* ini,  cHeating* Heating) {
-	StaticJsonBuffer<BufferSize> jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
-	
-	Heating->Rooms.getRooms(root);
-	
-	root.printTo(*ini); ini->println();
-}
-void writeConfBurner(SdFile* ini,  cHeating* Heating) {
-	StaticJsonBuffer<BufferSize> jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
-	
-	Heating->Burner.getSP(root);
-	
-	root.printTo(*ini); ini->println();
-}
-void writeConfBoiler(SdFile* ini,  cHeating* Heating) {
-	StaticJsonBuffer<BufferSize> jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
-	
-	Heating->Boiler.getSP(root);
-	
-	root.printTo(*ini); ini->println();
-}
-void writeConfWarmWater(SdFile* ini, cHeating* Heating) {
-	StaticJsonBuffer<BufferSize> jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
-	
-	Heating->WarmWater.getSP(root);
+	(Obj->*func)(root);
 	
 	root.printTo(*ini); ini->println();
 }
 
 int writeConf( cHeating* Heating) {
 	if ((!sderror)&&(!fileerror)) {
-		if (ini.open(iniFileName, O_CREAT | O_RDWR | O_TRUNC )) {
+		if (ini.open(ConfigFileName, O_CREAT | O_RDWR | O_TRUNC )) {
+			writeConfelement(&ini, &(Heating->Rooms), &cRooms::getOffsetTime);
+			writeConfelement(&ini, &(Heating->Rooms), &cRooms::getOffsetTemp);
+			writeConfelement(&ini, &(Heating->Rooms), &cRooms::getRooms);
+			writeConfelement(&ini, &(Heating->Burner),&cBurner::getSP);
+			writeConfelement(&ini, &(Heating->Boiler),&cBoiler::getSP);
+			writeConfelement(&ini, &(Heating->WarmWater),&cWarmWater::getSP);
 			
-			writeConfRoomsTimes(&ini,  Heating);
-			writeConfRoomsTemps(&ini,  Heating);
-			writeConfRooms(&ini,  Heating);
-			writeConfBurner(&ini,  Heating);
-			writeConfBoiler(&ini,  Heating);
-			writeConfWarmWater(&ini,  Heating);
 			
-			delay(500);
-			ini.close();
-			return 1;
+			return ini.close();
 		}
 		else {
 			errorFile("ini.open create failed.");
@@ -193,7 +97,7 @@ int readConfigLine(char* line, cHeating* Heating) {
 	JsonObject& root = jsonBuffer.parseObject(line);
 	
 	if (!root.success()) {
-		Serial.println(F("parseObject() failed"));
+		Serial.println(F("Reading config: parseObject() failed."));
 		return 0;
 	}
 	
@@ -210,38 +114,36 @@ int readConfigLine(char* line, cHeating* Heating) {
 	
 	if (posReturn>0) {
 		Serial.print(posReturn);
-		//Serial.println(F("Success to read in object"));
 		return posReturn;
 	}
-	else
-	{
-		//Serial.println(F("Failed to read in object"));
-		return 0;
-	}
+	else return 0;
 }
 
-int readConfig(cHeating* Heating) {
+bool readConf(cHeating* Heating) {
 	if ((!sderror)&&(!fileerror)) {
 		char line[LineSize];
 		int n;
 		int posReturn = 0 ;
 		
-		if(sd.exists(iniFileName)){
-			if (ini.open(iniFileName, O_RDWR )){
+		if(sd.exists(ConfigFileName)){
+			if (ini.open(ConfigFileName, O_RDWR )){
 				// read in standard parameters
 				while ((n = ini.fgets(line,sizeof(line))) > 0){
-					Serial.println(line);
+					Serial.println(line); // Debug Output
 					posReturn = readConfigLine(line, Heating);
 				}
 				
-				ini.close();
+				return ini.close();
 			}
 			else {
 				errorFile("Config file ini.open failed.");
 				return 0;
 			}
 		}
-		return 1;
+		else {
+			Serial.println(F("No System.cfg file found on SDCard.\n Writing config to SDCard."));
+			return writeConf(Heating);
+		}
 	}
 	else return 0;
 }
@@ -297,82 +199,45 @@ void logPrintData(JsonObject& root ) {
 				}
 			}
 		}
-		else {
-			file.print(",");
-			file.print(F("unknown data type"));
-		}
+		else file.print(F(",unknown data type"));
 	}
 }
 
-void logWriteRooms( cHeating* Heating, boolean bHeaders ) {
+template <typename T>
+void logWriteelement(T* Obj, boolean bHeaders) {
 	StaticJsonBuffer<BufferSize> jsonBuffer;
 	JsonObject& root = jsonBuffer.createObject();
 	
-	Heating->Rooms.getData(root);
+	Obj->getData(root);
 	if (bHeaders) logPrintHeader(root);
 	else logPrintData(root);
 }
-void logWriteHeating( cHeating* Heating, boolean bHeaders ) {
-	StaticJsonBuffer<BufferSize> jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
-	
-	Heating->getData(root);
-	if (bHeaders) logPrintHeader(root);
-	else logPrintData(root);
-}
-void logWriteBurner( cHeating* Heating, boolean bHeaders ) {
-	StaticJsonBuffer<BufferSize> jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
-	
-	Heating->Burner.getData(root);
-	if (bHeaders) logPrintHeader(root);
-	else logPrintData(root);
-}
-void logWriteBoiler( cHeating* Heating, boolean bHeaders ) {
-	StaticJsonBuffer<BufferSize> jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
-	
-	Heating->Boiler.getData(root);
-	if (bHeaders) logPrintHeader(root);
-	else logPrintData(root);
-}
-void logWriteWarmWater( cHeating* Heating, boolean bHeaders ) {
-	StaticJsonBuffer<BufferSize> jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
-	
-	Heating->WarmWater.getData(root);
-	if (bHeaders) logPrintHeader(root);
-	else logPrintData(root);
-}
-
 
 // Log a data record.
 void logWrite(boolean bHeaders, cHeating* Heating) {
 	if ((!sderror)&&(!fileerror)) {
-		// Check SD Card
-		if (bHeaders){
-			file.print(F("Time,"));
-			file.print(F("millis"));
-		}
+		if (bHeaders) file.print(F("Time,millis"));
 		else {
-			file.print(TimeNow.year(), DEC); file.print('/');
-			file.print(TimeNow.month(), DEC); file.print('/');
-			file.print(TimeNow.day(), DEC); file.print(' ');
-			file.print(TimeNow.hour(), DEC); file.print(':');
-			file.print(TimeNow.minute(), DEC); file.print(':');
+			file.print(TimeNow.year(), DEC); file.print(F("/"));
+			file.print(TimeNow.month(), DEC); file.print(F("/"));
+			file.print(TimeNow.day(), DEC); file.print(F(" "));
+			file.print(TimeNow.hour(), DEC); file.print(F(":"));
+			file.print(TimeNow.minute(), DEC); file.print(F(":"));
 			file.print(TimeNow.second(), DEC); file.print(F(","));
 			file.print(millis());
 		}
+		// Check SD Card
 		if (!file.sync() || file.getWriteError()) errorFile("write error");
 	}
-	
+	// Check again if SDCard was working to avoid that the program crashes upon missing sd card (removed during operation) or sd card error
 	if ((!sderror)&&(!fileerror)) {
-		// Write data to file.  Start with log time in micros. , cWarmWater* WarmWater 
-		logWriteRooms(Heating, bHeaders);
-		logWriteHeating(Heating, bHeaders);
-		logWriteBurner(Heating, bHeaders);
-		logWriteBoiler(Heating, bHeaders);
-		logWriteWarmWater(Heating, bHeaders);
+		// Write data to file.  Start with log time in micros.
+		logWriteelement(&(Heating->Rooms),bHeaders);
+		logWriteelement(Heating,bHeaders);
+		logWriteelement(&(Heating->Burner),bHeaders);
+		logWriteelement(&(Heating->Boiler),bHeaders);
+		logWriteelement(&(Heating->WarmWater),bHeaders);
+		logWriteelement(&(Heating->Solar),bHeaders);
 		
 		file.println();
 		
@@ -382,16 +247,17 @@ void logWrite(boolean bHeaders, cHeating* Heating) {
 }
 
 
-char fileName[13];
-char* genFile(void) {
-	
+char* genFile(char* fileName) {
 	int y = TimeNow.year();
 	int m = TimeNow.month();
 	int d = TimeNow.day();
+
 	sprintf(fileName, "%02d", y);
 	fileName[0] = fileName[2];
 	fileName[1] = fileName[3];
-	sprintf(fileName+2, "%02d%02d00.CSV", m, d);
+	sprintf(fileName+2, "%02d", m);
+	sprintf(fileName+4, "%02d", d);
+	sprintf(fileName+6, "00.CSV");
 	
 	const uint8_t BASE_NAME_SIZE = 6;
 	while (sd.exists(fileName)) {
@@ -404,14 +270,15 @@ char* genFile(void) {
 			errorFile("Can't create file name");
 		}
 	}
-	if (!file.open(fileName, O_CREAT | O_WRITE | O_EXCL)) errorFile("Failed file.open");
+	if (!file.open(fileName, O_CREAT | O_WRITE | O_EXCL)) errorFile("Failed to create new log file.");
 	return fileName;
 }
 
 void startLogging(cHeating* Heating) {
 	if ((!sderror)&&(!fileerror)) {
 		Serial.print(F("Logging to: "));
-		Serial.println(genFile());
+		char fileName[13];
+		Serial.println(genFile(fileName));
 		logWrite(true, Heating);
 		Serial.println(F("Type any character to stop logging."));
 		logging = true;
@@ -423,12 +290,10 @@ void stopLogging() {
 	if ((!sderror)&&(!fileerror)) {
 		// Close file and stop.
 		file.close();
-		Serial.read();
 		Serial.println(F("Done"));
 		logging = false;
-		Serial.println(F("Type any character to start logging"));
 	}
-	else Serial.println(F("Failed to stop logging"));
+	else Serial.println(F("Failed to stop logging."));
 }
 
 

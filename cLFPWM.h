@@ -13,11 +13,13 @@ class cLFPWM
 	{
 		SampleTime = SampleTime_;
 		LastTime = millis();
-		Power = 0.0;
 	}
 	
-	boolean get( void )
+	boolean get( double Power )
 	{
+		// Limit Power
+		Power = min(max(Power,0),1);
+		
 		unsigned long elapsedTime = millis()-LastTime;
 		
 		// Interval in which the PWM is high:
@@ -37,18 +39,9 @@ class cLFPWM
 		return active;
 	}
 	
-	boolean get( double Power_ )
-	{
-		// Adjust power level
-		Power = min(max(Power_,0),1);
-		// get state of PWM cycle
-		return get();
-	}
-	
 	private:
 	unsigned long SampleTime;
 	unsigned long LastTime;
-	double Power;
 };
 
 #endif

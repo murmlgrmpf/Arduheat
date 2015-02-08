@@ -16,9 +16,7 @@ class cBurner
 	public:
 	cBurner(void)
 	:Valve(PinValveHeatSource1Open,PinValveHeatSource1Close),
-	TempLead(SystemMultiplexer,MultiplexTempHeatSource1Lead,OffsetTempHeatSource1Lead),
-	TempReturn(SystemMultiplexer,MultiplexTempHeatSource1Return,OffsetTempHeatSource1Return),
-	TempOperation(SystemMultiplexer,MultiplexTempHeatSource1Operation,OffsetTempHeatSource1Operation)
+	TempOperation((&MPNumSys[0]),(&MPChanSys[idxTempHeatSource1Operation]),(&SysTempOffset[idxTempHeatSource1Operation]))
 	{
 		pinMode(PinStartHeatSource1, OUTPUT);
 		
@@ -31,7 +29,7 @@ class cBurner
 		MinBurnTime = static_cast<unsigned long>(DefaultMinBurnTimeMinutes)* static_cast<unsigned long>(60000);
 	}
 	
-	boolean burn(boolean bShallBurn, double SpTempSource)
+	boolean burn(double SpTempSource, boolean bShallBurn = false)
 	{
 		
 		// Start Burner flame and residual heat sequence
@@ -64,9 +62,7 @@ class cBurner
 	
 	boolean isBurning(void) {return bFlame;};
 	
-	cTempSensor TempLead;
 	cTempSensor TempOperation;
-	cTempSensor TempReturn;
 	
 	void getSP(JsonObject& root);
 	int setSP(JsonObject& root);
@@ -81,7 +77,7 @@ class cBurner
 	unsigned long StartTime;
 	
 	unsigned long MinBurnTime;
-	double MaxTempOperation;
+	float MaxTempOperation;
 };
 
 #endif

@@ -2,8 +2,8 @@
 
 void cBurner::getSP( JsonObject& root )
 {
-	root["BurnerMaxTempOperation"] = MaxTempOperation;
-	root["BurnerMinBurnTime"] = MinBurnTime;
+	root["BuTmax"] = MaxTempOperation;
+	root["ButMin"] = MinBurnTime;
 }
 
 int cBurner::setSP( JsonObject& root )
@@ -11,18 +11,18 @@ int cBurner::setSP( JsonObject& root )
 	int fail = 0;
 	int posReturn =0;
 	
-	if(root.containsKey("BurnerMaxTempOperation")) {
-		if(root["BurnerMaxTempOperation"].is<double>()) {
-			MaxTempOperation =  root["BurnerMaxTempOperation"].as<double>();
+	if(root.containsKey("BuTmax")) {
+		if(root["BuTmax"].is<double>()) {
+			MaxTempOperation =  root["BuTmax"].as<double>();
 			posReturn++;
 		}
 		else fail=1;
 	}
 	else fail=1;
 	
-	if(root.containsKey("BurnerMinBurnTime")) {
-		if(root["BurnerMinBurnTime"].is<long>()) {
-			MinBurnTime =  static_cast<unsigned long>(root["BurnerMinBurnTime"].as<long>());
+	if(root.containsKey("ButMin")) {
+		if(root["ButMin"].is<long>()) {
+			MinBurnTime =  static_cast<unsigned long>(root["ButMin"].as<long>());
 			posReturn++;
 		}
 		else fail=1;
@@ -40,12 +40,10 @@ int cBurner::setSP( JsonObject& root )
 void cBurner::getData( JsonObject& root )
 {
 	// Objects
-	root["BurnerValve"] =  static_cast<int>(Valve.get());
-	root["BurnerTempLead"] =  TempLead.get();
-	root["BurnerTempReturn"] =  TempReturn.get();
-	root["BurnerTempOperation"] =  TempOperation.get();
+	root["BuV"] =  static_cast<int>(Valve.get());
+	root["BuT"] =  TempOperation.get();
 	// Variables
-	root["BurnerStartTime"] =  StartTime;
-	root["BurnersufficientHeat"] =  static_cast<int>(sufficientHeat);
-	root["BurnerbFlame"] =  static_cast<int>(bFlame);
+	root["BuStartt"] =  StartTime;
+	root["Busuht"] =  static_cast<int>(sufficientHeat);
+	root["BuBurns"] =  static_cast<int>(bFlame);
 }

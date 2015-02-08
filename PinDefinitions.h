@@ -21,52 +21,69 @@
 #define PinWarmWaterSwitch       19
 #define PinHeatControl            3
 
-// System Temperatures on Multiplexer 3
-#define SystemMultiplexer                 2
-#define MultiplexTempHeatingReturn        0
-#define MultiplexTempHeatingLead          1
-#define MultiplexTempHeatSource1Lead      3 //2 
-#define MultiplexTempHeatSource1Return    2 //3
-#define MultiplexTempHeatSource1Operation 4
-#define MultiplexTempSolarReturn          5
-#define MultiplexTempSolarLead            6
-#define MultiplexTempBoilerCharge         7
-#define MultiplexTempBoilerReserve2       8
-#define MultiplexTempBoilerReserve1       9
-#define MultiplexTempBoilerHead          10
-#define MultiplexTempBoilerTop           11
-#define MultiplexTempWarmWater           12
-#define MultiplexTempCirculationReturn   13
-#define MultiplexSolarIntensity          14
-#define MultiplexTempOutside             15
-// System Temperatures 
-#define OffsetTempHeatingLead             0 //6
-#define OffsetTempHeatingReturn           0 //-1
-#define OffsetTempHeatSource1Lead         0 
-#define OffsetTempHeatSource1Return       0
-#define OffsetTempHeatSource1Operation    0
-#define OffsetTempSolarReturn             0
-#define OffsetTempSolarLead               0
-#define OffsetSolarIntensity              0
-#define OffsetTempBoilerCharge            0 //7
-#define OffsetTempBoilerReserve1          0
-#define OffsetTempBoilerReserve2          0
-#define OffsetTempBoilerHead              0
-#define OffsetTempBoilerTop               0 //1
-#define OffsetTempWarmWater               0 //2.35
-#define OffsetTempCirculationReturn       0
-#define OffsetTempOutside                 0 
-#define OffsetTempHeatControl             0
+// System Temperatures
+#define idxTempHeatingReturn        0
+#define idxTempHeatingLead          1
+#define idxTempSolarFromCollector   3 //2 
+#define idxTempSolarFromSystem      2 //3
+#define idxTempHeatSource1Operation 4
+#define idxTempSolarToCollector     5
+#define idxTempSolarToSystem        6
+#define idxTempBoilerCharge         7
+#define idxTempBoilerReserve2       8
+#define idxTempBoilerReserve1       9
+#define idxTempBoilerHead          10
+#define idxTempBoilerTop           11
+#define idxTempWarmWater           12
+#define idxTempWarmWaterToBoiler   13 // Not Used
+#define idxSolarIntensity          14
+#define idxTempOutside             15
 
+
+#define P(str) (strcpy_P(p_buffer, PSTR(str)), p_buffer)
+
+
+const PROGMEM int MPChanSys[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+const PROGMEM float SysTempOffset[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.08};
+
+// On system Multiplexer 2
+const PROGMEM int MPNumSys[] = {2};
 // Multiplexer Control Pins
-const int MultiplexControl[] = {48, 47, 46, 49};
-
+const PROGMEM int MPControl[] = {48, 47, 46, 49};
 // Multiplexer Temperature Input Pins A12 = 66; A13 = 67; A14 = 68
-const int MultiplexInput[] = {66, 67, 68};
-
-const int MultiplexChannelRoomsIs[] = {14,12,10,8,6,4,2,0,14,12,10,8,6,4,2,0};
-const int MultiplexChannelRoomsSp[] = {15,13,11,9,7,5,3,1,15,13,11,9,7,5,3,1};
-const int MultiplexNumberRooms[] =    { 0, 0, 0,0,0,0,0,0, 1, 1, 1,1,1,1,1,1};
-
+const PROGMEM int MPInput[] = {66, 67, 68};
 
 #endif
+/*
+Encoding scheme for variable names
+
+Objects
+
+Boiler B
+WarmWater W
+Burner Bu
+Solar S
+Source SO
+Sink SI
+Rooms R
+Heating H
+Mixer M
+Pump P
+Valve V
+Tempsensor/Temperature T
+
+time t
+
+Postfix
+is i
+setpoint s
+margin m
+
+need n
+charge c
+sufficientHeat suht
+
+to    to
+from  from
+
+*/
