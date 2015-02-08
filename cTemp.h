@@ -99,7 +99,7 @@ class cTempSensor
 	
 	unsigned long StartTime;
 	  
-	float TempFilt;
+	double TempFilt;
 	const float* Offset;
 	
 	const int* pinMultiplexInput;

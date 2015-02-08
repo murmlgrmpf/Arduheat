@@ -22,8 +22,7 @@ class cWarmWater
 {
 	public:
 	cWarmWater(void):
-	Pump(PinPumpWarmWater),
-	pid(0.5, 0.01, 0.1, DIRECT),
+	Pump(PinPumpWarmWater,0.5, 0.01, 0.1, DIRECT),
 	IsTemp(&MPNumSys[0], &MPChanSys[idxTempWarmWater], &SysTempOffset[idxTempWarmWater]),
 	IsTempWarmWaterToBoiler(&MPNumSys[0], &MPChanSys[idxTempWarmWaterToBoiler], &SysTempOffset[idxTempWarmWaterToBoiler])
 	{
@@ -34,7 +33,7 @@ class cWarmWater
 		TempSchedule[1].time.set(0,20,0,0);
 		TempSchedule[1].temp = DefaultSpTempWarmWater + DefaultSpTempWarmWaterLower;
 		// Initialize PID controllers for pump
-		pid.SetOutputLimits(0.0, 1.0);
+		Pump.SetOutputLimits(0.0, 1.0);
 	}
 	
 	void Control(void);
@@ -63,7 +62,6 @@ class cWarmWater
 	cPump Pump;
 	cTempSensor IsTemp;
 	cTempSensor IsTempWarmWaterToBoiler;
-	cPID pid;
 };
 
 

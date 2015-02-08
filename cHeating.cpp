@@ -146,24 +146,22 @@ void cHeating::selectSink( int Sink )
 	switch (Sink) {
 		case SiChargeWarmWater: {
 			Rooms.ChargeRooms(false);
-			Boiler.charge(true, TempSource);
+			Boiler.charge(TempSource);
 			break;
 		}
 		case SiChargeRooms: {
-			boolean ChargeBoilerAndRooms = (Burner.TempOperation.get() > Boiler.getSpTempCharge()) // Burner residual heat
-											||(Solar.TempFromCollector.get()-4 > Boiler.getSpTempCharge()); // Solar residual heat
-			Rooms.ChargeRooms(true, ChargeBoilerAndRooms);
-			Boiler.charge(ChargeBoilerAndRooms, TempSource);
+			Rooms.ChargeRooms(true);
+			Boiler.charge(TempSource);
 			break;
 		}
 		case SiChargeHeating: {
 			Rooms.ChargeRooms(false);
-			Boiler.charge(true, TempSource);
+			Boiler.charge(TempSource);
 			break;
 		}
 		case SiOff: default: {
 			Rooms.ChargeRooms(false);
-			Boiler.charge(false, TempSource);
+			Boiler.charge(TempSource);
 			break;
 		}
 	}

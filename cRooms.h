@@ -6,7 +6,7 @@
 #include "Arduino.h"
 #include "cTemp.h"
 #include "cRoomValve.h"
-#include "cPID.h"
+#include <PID_v1.h>
 #include "cPump.h"
 #include "cMixer.h"
 #include "cRoom.h"
@@ -42,15 +42,13 @@ class cRooms
 	{10, this},{11, this},{12, this},{13, this},
 	{14, this},{15, this}};
 	cPump Pump;
-	cPID PIDPump;
 	cMixer Mixer;
-	cPID PIDMixer;
 	
 	boolean need(void);
 	double getSpHeating(void);
 	SetTypes SetType;
 	
-	void ChargeRooms(boolean bneedChargeRooms, boolean BoilerCharges = false);
+	void ChargeRooms(boolean bneedChargeRooms);
 	
 	void initDefaultSetpoint();
 	double MasterSpTemps[nRoomTypes];
@@ -66,10 +64,6 @@ class cRooms
 	void getData(JsonObject& root);
 	
 	private:
-	double dIsTempHeatingLead;
-	double dSpTempHeatingLead;
-	double dIsTempHeatingReturn;
-	double dSpTempHeatingReturn;
 	
 	double dMaxDiff;
 	double dMaxSp;

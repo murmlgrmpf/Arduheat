@@ -20,19 +20,18 @@ class cSolar
 	
 	cSolar()
 	:Valve(PinValveSolarOpen,PinValveSolarClose),
-	pid( 0.1, 0.05, 0.025, DIRECT),
-	Pump(PinPumpSolar),
+	Pump(PinPumpSolar,0.1, 0.05, 0.025, DIRECT),
 	TempToCollector(&MPNumSys[0], &MPChanSys[idxTempSolarToCollector], &SysTempOffset[idxTempSolarToCollector]),
 	TempFromCollector(&MPNumSys[0], &MPChanSys[idxTempSolarFromCollector], &SysTempOffset[idxTempSolarFromCollector]),
 	TempToSystem(&MPNumSys[0], &MPChanSys[idxTempSolarToSystem], &SysTempOffset[idxTempSolarToSystem]),
-	TempFromSystem(&MPNumSys[0], &MPChanSys[idxTempSolarFromSystem], &SysTempOffset[idxTempSolarFromSystem]),
-	Intensity(&MPNumSys[0], &MPChanSys[idxSolarIntensity], &SysTempOffset[idxSolarIntensity])
+	TempFromSystem(&MPNumSys[0], &MPChanSys[idxTempSolarFromSystem], &SysTempOffset[idxTempSolarFromSystem])
+	//Intensity(&MPNumSys[0], &MPChanSys[idxSolarIntensity], &SysTempOffset[idxSolarIntensity])
 	{
 		boolean sufficientHeat =false;
 		boolean probing = false;
 		StartTime = millis();
 		
-		pid.SetOutputLimits(0.2, 1.0);
+		Pump.SetOutputLimits(0.2, 1.0);
 	}
 	
 	boolean harvest(double SpTempSource, boolean enable = true)
@@ -52,11 +51,11 @@ class cSolar
 		if (sufficientHeat)// Run pump such that temperature difference between Return and Lead is equal to 10 degree.
 		{
 			float TempDiff = TempFromCollector.get()-SpTempSource;
-			Pump.setPower(pid.run(TempFromSystem.get()+TempDiff,TempToCollector.get()));
+			Pump.run(TempFromSystem.get()+TempDiff,TempToCollector.get());
 		}
 		else if (probing)
 		{
-			Pump.setPower(pid.run(0.1));
+			Pump.run(0.1);
 			;
 			// Check if probing interval is over
 			if (millis()-StartTime>ProbeInterval) {
@@ -64,7 +63,7 @@ class cSolar
 				StartTime = millis();
 			}
 		}
-		else Pump.setPower(pid.run());
+		else Pump.run();
 		
 		// Open valve if sufficient heat is available
 		Valve.set(sufficientHeat && enable);
@@ -91,10 +90,9 @@ class cSolar
 	
 	cTempSensor TempFromSystem;
 	
-	cTempSensor Intensity;
+	//cTempSensor Intensity;
 	cValve Valve;
 	cPump Pump;
-	cPID pid;
 };
 
 #endif

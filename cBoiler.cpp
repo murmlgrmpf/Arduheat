@@ -2,19 +2,18 @@
 
 cBoiler::cBoiler(cRooms* Rooms_,cWarmWater* WarmWater_)
 :Valve(PinValveBoilerOpen,PinValveBoilerClose),
-pid( 1.05, 0.0, 10.5, REVERSE), //I= 0.063
 TempCharge((&MPNumSys[0]),(&MPChanSys[idxTempBoilerCharge]),(&SysTempOffset[idxTempBoilerCharge])),
 TempReserve1((&MPNumSys[0]),(&MPChanSys[idxTempBoilerReserve1]),(&SysTempOffset[idxTempBoilerReserve1])),
 TempReserve2((&MPNumSys[0]),(&MPChanSys[idxTempBoilerReserve2]),(&SysTempOffset[idxTempBoilerReserve2])),
 TempHead((&MPNumSys[0]),&MPChanSys[idxTempBoilerHead],(&SysTempOffset[idxTempBoilerHead])),
 TempTop((&MPNumSys[0]),&MPChanSys[idxTempBoilerTop],(&SysTempOffset[idxTempBoilerTop])),
-Pump(PinPumpBoiler)
+Pump(PinPumpBoiler,1.05, 0.0, 10.5, REVERSE) //I= 0.063
 {
 	Rooms = Rooms_;
 	WarmWater = WarmWater_;
 	ChargeMargin = DefaultChargeMargin;
 	// Set minimal Pump Power to 10%
-	pid.SetOutputLimits(0.1, 1);
+	Pump.SetOutputLimits(0.1, 1);
 }
 
 void cBoiler::getSP( JsonObject& root )
@@ -57,7 +56,7 @@ void cBoiler::getData( JsonObject& root )
 	root["BT3"] = TempReserve1.get();
 	root["BT4"] = TempReserve2.get();
 	
-	root["BP"] =  pid.get();
+	root["BP"] =  Pump.get();
 	root["BncW"] =  static_cast<int>( bneedChargeWarmWater);
 	root["BncH"] =  static_cast<int>( bneedChargeHeating);
 	root["Bdisc"] =  static_cast<int>( bDischarging);

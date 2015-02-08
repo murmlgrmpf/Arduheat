@@ -60,16 +60,27 @@ class cBoiler
 		return bneedChargeHeating;
 	}
 	
-	void charge(boolean bCharge, float TempChargeSource)
+	void charge(float TempHeatSource)
 	{
-		bCharging = bCharge;
+		boolean need = (bneedChargeWarmWater || bneedChargeHeating);
+		
+		if (need) // if charging is needed, charging is fixed to true
+			bCharging = true;
+		else // Hysteresis
+		{
+			if (getSpTempCharge()+2 < TempHeatSource)
+				bCharging = true;
+			if (getSpTempCharge() > TempHeatSource)
+				bCharging = false;
+		}
 		
 		Valve.set((bDischarging || bCharging)); // Open Valve if charging or discharging
 		
-		if (bCharge) // Run Pump
-			Pump.setPower(pid.run(getSpTempCharge(), TempChargeSource));
+		if (bCharging) // Run Pump
+			Pump.run(getSpTempCharge(), TempHeatSource);
 		else // Stop Charging: Stop PID and Pump
-			Pump.setPower(pid.run());
+			Pump.run();
+		
 	}
 	
 	void discharge( boolean bNeedSourceBoiler )
@@ -87,7 +98,6 @@ class cBoiler
 	
 	cValve Valve;
 	cPump Pump;
-	cPID pid;
 	
 	// May become private again (debug)
 	cTempSensor TempCharge;

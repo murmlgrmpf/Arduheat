@@ -4,16 +4,14 @@ cRooms::cRooms( void ):
 IsTempHeatingLead((&MPNumSys[0]),(&MPChanSys[idxTempHeatingLead]),(&SysTempOffset[idxTempHeatingLead])),
 IsTempHeatingReturn((&MPNumSys[0]),(&MPChanSys[idxTempHeatingReturn]),(&SysTempOffset[idxTempHeatingReturn])),
 TempOutside((&MPNumSys[0]),(&MPChanSys[idxTempOutside]),(&SysTempOffset[idxTempOutside])),
-PIDPump( 0.5, 0.0, 0.0, DIRECT),
-PIDMixer( 0.2, 0.0, 2.0, DIRECT),
-Pump(PinPumpHeating,0.5, 0.0, 0.0, DIRECT),
-Mixer(PinMixerOpen,PinMixerClose)
+Pump(PinPumpHeating,0.5, 0.0, 0.0, DIRECT, 0.0),
+Mixer(PinMixerOpen,PinMixerClose, 0.2, 0.0, 2.0, DIRECT)
 {
 	SetType = Normal;
 	// Initialize PID controllers for pumps
-	PIDPump.SetOutputLimits(0.3, 1.0);
-	PIDMixer.SetOutputLimits(-1.0, 1.0);
-	PIDMixer.SetSampleTime(500);
+	Pump.SetOutputLimits(0.3, 1.0);
+	Mixer.SetOutputLimits(-1.0, 1.0);
+	Mixer.SetSampleTime(500);
 	
 	dMaxDiff =0;
 	dMaxSp = 0;
@@ -75,39 +73,21 @@ void cRooms::initDefaultSetpoint()
 }
 
 
-void cRooms::ChargeRooms( boolean ChargeRooms, boolean BoilerCharges )
+void cRooms::ChargeRooms( boolean ChargeRooms )
 {
-	dSpTempHeatingLead = getSpHeating();
-	dIsTempHeatingLead = IsTempHeatingLead.get();
-	dSpTempHeatingReturn = getSpHeating()-DiffTempHeatingLeadReturn;
-	dIsTempHeatingReturn = IsTempHeatingReturn.get();
+	double SpTempHeatingReturn = getSpHeating()-DiffTempHeatingLeadReturn;
 	
 	if (ChargeRooms)
 	{
-		
-		// Run Mixer and PID
-		Mixer.run(PIDMixer.run(dSpTempHeatingLead, dIsTempHeatingLead));
-		
-		// Run heating pump and PID
-		if (BoilerCharges)
-		{
-			// If Boiler is charged, run heating pump at full speed.
-			// The Boiler is collecting the remaining heat from the source.
-			PIDPump.run();
-			Pump.setPower(1.0);
-		}
-		else
-		{
-			Pump.setPower(PIDPump.run(dSpTempHeatingReturn, dIsTempHeatingReturn));
-		}
+		// Run Pump and Mixer
+		Mixer.run(getSpHeating(), IsTempHeatingLead.get());
+		Pump.run(SpTempHeatingReturn, IsTempHeatingReturn.get());
 	}
 	else
 	{
-		// Stop Pump Heating and PID
-		PIDPump.run();
-		Pump.setPower(0.0);
-		// Stop mixer PID and run Mixer to closed position
-		PIDMixer.run();
+		// Stop Pump Heating
+		Pump.run(0.0);
+		// Close Mixer
 		Mixer.run(-1.0);
 	}
 }
@@ -202,7 +182,6 @@ int cRooms::setOffsetTime( JsonObject& root )
 	return 0;
 }
 
-
 void cRooms::getOffsetTemp( JsonObject& root )
 {
 	JsonArray&  temps  = root.createNestedArray("RTs");
@@ -221,7 +200,6 @@ void cRooms::getOffsetTemp( JsonObject& root )
 		}
 	}
 }
-
 
 int cRooms::setOffsetTemp( JsonObject& root )
 {
@@ -338,6 +316,6 @@ void cRooms::getData( JsonObject& root )
 	
 	root["RTitoR"] = IsTempHeatingLead.get();
 	root["RTitoSys"] = IsTempHeatingReturn.get();
-	root["RP"] = PIDPump.get();
-	root["RM"] = PIDMixer.get();
+	root["RP"] = Pump.get();
+	root["RM"] = Mixer.get();
 }

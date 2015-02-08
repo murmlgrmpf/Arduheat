@@ -5,9 +5,9 @@ void cWarmWater::Control(void){
 	// with the power determined by pid controller.
 	// Else switch pid to manual and stop pump.
 	if(!digitalRead(PinWarmWaterSwitch))
-	Pump.setPower(pid.run(SpTemp(), IsTemp.get()));
+	Pump.run(SpTemp(), IsTemp.get());
 	else
-	Pump.setPower(pid.run());
+	Pump.run();
 }
 
 void cWarmWater::getSP( JsonObject& root )
@@ -63,7 +63,7 @@ int cWarmWater::setSP( JsonObject& root )
 
 void cWarmWater::getData( JsonObject& root )
 {
-	root["WP"] = pid.get();
+	root["WP"] = Pump.get();
 	root["WTi"] =  IsTemp.get();
 	root["Wn"] = !digitalRead(PinWarmWaterSwitch);
 	root["WTitoB"] = IsTempWarmWaterToBoiler.get();
