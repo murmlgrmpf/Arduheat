@@ -8,6 +8,13 @@ Visual Micro/
 *.atsuo
 *.cppproj
 
+*.eep
+*.elf
+*.hex
+*.a
+*.mk
+
+
 *.aux
 *.bit
 *.blg
