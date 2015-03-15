@@ -41,6 +41,7 @@
 //#define PREFIX ""
 //WebServer webserver(PREFIX, 80);
 
+#include <Mailbox.h>
 
 
 #include "cTrigger.h"
@@ -68,6 +69,9 @@ void  setup()
 {
 	pinMode(53, OUTPUT);                       // set the SS pin as an output (necessary!)
 	digitalWrite(53, HIGH);                    // but turn off the W5100 chip!
+	
+	Bridge.begin();
+	Mailbox.begin();
 	
 	//// RTC test //////////
 	Serial.begin(115200);
