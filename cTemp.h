@@ -12,8 +12,7 @@
 #define R 2000.0   //! OP Resistor Value [Ohm]
 #define R1 12000.0 //! OP Resistor Value [Ohm]
 #define R2 11000.0 //! OP Resistor Value [Ohm]
-#define R3 10000.0 //! Voltage of power supply [V]
-#define Vcc 5.04   
+#define R3 10000.0 //! OP Resistor Value [Ohm]
 //! Factors for Temperature Sensors
 #define Alpha 0.00788 //! Factors for Temperature Sensors
 #define Beta 0.00001937 //! Factors for Temperature Sensors
