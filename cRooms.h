@@ -18,7 +18,7 @@
 #define nSwitch     4 // Number of switching times each day
 #define nRooms     16 // Number of rooms
 
-#define DiffTempHeatingLeadReturn 3 //
+#define DiffTempHeatingLeadReturn 5 //
 
 // Set default parameters for SpHeating curve
 #define dsteil 0.6
@@ -62,6 +62,8 @@ class cRooms
 	int setRooms(JsonObject& root);
 	
 	void getData(JsonObject& root);
+	
+	unsigned long lastHeating;
 	
 	private:
 	
