@@ -77,7 +77,6 @@ int writeConf( cHeating* Heating) {
 			writeConfelement(&ini, &(Heating->Rooms), &cRooms::getOffsetTemp);
 			writeConfelement(&ini, &(Heating->Rooms), &cRooms::getRooms);
 			writeConfelement(&ini, &(Heating->Burner),&cBurner::getSP);
-			writeConfelement(&ini, &(Heating->Boiler),&cBoiler::getSP);
 			writeConfelement(&ini, &(Heating->WarmWater),&cWarmWater::getSP);
 			
 			
@@ -106,7 +105,6 @@ int readConfigLine(char* line, cHeating* Heating) {
 	posReturn += Heating->Rooms.setOffsetTemp(root);
 	posReturn += Heating->Rooms.setRooms(root);
 	posReturn += Heating->Burner.setSP(root);
-	posReturn += Heating->Boiler.setSP(root);
 	posReturn += Heating->WarmWater.setSP(root);
 	
 	PgmPrint("Free RAM: "); // part of sdFatUtil
