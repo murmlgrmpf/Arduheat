@@ -52,7 +52,6 @@ void cHeating::checkSinks(void)
 		SpTempSource = Boiler.getSpTempCharge();
 		needSource = false;
 	}
-	
 }
 
 void cHeating::checkSources(void)
@@ -64,22 +63,22 @@ void cHeating::checkSources(void)
 		TempSource = Burner.TempOperation.get();
 		needSink = true;
 	}
-	// #2 If burner is not burning: Burner residual heat: true if temperature high enough
-	else if (Burner.burn(SpTempSource, false)) {
-		Source = SoBurnerResHeat;
-		TempSource = Burner.TempOperation.get();
-		needSink = true;
-	}
-	// #3 Solar
+	// #2 Solar
 	else if (Solar.harvest(SpTempSource, true)) {
 		Source = SoSolar;
 		TempSource = Solar.TempToSystem.get();
 		needSink = true;
 	}
+	// #3 If burner is not burning: Burner residual heat: true if temperature high enough
+	else if (Burner.burn(SpTempSource, false)) {
+		Source = SoBurnerResHeat;
+		TempSource = Burner.TempOperation.get();
+		needSink = true;
+	}
 	// #4 Boiler
 	else if (! (Boiler.needChargeWarmWater() || Boiler.needChargeHeating(Rooms.need())) ) {
 		Source = SoBoiler;
-		TempSource = Boiler.TempCharge.get();
+		TempSource = 0.0;
 		needSink = false;
 	}
 	// #5 Start Burner
@@ -89,7 +88,6 @@ void cHeating::checkSources(void)
 		needSink = true;
 		Boiler.triggerChargeWarmWater();
 	}
-	
 }
 
 void cHeating::selectSource( int Source )
@@ -119,7 +117,7 @@ void cHeating::selectSource( int Source )
 			// Solar mode
 			Solar.harvest(SpTempSource, true);
 			// Deactivate other heat sources
-			Burner.burn(SpTempSource, false);
+			Burner.burn(TempSource, false);
 			Boiler.discharge(false);
 			break;
 		}
@@ -156,7 +154,7 @@ void cHeating::selectSink( int Sink )
 		}
 		case SiChargeHeating: {
 			Rooms.ChargeRooms(false);
-			Boiler.charge(TempSource);
+			Boiler.charge(TempSource, needSink);
 			break;
 		}
 		case SiOff: default: {
