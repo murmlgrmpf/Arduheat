@@ -7,7 +7,7 @@
 #include "cValve.h"
 #include <ArduinoJson.h>
 
-#define DefaultMinBurnTimeMinutes 20
+#define DefaultMinBurnTimeMinutes 15 //20
 #define DefaultMaxTempOperation 80
 
 class cBurner
