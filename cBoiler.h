@@ -11,12 +11,11 @@
 #include <cPID.h>
 #include <ArduinoJson.h>
 
-#include <avr/pgmspace.h>
+// Charge Margins Warmwater and Heating
+#define WMargin  10.0
+#define HMargin   3.0
 
-
-// Setpoint System Temperatures
-#define DefaultChargeMargin	5.0
-#define DefaultSpMargin		3.0
+#define HeatingPeriodHorizon  1000*60*60*36
 
 class cBoiler
 {
@@ -24,27 +23,25 @@ class cBoiler
 	/// Creates a Boiler object
 	cBoiler(cRooms* Rooms_,cWarmWater* WarmWater_);
 	
-	double getSpTempCharge(void)
+	/// SpTempCharge is the minimum temperature that is needed to charge the boiler.
+	double getSpTempCharge(void) // Rename: SpTemp
 	{
-		// SpTempCharge is the maximum of what the rooms need and what is inside the boiler.
-		// In case the boiler is full (e.g. because solar is available, Rooms dont need heat), 
-		// it will continously overcharge the boiler.
-		double SpTempCharge = max(Rooms->getSpHeating(), TempReserve1.get());
+		double SpTempCharge = TempReserve2.get()+HMargin;
 		
-		// If warm water needs to be charged, choose maximum charging temperature.
+		if (bneedChargeHeating)
+			SpTempCharge = Rooms->getSpHeating() + HMargin;
 		if (needChargeWarmWater())
-			SpTempCharge = max(WarmWater->SpTemp(), SpTempCharge);
+			SpTempCharge = WarmWater->SpTemp + WMargin;
 		
-		// Add a margin such that the setpoint for charging is higher than what is needed.
-		return (SpTempCharge+ChargeMargin);
+		return (SpTempCharge);
 	}
 	
 	boolean needChargeWarmWater(void)
 	{
 		// Hysteresis by top and head temperature sensors.
 		// If top falls below setpoint: charge. If head gets above setpoint: dont charge.
-		if (WarmWater->SpTemp()+DefaultSpMargin > TempTop.get())  bneedChargeWarmWater = true;
-		if (WarmWater->SpTemp()+DefaultSpMargin < TempHead.get()) bneedChargeWarmWater = false;
+		if (WarmWater->SpTemp+HMargin > TempTop.get())  bneedChargeWarmWater = true;
+		if (WarmWater->SpTemp < TempHead.get()) bneedChargeWarmWater = false;
 		
 		return bneedChargeWarmWater;
 	}
@@ -60,24 +57,35 @@ class cBoiler
 		return bneedChargeHeating;
 	}
 	
-	void charge(float TempHeatSource)
+	void charge(float TempHeatSource, boolean bneedSink = false)
 	{
-		boolean need = (bneedChargeWarmWater || bneedChargeHeating);
+		boolean need = (bneedChargeWarmWater || bneedChargeHeating || bneedSink);
 		
 		if (need) // if charging is needed, charging is fixed to true
 			bCharging = true;
 		else // Hysteresis
 		{
-			if (getSpTempCharge()+2 < TempHeatSource)
+			if (getSpTempCharge() < TempHeatSource)
 				bCharging = true;
-			if (getSpTempCharge() > TempHeatSource)
+			if (getSpTempCharge()-2 > TempHeatSource)
 				bCharging = false;
 		}
 		
 		Valve.set((bDischarging || bCharging)); // Open Valve if charging or discharging
 		
+		double SpTemp = 0.0;
+		boolean HeatingPeriod = (millis()- Rooms->lastHeating < HeatingPeriodHorizon);
+		
+		if (HeatingPeriod)
+			SpTemp = max(getSpTempCharge(), Rooms->getSpHeating()+HMargin);
+		else
+		{
+			SpTemp = max(getSpTempCharge(), WarmWater->SpTemp + WMargin);
+			Rooms->lastHeating = millis()-HeatingPeriodHorizon; // Rolling horizon for overflow of millis
+		}
+		
 		if (bCharging) // Run Pump
-			Pump.run(getSpTempCharge(), TempHeatSource);
+			Pump.run(SpTemp, TempHeatSource);
 		else // Stop Charging: Stop PID and Pump
 			Pump.run();
 		
@@ -86,13 +94,10 @@ class cBoiler
 	void discharge( boolean bNeedSourceBoiler )
 	{
 		bDischarging = bNeedSourceBoiler;
-		Valve.set((bDischarging || bCharging));
+		Valve.set((bDischarging || bCharging)); // Open Valve if charging or discharging
 	}
 	
 	void triggerChargeWarmWater() {bneedChargeWarmWater = true;};
-	
-	void getSP(JsonObject& root);
-	int setSP(JsonObject& root);
 	
 	void getData(JsonObject& root);
 	
@@ -110,14 +115,10 @@ class cBoiler
 	cRooms* Rooms;
 	cWarmWater* WarmWater;
 	
-	double ChargeMargin;
-	
 	boolean bneedChargeWarmWater;
 	boolean bneedChargeHeating;
 	boolean bDischarging;
 	boolean bCharging;
-	
-	
 };
 
 #endif

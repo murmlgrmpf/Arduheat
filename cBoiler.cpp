@@ -7,40 +7,15 @@ TempReserve1((&MPNumSys[0]),(&MPChanSys[idxTempBoilerReserve1]),(&SysTempOffset[
 TempReserve2((&MPNumSys[0]),(&MPChanSys[idxTempBoilerReserve2]),(&SysTempOffset[idxTempBoilerReserve2])),
 TempHead((&MPNumSys[0]),&MPChanSys[idxTempBoilerHead],(&SysTempOffset[idxTempBoilerHead])),
 TempTop((&MPNumSys[0]),&MPChanSys[idxTempBoilerTop],(&SysTempOffset[idxTempBoilerTop])),
-Pump(PinPumpBoiler,1.05, 0.0, 10.5, REVERSE) //I= 0.063
+Pump(PinPumpBoiler,1.05, 0.0, 10.5, REVERSE) //1.05, 0.0, 10.5
 {
 	Rooms = Rooms_;
 	WarmWater = WarmWater_;
-	ChargeMargin = DefaultChargeMargin;
+	// Set to non heating period
+	Rooms->lastHeating = millis()-HeatingPeriodHorizon;
 	// Set minimal Pump Power to 10%
 	Pump.SetOutputLimits(0.1, 1);
-}
-
-void cBoiler::getSP( JsonObject& root )
-{
-  //char p_buffer[80];
-	//root[P("Bcm")] = ChargeMargin;
-	root["Bcm"] = ChargeMargin;
-}
-
-int cBoiler::setSP( JsonObject& root )
-{
-	int fail = 0;
-	int posReturn =0;
-	
-	if(root.containsKey("Bcm")) {
-		if(root["Bcm"].is<double>()) {
-			ChargeMargin = root["Bcm"].as<double>();
-			posReturn++;
-		}
-		else fail=1;
-	}
-	else fail=1;
-	
-	if (fail == 0) // If all three parameter objects were successfully filled
-	return posReturn;
-	else
-	return 0;
+	Pump.SetSampleTime(500);
 }
 
 void cBoiler::getData( JsonObject& root )
@@ -61,6 +36,6 @@ void cBoiler::getData( JsonObject& root )
 	root["BncH"] =  static_cast<int>( bneedChargeHeating);
 	root["Bdisc"] =  static_cast<int>( bDischarging);
 	root["Bc"] =  static_cast<int>( bCharging);
-	root["BTsW"] =  WarmWater->SpTemp();
+	root["BTsW"] =  WarmWater->SpTemp;
 	root["BTsc"] =   getSpTempCharge();
 }
