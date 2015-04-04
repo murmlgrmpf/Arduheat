@@ -5,13 +5,13 @@ IsTempHeatingLead((&MPNumSys[0]),(&MPChanSys[idxTempHeatingLead]),(&SysTempOffse
 IsTempHeatingReturn((&MPNumSys[0]),(&MPChanSys[idxTempHeatingReturn]),(&SysTempOffset[idxTempHeatingReturn])),
 TempOutside((&MPNumSys[0]),(&MPChanSys[idxTempOutside]),(&SysTempOffset[idxTempOutside])),
 Pump(PinPumpHeating,0.5, 0.0, 0.0, DIRECT, 0.0),
-Mixer(PinMixerOpen,PinMixerClose, 0.2, 0.0, 2.0, DIRECT)
+Mixer(PinMixerOpen,PinMixerClose, 0.2, 0.0, 5.4, DIRECT)
 {
 	SetType = Normal;
 	// Initialize PID controllers for pumps
 	Pump.SetOutputLimits(0.3, 1.0);
 	Mixer.SetOutputLimits(-1.0, 1.0);
-	Mixer.SetSampleTime(500);
+	Mixer.SetSampleTime(5000);
 	
 	dMaxDiff =0;
 	dMaxSp = 0;
@@ -115,6 +115,9 @@ boolean cRooms::need(void)
 	// Hysteresis for charging the rooms
 	if (dMaxDiff-RoomMargin > 0) needCharge = true;
 	if (dMaxDiff+RoomMargin < 0) needCharge = false;
+	
+	// Save last time that the rooms needed heating in order to detect summer mode vs. winter mode
+	if (needCharge) lastHeating = millis();
 	
 	return needCharge;
 }
