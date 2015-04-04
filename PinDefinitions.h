@@ -20,6 +20,7 @@
 #define PinMixerClose             7
 #define PinWarmWaterSwitch       19
 #define PinHeatControl            3
+#define PinSolarIntensity		 69
 
 // System Temperatures
 #define idxTempHeatingReturn        0
@@ -36,15 +37,13 @@
 #define idxTempBoilerTop           11
 #define idxTempWarmWater           12
 #define idxTempWarmWaterToBoiler   13 // Not Used
-#define idxSolarIntensity          14
+//#define idxSolarIntensity          14
 #define idxTempOutside             15
-
 
 #define P(str) (strcpy_P(p_buffer, PSTR(str)), p_buffer)
 
-
 const PROGMEM int MPChanSys[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-const PROGMEM float SysTempOffset[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.08};
+const PROGMEM float SysTempOffset[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1.38};
 
 // On system Multiplexer 2
 const PROGMEM int MPNumSys[] = {2};
@@ -52,6 +51,9 @@ const PROGMEM int MPNumSys[] = {2};
 const PROGMEM int MPControl[] = {48, 47, 46, 49};
 // Multiplexer Temperature Input Pins A12 = 66; A13 = 67; A14 = 68
 const PROGMEM int MPInput[] = {66, 67, 68};
+
+#define Vcc 5.04  //! Voltage of power supply [V]
+
 
 #endif
 /*
