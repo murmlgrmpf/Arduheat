@@ -13,10 +13,7 @@ Visual Micro/
 *.hex
 *.a
 *.mk
-<<<<<<< 00baa43cd11da7ffc9279a14d24a04e84c332aae
-=======
 *Makefile
->>>>>>> 0fc3d6ef914439be460edc094d2242f0534eaac7
 
 
 *.aux
