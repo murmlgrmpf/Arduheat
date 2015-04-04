@@ -11,7 +11,7 @@ class cMixer  : public PID
 	public:
 	/// Creates the mixer
 	cMixer(int pinOpen_, int pinClose_,double p, double i, double d, int mode):
-	PWM(5000),
+	PWM(20000),
 	PID(&Is, &Power, &Setpoint, p, i, d, mode)
 	{
 		pinOpen = pinOpen_;
@@ -64,7 +64,7 @@ class cMixer  : public PID
 	{
 		boolean direction = (Power>=0);
 		// Check PWM and hysteresis
-		if(PWM.get(abs(Power))&&(abs(Power)> 0.0)) {
+		if(PWM.get(abs(Power))&&(abs(Power)> 0.05)) {
 			// Drive in direction
 			digitalWrite(pinClose, direction);
 			digitalWrite(pinOpen, !direction);
