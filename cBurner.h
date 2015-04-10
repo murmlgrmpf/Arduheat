@@ -18,7 +18,7 @@ class cBurner
 	:Valve(PinValveHeatSource1Open,PinValveHeatSource1Close),
 	TempOperation((&MPNumSys[0]),(&MPChanSys[idxTempHeatSource1Operation]),(&SysTempOffset[idxTempHeatSource1Operation]))
 	{
-		pinMode(PinStartHeatSource1, OUTPUT);
+		pinMode_wrap(PinStartHeatSource1, OUTPUT);
 		
 		bFlame = false;
 		sufficientHeat = true;
@@ -44,9 +44,9 @@ class cBurner
 		
 		// Execute state, check for overheating
 		if (TempOperation.get() < MaxTempOperation)
-			digitalWrite(PinStartHeatSource1, !bFlame); // Start Burner (start on Low), Stop Burner (stop on High)
+			digitalWrite_wrap(PinStartHeatSource1, !bFlame); // Start Burner (start on Low), Stop Burner (stop on High)
 		else
-			digitalWrite(PinStartHeatSource1, !false); // Overheating: shut off flame
+			digitalWrite_wrap(PinStartHeatSource1, !false); // Overheating: shut off flame
 		
 		// Check for residual/sufficient heat with hysteresis
 		if (TempOperation.get() < SpTempSource-2)
