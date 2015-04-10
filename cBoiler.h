@@ -12,7 +12,7 @@
 #include <ArduinoJson.h>
 
 // Charge Margins Warmwater and Heating
-#define WMargin  10.0
+#define WMargin  8.0
 #define HMargin   3.0
 
 #define HeatingPeriodHorizon  1000*60*60*36
@@ -23,10 +23,10 @@ class cBoiler
 	/// Creates a Boiler object
 	cBoiler(cRooms* Rooms_,cWarmWater* WarmWater_);
 	
-	/// SpTempCharge is the minimum temperature that is needed to charge the boiler.
-	double getSpTempCharge(void) // Rename: SpTemp
+	/// SpTemp is the minimum temperature that is needed to charge the boiler.
+	double SpTemp(void)
 	{
-		double SpTempCharge = TempReserve2.get()+HMargin;
+		double SpTempCharge = TempReserve2.get()+HMargin+1;
 		
 		if (bneedChargeHeating)
 			SpTempCharge = Rooms->getSpHeating() + HMargin;
@@ -41,7 +41,7 @@ class cBoiler
 		// Hysteresis by top and head temperature sensors.
 		// If top falls below setpoint: charge. If head gets above setpoint: dont charge.
 		if (WarmWater->SpTemp+HMargin > TempTop.get())  bneedChargeWarmWater = true;
-		if (WarmWater->SpTemp < TempHead.get()) bneedChargeWarmWater = false;
+		if (WarmWater->SpTemp+HMargin+1 < TempHead.get()) bneedChargeWarmWater = false;
 		
 		return bneedChargeWarmWater;
 	}
@@ -65,30 +65,29 @@ class cBoiler
 			bCharging = true;
 		else // Hysteresis
 		{
-			if (getSpTempCharge() < TempHeatSource)
+			if (SpTemp() < TempHeatSource)
 				bCharging = true;
-			if (getSpTempCharge()-2 > TempHeatSource)
+			if (SpTemp()-2 > TempHeatSource)
 				bCharging = false;
 		}
 		
 		Valve.set((bDischarging || bCharging)); // Open Valve if charging or discharging
 		
-		double SpTemp = 0.0;
+		double SpTempCharge = 0.0;
 		boolean HeatingPeriod = (millis()- Rooms->lastHeating < HeatingPeriodHorizon);
 		
 		if (HeatingPeriod)
-			SpTemp = max(getSpTempCharge(), Rooms->getSpHeating()+HMargin);
+			SpTempCharge = max(SpTemp(), Rooms->getSpHeating()+1.5*HMargin);
 		else
 		{
-			SpTemp = max(getSpTempCharge(), WarmWater->SpTemp + WMargin);
+			SpTempCharge = max(SpTemp(), WarmWater->SpTemp + WMargin);
 			Rooms->lastHeating = millis()-HeatingPeriodHorizon; // Rolling horizon for overflow of millis
 		}
 		
 		if (bCharging) // Run Pump
-			Pump.run(SpTemp, TempHeatSource);
+			Pump.run(SpTempCharge, TempHeatSource);
 		else // Stop Charging: Stop PID and Pump
 			Pump.run();
-		
 	}
 	
 	void discharge( boolean bNeedSourceBoiler )

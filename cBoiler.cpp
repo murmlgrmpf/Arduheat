@@ -37,5 +37,5 @@ void cBoiler::getData( JsonObject& root )
 	root["Bdisc"] =  static_cast<int>( bDischarging);
 	root["Bc"] =  static_cast<int>( bCharging);
 	root["BTsW"] =  WarmWater->SpTemp;
-	root["BTsc"] =   getSpTempCharge();
+	root["BTsc"] =   SpTemp();
 }
