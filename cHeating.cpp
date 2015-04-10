@@ -37,7 +37,7 @@ void cHeating::checkSinks(void)
 	// #1 Determine need to charge warm water
 	if(Boiler.needChargeWarmWater()) {
 		Sink = SiChargeWarmWater;
-		SpTempSource = Boiler.getSpTempCharge();
+		SpTempSource = Boiler.SpTemp();
 		needSource = true;
 	}
 	// #2 Determine whether there is need for heating the rooms
@@ -49,7 +49,7 @@ void cHeating::checkSinks(void)
 	// Else charge into boiler
 	else {
 		Sink = SiChargeHeating;
-		SpTempSource = Boiler.getSpTempCharge();
+		SpTempSource = Boiler.SpTemp();
 		needSource = false;
 	}
 }
@@ -86,7 +86,6 @@ void cHeating::checkSources(void)
 		Source = SoBurner;
 		TempSource = Burner.TempOperation.get();
 		needSink = true;
-		Boiler.triggerChargeWarmWater();
 	}
 }
 
