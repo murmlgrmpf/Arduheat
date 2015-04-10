@@ -18,7 +18,7 @@ class cWarmWater
 {
 	public:
 	cWarmWater(void):
-	Pump(PinPumpWarmWater,0.5, 0.01, 0.1, DIRECT),
+	Pump(PinPumpWarmWater,0.5, 0.0, 7.0, DIRECT),
 	IsTemp(&MPNumSys[0], &MPChanSys[idxTempWarmWater], &SysTempOffset[idxTempWarmWater]),
 	IsTempWarmWaterToBoiler(&MPNumSys[0], &MPChanSys[idxTempWarmWaterToBoiler], &SysTempOffset[idxTempWarmWaterToBoiler])
 	{
@@ -26,6 +26,7 @@ class cWarmWater
 		SpTemp = DefaultSpTempWarmWater;
 		// Initialize PID controllers for pump
 		Pump.SetOutputLimits(0.0, 1.0);
+		Pump.SetSampleTime(500);
 	}
 	
 	void Control(void);

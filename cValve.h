@@ -12,10 +12,10 @@ class cValve
 	cValve(int pinOpen_, int pinClose_, unsigned long DriveTime_ = DefaultDriveTime, boolean bisOpen_ = false)
 	{
 		pinOpen=pinOpen_;
-		pinMode(pinOpen, OUTPUT);
+		pinMode_wrap(pinOpen, OUTPUT);
 		
 		pinClose=pinClose_;
-		pinMode(pinClose, OUTPUT);
+		pinMode_wrap(pinClose, OUTPUT);
 		
 		LastTime = millis();
 		DriveTime = DriveTime_;
@@ -45,13 +45,13 @@ class cValve
 		if(ElapsedTime < DriveTime) {
 			// drive valve motor to open direction if bsetOpen is true/high
 			// otherwise drive to close
-			digitalWrite(pinOpen, !bsetOpen);
-			digitalWrite(pinClose, bsetOpen);
+			digitalWrite_wrap(pinOpen, !bsetOpen);
+			digitalWrite_wrap(pinClose, bsetOpen);
 		}
 		else {
 			// stop valve motor
-			digitalWrite(pinOpen, LOW);
-			digitalWrite(pinClose, LOW);
+			digitalWrite_wrap(pinOpen, LOW);
+			digitalWrite_wrap(pinClose, LOW);
 		}
 	}
 	

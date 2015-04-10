@@ -15,10 +15,10 @@ class cMixer  : public PID
 	PID(&Is, &Power, &Setpoint, p, i, d, mode)
 	{
 		pinOpen = pinOpen_;
-		pinMode(pinOpen, OUTPUT);
+		pinMode_wrap(pinOpen, OUTPUT);
 		
 		pinClose = pinClose_;
-		pinMode(pinClose, OUTPUT);
+		pinMode_wrap(pinClose, OUTPUT);
 		
 		Is = 0;
 		Power = 0;
@@ -66,13 +66,13 @@ class cMixer  : public PID
 		// Check PWM and hysteresis
 		if(PWM.get(abs(Power))&&(abs(Power)> 0.05)) {
 			// Drive in direction
-			digitalWrite(pinClose, direction);
-			digitalWrite(pinOpen, !direction);
+			digitalWrite_wrap(pinClose, direction);
+			digitalWrite_wrap(pinOpen, !direction);
 		}
 		else {
 			// Stop
-			digitalWrite(pinClose, HIGH);
-			digitalWrite(pinOpen, HIGH);
+			digitalWrite_wrap(pinClose, HIGH);
+			digitalWrite_wrap(pinOpen, HIGH);
 		}
 	}
 };

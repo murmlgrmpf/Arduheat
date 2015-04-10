@@ -6,7 +6,7 @@
 #include "cLFPWM.h"
 #include <PID_v1.h>
 
-#define PWMPeriod 2000
+#define PWMPeriod 1000
 
 class cPump : public PID
 {
@@ -20,7 +20,7 @@ class cPump : public PID
 	PID(&Is, &Power, &Setpoint, p, i, d, mode)
 	{
 		PinPump = PinPump_;
-		pinMode(PinPump, OUTPUT);
+		pinMode_wrap(PinPump, OUTPUT);
 		
 		Is = 0;
 		Power = Power_;
@@ -38,7 +38,7 @@ class cPump : public PID
 		
 		Compute();
 		// Pump is running if switching time of PWM is not yet exceeded
-		digitalWrite(PinPump, !PWM.get(Power)); // Pump switched on if true and off if false
+		digitalWrite_wrap(PinPump, !PWM.get(Power)); // Pump switched on if true and off if false
 		return Power;
 	}
 	/// Regulate the power by pid controller
@@ -53,7 +53,7 @@ class cPump : public PID
 		
 		Compute();
 		// Pump is running if switching time of PWM is not yet exceeded
-		digitalWrite(PinPump, !PWM.get(Power)); // Pump switched on if true and off if false
+		digitalWrite_wrap(PinPump, !PWM.get(Power)); // Pump switched on if true and off if false
 		return Power;
 	}
 	

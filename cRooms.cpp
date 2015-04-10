@@ -5,7 +5,7 @@ IsTempHeatingLead((&MPNumSys[0]),(&MPChanSys[idxTempHeatingLead]),(&SysTempOffse
 IsTempHeatingReturn((&MPNumSys[0]),(&MPChanSys[idxTempHeatingReturn]),(&SysTempOffset[idxTempHeatingReturn])),
 TempOutside((&MPNumSys[0]),(&MPChanSys[idxTempOutside]),(&SysTempOffset[idxTempOutside])),
 Pump(PinPumpHeating,0.5, 0.0, 0.0, DIRECT, 0.0),
-Mixer(PinMixerOpen,PinMixerClose, 0.2, 0.0, 5.4, DIRECT)
+Mixer(PinMixerOpen,PinMixerClose, 0.2, 0.0, 6.0, DIRECT)
 {
 	SetType = Normal;
 	// Initialize PID controllers for pumps
