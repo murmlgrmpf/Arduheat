@@ -17,7 +17,7 @@ plt.close('all')
 plotrooms = 0
 ##############Select File################
 
-Logfile = "Logs/15040401.CSV"
+Logfile = "Logs/15040900.CSV"
 #Logfile = "RoomsOffsetCalibration.CSV"
 
 readdata = csv.reader(open(Logfile))
@@ -186,4 +186,5 @@ plotIdax(ax2,'SP')
 plotIdax(ax2,'SV')
 plotIdax(ax2,'Ssuht')
 plotIdax(ax2,'Sprobing')
+plotIdax(ax2,'Sint')
 plt.legend(); plt.gca().xaxis.grid(True)
