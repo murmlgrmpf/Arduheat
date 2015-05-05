@@ -9,7 +9,7 @@
 #include <cPID.h>
 #include <ArduinoJson.h>
 // 5min*60sec/min*1000ms/s = 300000ms
-#define ProbeInterval 600000
+#define ProbeInterval 300000
 
 // Intensity smoothing
 #define AlphaT 10 //! Filter sampling interval
@@ -21,8 +21,6 @@
 #define Uf0 1.211
 #define Wmax 1300
 #define Ufmax 2.233
-
-extern DateTime TimeNow;
 
 class cSolarIntensity
 {
@@ -75,7 +73,7 @@ class cSolar
 	boolean harvest(double SpTempSource, boolean enable = true)
 	{
 		// Trigger Probing
-		if (((millis()-StartTime>6*ProbeInterval)&&(TimeNow.hour()>9)&&(TimeNow.hour()<17)&&(!sufficientHeat)&&(!probing)) || (SolarIntensity.get()>500))
+		if ((millis()-StartTime>6*ProbeInterval) && (SolarIntensity.get()>500))
 		{
 			probing=true;
 			StartTime = millis();
