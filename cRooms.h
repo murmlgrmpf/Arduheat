@@ -24,8 +24,8 @@
 #define dsteil 0.6
 #define dkh    4
 #define dverst 2
-#define dminvl 30
-#define dmaxvl 40
+#define dminvl 30.0
+#define dmaxvl 40.0
 
 
 class cRooms

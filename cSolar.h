@@ -57,7 +57,7 @@ class cSolar
 	
 	cSolar()
 	:Valve(PinValveSolarOpen,PinValveSolarClose),
-	Pump(PinPumpSolar,0.1, 0, 19.5, DIRECT), // was 0.1, 0.05, 0.025
+	Pump(PinPumpSolar,0.1, 0,05, 19.5, DIRECT),
 	TempToCollector(&MPNumSys[0], &MPChanSys[idxTempSolarToCollector], &SysTempOffset[idxTempSolarToCollector]),
 	TempFromCollector(&MPNumSys[0], &MPChanSys[idxTempSolarFromCollector], &SysTempOffset[idxTempSolarFromCollector]),
 	TempToSystem(&MPNumSys[0], &MPChanSys[idxTempSolarToSystem], &SysTempOffset[idxTempSolarToSystem]),
@@ -67,13 +67,14 @@ class cSolar
 		boolean probing = false;
 		StartTime = millis();
 		
-		Pump.SetOutputLimits(0.2, 1.0); // was 0.2, Test1 0.4, Test2 0.35
-	}
+		Pump.SetOutputLimits(0.2, 1.0);
+        }
 	
 	boolean harvest(double SpTempSource, boolean enable = true)
 	{
 		// Trigger Probing
-		if ((millis()-StartTime>6*ProbeInterval) && (SolarIntensity.get()>500))
+		//if ((millis()-StartTime>ProbeInterval) && (SolarIntensity.get()>335))
+		if (SolarIntensity.get()>335)
 		{
 			probing=true;
 			StartTime = millis();
