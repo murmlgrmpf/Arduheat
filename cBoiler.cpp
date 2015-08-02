@@ -7,14 +7,14 @@ TempReserve1((&MPNumSys[0]),(&MPChanSys[idxTempBoilerReserve1]),(&SysTempOffset[
 TempReserve2((&MPNumSys[0]),(&MPChanSys[idxTempBoilerReserve2]),(&SysTempOffset[idxTempBoilerReserve2])),
 TempHead((&MPNumSys[0]),&MPChanSys[idxTempBoilerHead],(&SysTempOffset[idxTempBoilerHead])),
 TempTop((&MPNumSys[0]),&MPChanSys[idxTempBoilerTop],(&SysTempOffset[idxTempBoilerTop])),
-Pump(PinPumpBoiler,1.05, 0.0, 10.5, REVERSE) //1.05, 0.0, 10.5
+Pump(PinPumpBoiler,1.05, 8.0, 12.0, REVERSE)
 {
 	Rooms = Rooms_;
 	WarmWater = WarmWater_;
 	// Set to non heating period
 	Rooms->lastHeating = millis()-HeatingPeriodHorizon;
 	// Set minimal Pump Power to 10%
-	Pump.SetOutputLimits(0.1, 1);
+	Pump.SetOutputLimits(0.02, 1);
 	Pump.SetSampleTime(500);
 }
 

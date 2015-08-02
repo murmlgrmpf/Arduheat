@@ -12,8 +12,8 @@
 #include <ArduinoJson.h>
 
 // Charge Margins Warmwater and Heating
-#define WMargin  8.0
-#define HMargin   3.0
+#define WMargin  13.0  // 6
+#define HMargin   4.0
 
 #define HeatingPeriodHorizon  1000*60*60*36
 
@@ -26,7 +26,7 @@ class cBoiler
 	/// SpTemp is the minimum temperature that is needed to charge the boiler.
 	double SpTemp(void)
 	{
-		double SpTempCharge = TempReserve2.get()+HMargin+1;
+		double SpTempCharge = TempReserve1.get()+HMargin;
 		
 		if (bneedChargeHeating)
 			SpTempCharge = Rooms->getSpHeating() + HMargin;
@@ -41,7 +41,7 @@ class cBoiler
 		// Hysteresis by top and head temperature sensors.
 		// If top falls below setpoint: charge. If head gets above setpoint: dont charge.
 		if (WarmWater->SpTemp+HMargin > TempTop.get())  bneedChargeWarmWater = true;
-		if (WarmWater->SpTemp+HMargin+1 < TempHead.get()) bneedChargeWarmWater = false;
+		if (WarmWater->SpTemp+HMargin < TempHead.get()) bneedChargeWarmWater = false;
 		
 		return bneedChargeWarmWater;
 	}
