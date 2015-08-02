@@ -10,8 +10,8 @@
 
 #include <avr/pgmspace.h>
 
-#define TempRoomLow 10
-#define TempRoomHigh 30
+#define TempRoomLow 10.0
+#define TempRoomHigh 30.0
 #define RoomMargin 0.3
 
 enum RoomTypes {Living, Sleeping, Hallway, Bath, Side, nRoomTypes};
