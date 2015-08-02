@@ -17,8 +17,8 @@ plt.close('all')
 plotrooms = 0
 ##############Select File################
 
-Logfile = "Logs/15050300.CSV"
-#Logfile = "RoomsOffsetCalibration.CSV"
+Logfile = "Logs/15080100.CSV"
+#Logfile = "Logs/15042300.CSV"
 
 readdata = csv.reader(open(Logfile))
 
@@ -108,10 +108,11 @@ for column in OverrideOffsets.T:
 plt.figure().suptitle('Warm water')
 ax1 = plt.subplot(2,1,1)
 plotIdax(ax1,'WTi')
-plotIdax(ax1,'WTitoB')
+plotIdax(ax1,'BT1')
 plt.legend(); plt.gca().xaxis.grid(True)
 ax2 = plt.subplot(2,1,2, sharex=ax1)
 plotIdax(ax2,'WP')
+plotIdax(ax2,'Wn')
 #plotIdax(ax2,'WarmWaterNeed')
 
 plt.figure().suptitle('Rooms Pump')
@@ -139,11 +140,12 @@ ax1.plot(time, e, label = 'e Mischer')
 ax1.plot(time,data[:,Header.index(id3)], label = (id3))
 plt.legend(); plt.gca().xaxis.grid(True)
 ax2 = plt.subplot(2,1,2, sharex=ax1)
+#plotIdax(ax2,'BncW')
+#plotIdax(ax2,'BncH')
+#plotIdax(ax2,'BuBurns')
 plotIdax(ax2,'Rn')
-plotIdax(ax2,'BncW')
-plotIdax(ax2,'BncH')
-plotIdax(ax2,'BuBurns')
 plotIdax(ax2,'RTitoR')
+plotIdax(ax2,'RTsHeating')
 plt.legend(); plt.gca().xaxis.grid(True)
 
 plt.figure().suptitle('Boiler Charge Pump')
@@ -151,6 +153,7 @@ ax1 = plt.subplot(2,1,1)
 plotIdax(ax1,'BTsc')
 plotIdax(ax1,'BT0')
 plotIdax(ax1,'BuT')
+plotIdax(ax1,'RTsHeating')
 plt.legend(); plt.gca().xaxis.grid(True)
 ax2 = plt.subplot(2,1,2, sharex=ax1)
 plotIdax(ax2,'BP')
@@ -167,6 +170,8 @@ plotIdax(ax1,'BT1')
 plotIdax(ax1,'BT2')
 plotIdax(ax1,'BT3')
 plotIdax(ax1,'BT4')
+plotIdax(ax1,'BuT')
+plotIdax(ax1,'STtoSys')
 plt.legend(); plt.gca().xaxis.grid(True)
 ax2 = plt.subplot(2,1,2, sharex=ax1)
 plotIdax(ax2,'BP')
@@ -180,10 +185,14 @@ plotIdax(ax1,'STfromCol')
 plotIdax(ax1,'STtoCol')
 plotIdax(ax1,'STfromSys')
 plotIdax(ax1,'STtoSys')
+plotIdax(ax1,'Toutside')
 plt.legend(); plt.gca().xaxis.grid(True)
 ax2 = plt.subplot(2,1,2, sharex=ax1)
 plotIdax(ax2,'SP')
 plotIdax(ax2,'SV')
 plotIdax(ax2,'Ssuht')
 plotIdax(ax2,'Sprobing')
+id1 = 'Sint'
+e = data[:,Header.index(id1)]/1000
+ax2.plot(time, e, label = 'Sint')
 plt.legend(); plt.gca().xaxis.grid(True)
