@@ -187,7 +187,7 @@ int cRooms::setOffsetTime( JsonObject& root )
 
 void cRooms::getOffsetTemp( JsonObject& root )
 {
-	JsonArray&  temps  = root.createNestedArray("RTs");
+	JsonArray&  temps  = root.createNestedArray("RTo");
 	// Iterate over all sets (At home, away)
 	for(int iSet = 0; iSet<nSetTypes; iSet++)
 	{
@@ -206,9 +206,9 @@ void cRooms::getOffsetTemp( JsonObject& root )
 
 int cRooms::setOffsetTemp( JsonObject& root )
 {
-	if(root.containsKey("RTs")) {
-		if(root["RTs"].is<JsonArray&>()){
-			JsonArray& temps = root["RTs"];
+	if(root.containsKey("RTo")) {
+		if(root["RTo"].is<JsonArray&>()){
+			JsonArray& temps = root["RTo"];
 			
 			if (temps.size()==(nSetTypes*nRoomTypes*nDayTypes*nSwitch))
 			{
