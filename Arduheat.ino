@@ -3,46 +3,20 @@
 #include "cHeating.h"
 #include <cPID.h>
 
-
 #include "config.h"
-#include <SdFat.h>
-#include <SdFatUtil.h>
 
 #include <ArduinoJson.h>
 #include <avr/pgmspace.h>
-
-
-#include <SPI.h>
-#include <Ethernet.h>
-#include <WebServer.h>
-
-#include "fileServer.h"
 
 // Speicherbedarf: 
 // 2168 ohne logging und webserver
 // 4352 mit  logging und webserver
 
-/* CHANGE THIS TO YOUR OWN UNIQUE VALUE.  The MAC number should be
- * different from any other devices on your network or you'll have
- * problems receiving packets. */
-static uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-
-
-/* CHANGE THIS TO MATCH YOUR HOST NETWORK.  Most home networks are in
- * the 192.168.0.XXX or 192.168.1.XXX subrange.  Pick an address
- * that's not in use and isn't going to be automatically allocated by
- * DHCP from your router. */
-static uint8_t ip[] = { 192, 168, 123, 250 }; // Home Emmert
-//static uint8_t ip[] = { 192, 168, 179, 250 }; // Home Thomas
-
-
-/* This creates an instance of the webserver.  By specifying a prefix
- * of "", all pages will be at the root of the server. */
-#define PREFIX ""
-WebServer webserver(PREFIX, 80);
-
-// #include <Mailbox.h>
-
+// Logging
+#include <FileIO.h>
+#include <Console.h>
+// Rest Interface
+#include <Bridge.h>
 
 #include "cTrigger.h"
 
@@ -67,17 +41,18 @@ cHeating Heating;
 */
 void  setup()
 {
-	pinMode(53, OUTPUT);                       // set the SS pin as an output (necessary!)
-	digitalWrite(53, HIGH);                    // but turn off the W5100 chip!
-	
-// 	Bridge.begin();
-// 	Mailbox.begin();
+    // Initialize the Bridge, Console and FileSystem
+  Bridge.begin();
+  Console.begin();
+  FileSystem.begin();
+  
+  // Listen for incoming connection only from localhost
+  // (no one from the external network could connect)
+
+  while(!Console);  // wait for Serial port to connect.
+  Console.println("Filesystem datalogger\n");
 	
 	//// RTC test //////////
-	Serial.begin(115200);
-	
-	//PgmPrint("Free RAM: "); // part of sdFatUtil
-	//Serial.println(FreeRam());
 	
 	// RTC
 	Wire.begin();
@@ -90,34 +65,13 @@ void  setup()
 	analogReference(DEFAULT);
 	//analogReference(EXTERNAL);
 	
-	
-	initSD();
-	writeConf(&Heating); // write defaults
+	// Config
+	//writeConf(&Heating); // overwrite defaults
 	readConf( &Heating);
 	writeConf(&Heating); // write defaults
 	
-	startLogging(&Heating);
-	
-	/* initialize the Ethernet adapter */
-	Ethernet.begin(mac, ip);
-	
-	initFileServer();
+ 	startLogging(&Heating);
 
-	/* setup our default command that will be run when the user accesses
-	* the root page on the server */
-	webserver.setDefaultCommand(&helloCmd);
-
-	/* run the same command if you try to load /index.html, a common
-	* default page name */
-	webserver.addCommand("index.html", &helloCmd);
-	
-	webserver.addCommand("rest.html", &restCmd);
-	
-	// Fileserver
-	webserver.setUrlPathCommand(&fsAccessCmd);
-
-	/* start the webserver */
-	webserver.begin();
 }
 
 /**
@@ -129,29 +83,17 @@ void loop()
 	Heating.Control();
 	Heating.WarmWater.Control();
 	
-	
 	if (trigger.get()) {
 		// Generate new logfile every day at midnight
 		if (TimeNow.hour()-rtc.now().hour()==23){
-		  stopLogging();
+                stopLogging();
 		  TimeNow = rtc.now();
 		  startLogging(&Heating);
 		}
 		TimeNow = rtc.now();
 		
-// 		if(fileerror||sderror) {
-// 			initSD();
-// 			startLogging(&Heating);
-// 		}
-		//PgmPrint("Free RAM: "); Serial.println(FreeRam());// part of sdFatUtil
-		if(logging) logWrite(false, &Heating);
+                if(logging) logWrite(false, &Heating);
 	}
 	
-	if (Serial.available()&&(logging)) stopLogging();
-	
-	char buff[64];
-	int len = 64;
-	
-	/* process incoming connections one at a time forever */
-	webserver.processConnection(buff, &len);
+ 	if (Console.available()&&(logging)) stopLogging();
 }
