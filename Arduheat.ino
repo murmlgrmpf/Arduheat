@@ -52,26 +52,21 @@ void  setup()
   while(!Console);  // wait for Serial port to connect.
   Console.println("Filesystem datalogger\n");
 	
-	//// RTC test //////////
-	
 	// RTC
 	Wire.begin();
 	rtc.begin();
 	////////////////////////
 	//// following line sets the RTC to the date & time this sketch was compiled
-	//rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+	rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 	TimeNow = rtc.now();
 	
 	analogReference(DEFAULT);
 	//analogReference(EXTERNAL);
 	
 	// Config
-	//writeConf(&Heating); // overwrite defaults
 	readConf( &Heating);
-	writeConf(&Heating); // write defaults
 	
- 	startLogging(&Heating);
-
+        startLogging(&Heating);
 }
 
 /**
@@ -93,6 +88,7 @@ void loop()
 		TimeNow = rtc.now();
 		
                 if(logging) logWrite(false, &Heating);
+                writeConf(&Heating);
 	}
 	
  	if (Console.available()&&(logging)) stopLogging();
