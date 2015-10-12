@@ -38,11 +38,11 @@ double cRoom::getSpTemp(void)
 	return SpTemp;
 }
 
-const float cRoom::RoomIsOffset[] = {-2.5, -1.47, -1.37, 0.6, -2.0, 1.84, -1.44, -1.65, -0.4, -1.35, -0.6, 0.6, 0.6, -2.2, -1.04, -0.07};
-const float cRoom::RoomSpOffset[] = {0.77, 2.0436198179979925, 1.6490293225480279, 1.4206471183013285, -0.95, 1.0153993933264864, 2.1353791708794319, 2.4985338725986033, -0.43, 2.1375530839231054, 2.2762386248736455, 1.225520728008032, 0.36619817997989657, 1.0406370070778195, 1.5027704752275994, 1.5950556117289487};
+const float cRoom::RoomIsOffset[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+const float cRoom::RoomSpOffset[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 // room valve pinout mapping
-const int cRoom::RoomValvePin[] = {23, 24, 22, 25, 15, 26, 14, 27, 5, 28, 34, 29, 33, 30, 32, 31};
+const int cRoom::RoomValvePin[] = {26, 27, 25, 28, 24, 29, 23, 30, 22, 31, 34, 35, 33, 36, 32, 37};
 
 // Default room types mapping
 const RoomTypes cRoom::DefaultRoomType[] = {Side,Side,Side,Side,Living,Living,Living,Hallway,Hallway,Hallway,Sleeping,Sleeping,Bath,Side,Side,Hallway};
