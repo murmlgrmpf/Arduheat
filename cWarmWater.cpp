@@ -9,8 +9,8 @@ void cWarmWater::Control(void){
 	else
 		Pump.run();
 	
-	if(Trigger.get())
-		setParam();
+// 	if(Trigger.get())
+// 		setParam();
 }
 
 void cWarmWater::setParam()
@@ -22,20 +22,23 @@ void cWarmWater::setParam()
         double MaxPower = min(1.0,max(0.5,1.77-0.014*IsTempBoilerTop.get()));
 	SpTemp = max(45, 0.143*IsTempBoilerTop.get() + 37.1);
 	Pump.SetTunings(P, Pump.GetKi(), D);
-        Pump.SetOutputLimits(0.0, MaxPower);
+        //Pump.SetOutputLimits(0.0, MaxPower);
 }
 
 void cWarmWater::getSP( JsonObject& root )
 {
-	root["WWTs"] = SpTemp;
+	root["WTs"] = SpTemp;
 }
 
 int cWarmWater::setSP( JsonObject& root )
 {
-	if(root.containsKey("WWTs")) {
-		if(root["WWTs"].is<double>()) {
-			SpTemp = root["WWTs"].as<double>();
+	if(root.containsKey("WTs")) {
+		if(root["WTs"].is<double>()) {
+                    double SpTemp_ = root["WTs"].as<double>();
+                    if ((SpTemp_>40)&&(SpTemp_<60)&&(SpTemp_!=SpTemp)) {
+			SpTemp = SpTemp_;
 			return true;
+                    }
 		}
 	}
 	

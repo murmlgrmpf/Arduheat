@@ -156,6 +156,7 @@ void cRooms::getOffsetTime( JsonObject& root )
 
 int cRooms::setOffsetTime( JsonObject& root )
 {
+        int fail=0;
 	if(root.containsKey("Rt")) {
 		if(root["Rt"].is<JsonArray&>()){
 			JsonArray& times = root["Rt"];
@@ -173,16 +174,21 @@ int cRooms::setOffsetTime( JsonObject& root )
 								// Last iteration
 								//int idx = (nSwitch-1)+(nDayTypes-1)*(nSwitch)+(nRoomTypes-1)*(nDayTypes)*(nSwitch)+(nSetTypes-1)*(nRoomTypes)*(nDayTypes)*(nSwitch);
 								int idx = iSwitch+iDayType*(nSwitch)+iRoomType*(nDayTypes)*(nSwitch)+iSet*(nRoomTypes)*(nDayTypes)*(nSwitch);
-								TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time.set(times[idx].as<long>());
+                                                                int times_ = times[idx].as<long>();
+                                                                if((times_>=0)&&(times_<24*60*60)&&(times_!=TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time.totalseconds())){
+                                                                    TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time.set(times_);
+                                                                }
+                                                                else fail=1;
 							}
 						}
 					}
 				}
-				return 1;
 			}
+			else fail=1;
 		}
+		else fail=1;
 	}
-	return 0;
+	return !fail;
 }
 
 void cRooms::getOffsetTemp( JsonObject& root )
@@ -206,6 +212,7 @@ void cRooms::getOffsetTemp( JsonObject& root )
 
 int cRooms::setOffsetTemp( JsonObject& root )
 {
+        int fail=0;
 	if(root.containsKey("RTo")) {
 		if(root["RTo"].is<JsonArray&>()){
 			JsonArray& temps = root["RTo"];
@@ -221,18 +228,22 @@ int cRooms::setOffsetTemp( JsonObject& root )
 							for(int iSwitch = 0; iSwitch<nSwitch; iSwitch++)
 							{
 								// Last iteration
-								//int idx = (nSwitch-1)+(nDayTypes-1)*(nSwitch)+(nRoomTypes-1)*(nDayTypes)*(nSwitch)+(nSetTypes-1)*(nRoomTypes)*(nDayTypes)*(nSwitch);
 								int idx = iSwitch+iDayType*(nSwitch)+iRoomType*(nDayTypes)*(nSwitch)+iSet*(nRoomTypes)*(nDayTypes)*(nSwitch);
-								TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].temp = temps[idx].as<double>();
+                                                                double temp_ =  temps[idx].as<double>();
+                                                                if((temp_>-15.0)&&(temp_<15.0)&&(temp_!=TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].temp)){
+                                                                    TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].temp = temp_;
+                                                                }
+                                                                else fail=1;
 							}
 						}
 					}
 				}
-				return 1;
 			}
+			else fail=1;
 		}
+		else fail=1;
 	}
-	return 0;
+	return !fail;
 }
 
 void cRooms::getRooms( JsonObject& root )
@@ -261,7 +272,13 @@ int cRooms::setRooms( JsonObject& root )
 			JsonArray& RoomsTypes = root["RTypes"];
 			if (RoomsTypes.size()==nRooms) {
 				for (int i = 0; i<nRooms;i++){
-					if ( RoomsTypes[i].is<long>())	Room[i].RoomType = static_cast<RoomTypes>(RoomsTypes[i].as<long>());
+					if ( RoomsTypes[i].is<long>()){
+                                            RoomTypes RoomType_ = static_cast<RoomTypes>(RoomsTypes[i].as<long>());
+                                            if((RoomType_>=0)&&(RoomType_<nRoomTypes)&&(RoomType_!=Room[i].RoomType)){
+                                                Room[i].RoomType = RoomType_;
+                                            }
+                                            else fail=1;
+                                        }
 					else fail=1;
 				}
 			}
@@ -276,7 +293,13 @@ int cRooms::setRooms( JsonObject& root )
 			JsonArray& RoomsTemps = root["RTs"];
 			if (RoomsTemps.size()==nRoomTypes) {
 				for (int i = 0; i<nRoomTypes;i++){
-					if ( RoomsTemps[i].is<double>())	MasterSpTemps[i] = RoomsTemps[i].as<double>();
+					if ( RoomsTemps[i].is<double>()){
+                                            double MasterSpTemps_ = RoomsTemps[i].as<double>();
+                                            if ((MasterSpTemps_>10.0)&&(MasterSpTemps_<25.0)&&(MasterSpTemps_!=MasterSpTemps[i])){
+                                                MasterSpTemps[i] = MasterSpTemps_;
+                                            }
+                                            else fail = 1;
+                                        }
 					else fail=1;
 				}
 			}
@@ -288,12 +311,15 @@ int cRooms::setRooms( JsonObject& root )
 	
 	if(root.containsKey("SetType")) {
 		if(root["SetType"].is<long>()) {
-			SetType =  static_cast<SetTypes>(root["SetType"].as<long>());
-			posReturn++;
+			SetTypes SetType_ =  static_cast<SetTypes>(root["SetType"].as<long>());
+                        if((SetType_>=0)&&(SetType_<nSetTypes)&&(SetType_!=SetType)){
+                            SetType = SetType_;
+                            posReturn++;
+                        }
+                        else fail=1;
 		}
 		else fail=1;
 	}
-	else fail=1;
 	
 	if (fail == 0) { // If all three parameter objects were successfully filled
 		return posReturn;

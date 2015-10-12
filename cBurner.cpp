@@ -8,33 +8,29 @@ void cBurner::getSP( JsonObject& root )
 
 int cBurner::setSP( JsonObject& root )
 {
-	int fail = 0;
 	int posReturn =0;
 	
 	if(root.containsKey("BuTmax")) {
 		if(root["BuTmax"].is<double>()) {
-			MaxTempOperation =  root["BuTmax"].as<double>();
-			posReturn++;
+			double MaxTempOperation_ =  root["BuTmax"].as<double>();
+                        if ((MaxTempOperation_>80.0)&&(MaxTempOperation_<91.0)&&(MaxTempOperation_!=MaxTempOperation)){
+                            MaxTempOperation = MaxTempOperation_;
+                            posReturn++;
+                        }
 		}
-		else fail=1;
 	}
-	else fail=1;
 	
 	if(root.containsKey("ButMin")) {
 		if(root["ButMin"].is<long>()) {
-			MinBurnTime =  static_cast<unsigned long>(root["ButMin"].as<long>());
-			posReturn++;
+			double MinBurnTime_ =  static_cast<unsigned long>(root["ButMin"].as<long>());
+                        if((MinBurnTime_>15*60000)&&(MinBurnTime_<25*60000)&&(MinBurnTime_!=MinBurnTime)) {
+                            MinBurnTime = MinBurnTime_;
+                            posReturn++;
+                        }
 		}
-		else fail=1;
 	}
-	else fail=1;
 	
-	if (fail == 0) { // If all three parameter objects were successfully filled
-		return posReturn;
-	}
-	else {
-		return 0;
-	}
+        return posReturn;
 }
 
 void cBurner::getData( JsonObject& root )
