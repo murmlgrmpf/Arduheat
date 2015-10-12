@@ -17,7 +17,7 @@ plt.close('all')
 plotrooms = 0
 ##############Select File################
 
-Logfile = "Logs/15080100.CSV"
+Logfile = "Logs/15100800.CSV"
 #Logfile = "Logs/15042300.CSV"
 
 readdata = csv.reader(open(Logfile))
