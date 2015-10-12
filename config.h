@@ -6,13 +6,10 @@
 #include <Console.h>
 // Rest Interface
 #include <Bridge.h>
-//#include <YunServer.h>
-#include <YunClient.h>
 
 #include <ArduinoJson.h>
 #include <RTClib.h>
 
-//extern YunServer server;
 extern DateTime TimeNow;
 
 boolean logging = false;
@@ -27,38 +24,82 @@ boolean fileerror =  false;
 #define LogFilePath "/mnt/sda1/arduino/www/data/"
 char LogFileName[13];
 
+template <typename T>
+int syncBridge(T* Obj, void(T::*func)(ArduinoJson::JsonObject&), int(T::*setFunc)(ArduinoJson::JsonObject&)) {
+        StaticJsonBuffer<BufferSize> jsonBuffer;
+	JsonObject& root = jsonBuffer.createObject();
+        StaticJsonBuffer<BufferSize> jsonBufferBridge;
+        int posReturn=0;
+        
+	(Obj->*func)(root);
+        
+        // Synchronize rest api on yun bridge
+        for (JsonObject::iterator it=root.begin(); it!=root.end(); ++it)
+        {
+            // Read
+            int res = 0;
+            char line[LineSize];
+            Bridge.get(it->key,line,LineSize);
+            
+            String json = "{\"";
+            json += String(it->key);
+            json += "\":";
+            json += line;
+            json += "}";
+            
+            JsonObject& rootNew = jsonBufferBridge.parseObject(json);
+            if (rootNew.success()) {
+                res = (Obj->*setFunc)(rootNew);
+            }
+            if (res==0) {
+                // Failed to update -> overwrite Bridge
+                String value;
+                root[it->key].printTo(value);
+                Bridge.put(String(it->key), value);
+            }
+            posReturn += res;
+        }
+        
+        return posReturn;
+}
+
 template <typename S, typename T>
-void writeConfelement(S* ini, T* Obj, void(T::*func)(ArduinoJson::JsonObject&)) {
+void writeConfelement(S* ini, T* Obj, void(T::*func)(ArduinoJson::JsonObject&), int(T::*setFunc)(ArduinoJson::JsonObject&)) {
 	StaticJsonBuffer<BufferSize> jsonBuffer;
 	JsonObject& root = jsonBuffer.createObject();
 	
 	(Obj->*func)(root);
-	
-	root.printTo(*ini); ini->println();
-        // Rest Api
-        for (JsonObject::iterator it=root.begin(); it!=root.end(); ++it)
-        {
-            String value;
-            root[it->key].printTo(value);
-            Bridge.put(String(it->key), value);
-        }
+        
+        // Write to config file on sd
+        root.printTo(*ini); ini->println();
 }
 
 int writeConf( cHeating* Heating) {
-    File ini = FileSystem.open(ConfigFileName, FILE_WRITE);
-		if (ini) {
-			writeConfelement(&ini, &(Heating->Rooms), &cRooms::getOffsetTime);
-			writeConfelement(&ini, &(Heating->Rooms), &cRooms::getOffsetTemp);
-			writeConfelement(&ini, &(Heating->Rooms), &cRooms::getRooms);
-			writeConfelement(&ini, &(Heating->Burner),&cBurner::getSP);
-			writeConfelement(&ini, &(Heating->WarmWater),&cWarmWater::getSP);
-			ini.close();
-			return 1;
-		}
-		else {
-			Console.print("ini.open create failed.");
-			return 0;
-		}
+    // Syncchronize rest api Bridge
+    int posReturn=0;
+    posReturn += syncBridge(&(Heating->Rooms), &cRooms::getOffsetTime, &cRooms::setOffsetTime);
+    posReturn += syncBridge(&(Heating->Rooms), &cRooms::getOffsetTemp, &cRooms::setOffsetTemp);
+    posReturn += syncBridge(&(Heating->Rooms), &cRooms::getRooms, &cRooms::setRooms);
+    posReturn += syncBridge(&(Heating->Burner),&cBurner::getSP, &cBurner::setSP);
+    posReturn += syncBridge(&(Heating->WarmWater),&cWarmWater::getSP, &cWarmWater::setSP);
+    
+    if (posReturn>0){
+        // Update config file
+        File ini = FileSystem.open(ConfigFileName, FILE_WRITE);
+        if (ini) {
+                writeConfelement(&ini, &(Heating->Rooms), &cRooms::getOffsetTime, &cRooms::setOffsetTime);
+                writeConfelement(&ini, &(Heating->Rooms), &cRooms::getOffsetTemp, &cRooms::setOffsetTemp);
+                writeConfelement(&ini, &(Heating->Rooms), &cRooms::getRooms, &cRooms::setRooms);
+                writeConfelement(&ini, &(Heating->Burner),&cBurner::getSP, &cBurner::setSP);
+                writeConfelement(&ini, &(Heating->WarmWater),&cWarmWater::getSP, &cWarmWater::setSP);
+                ini.close();
+                return 1;
+        }
+        else {
+                Console.print("ini.open create failed.");
+                return 0;
+        }
+    }
 }
 
 int readConfigLine(char* line, cHeating* Heating) {
@@ -78,6 +119,16 @@ int readConfigLine(char* line, cHeating* Heating) {
 	posReturn += Heating->Rooms.setRooms(root);
 	posReturn += Heating->Burner.setSP(root);
 	posReturn += Heating->WarmWater.setSP(root);
+        
+        // Write Config to rest api
+        if (posReturn>0){
+            for (JsonObject::iterator it=root.begin(); it!=root.end(); ++it) {
+                // Update rest api
+                String value;
+                root[it->key].printTo(value);
+                Bridge.put(String(it->key), value);
+            }
+        }
 	
         return posReturn;
 }
