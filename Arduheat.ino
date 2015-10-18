@@ -49,8 +49,8 @@ void  setup()
   // Listen for incoming connection only from localhost
   // (no one from the external network could connect)
 
-  while(!Console);  // wait for Serial port to connect.
-  Console.println("Filesystem datalogger\n");
+  //while(!Console);  // wait for Serial port to connect.
+  //Console.println("Filesystem datalogger\n");
 	
 	// RTC
 	Wire.begin();
@@ -64,7 +64,7 @@ void  setup()
 	//analogReference(EXTERNAL);
 	
 	// Config
-	readConf( &Heating);
+	readConf(&Heating);
 	
         startLogging(&Heating);
 }
