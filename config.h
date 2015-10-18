@@ -291,7 +291,7 @@ char* genFile(char* fileName) {
 			} else {
 			Console.print("Can't create file name.");
 		}
-		path[15] = '\0';
+		path[27] = '\0';
 		strcat(path, fileName);
 	}
 	return fileName;
