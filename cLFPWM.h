@@ -26,14 +26,14 @@ class cLFPWM
 		unsigned long activeTime = round(Power*SampleTime);
 		
 		// active if elapsedTime is less than activeTime, false if it is more
-		boolean active = (elapsedTime <= activeTime);
+		boolean active = (elapsedTime < activeTime);
 		
 		// SampleTime is over and new period starts
 		if(elapsedTime >= SampleTime) {
 			//Set the next Last Period Time
 			LastTime = millis();
 			// Set active if switch time for next period is not exceeded
-			active = (elapsedTime <= (activeTime+SampleTime));
+			active = (elapsedTime < (activeTime+SampleTime));
 		}
 		
 		return active;
