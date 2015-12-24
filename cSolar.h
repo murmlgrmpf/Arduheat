@@ -67,7 +67,7 @@ class cSolar
 		boolean probing = false;
 		StartTime = millis();
 		
-		Pump.SetOutputLimits(0.2, 1.0);
+		Pump.SetOutputLimits(0.1, 1.0);
         }
 	
 	boolean harvest(double SpTempSource, boolean enable = true)
@@ -84,7 +84,7 @@ class cSolar
 		if (TempFromCollector.get() < SpTempSource-2) // Exploit ChargeMargin of Boiler = 4
 		sufficientHeat = false;
 		//if (TempFromCollector.get() > SpTempSource+4)
-		if (TempFromCollector.get() > SpTempSource)
+		if (TempFromCollector.get() > SpTempSource+2)
 		sufficientHeat = true;
 		
 		if (sufficientHeat)// Run pump such that temperature difference between Return and Lead is equal to 10 degree.
@@ -95,7 +95,6 @@ class cSolar
 		else if (probing)
 		{
 			Pump.run(0.1);
-			;
 			// Check if probing interval is over
 			if (millis()-StartTime>ProbeInterval) {
 				probing = false;
