@@ -18,7 +18,7 @@
 #define Beta 0.00001937 //! Factors for Temperature Sensors
 #define R25 2000.0 
 //! Smoothing filter coefficient
-#define AlphaT 10 //! Filter sampling interval
+#define AlphaT 15 //Was 10 - ! Filter sampling interval
 #define TimePeriod 100
 
 typedef struct{
@@ -74,7 +74,7 @@ class cTempSensor
 			
 			// Apply filtering: exponential filtering coefficient [1/#Measurements]
 			float alphaFilt = AlphaT*TimePeriod/1000;
-			TempFilt = (alphaFilt/(alphaFilt+1))*Temp  + 1/(alphaFilt+1)*TempFilt;
+			TempFilt = (1/(alphaFilt+1))*Temp  + (alphaFilt/(alphaFilt+1))*TempFilt;
 		}
 		// Return filtered temperature plus offset
 		return(TempFilt+pgm_read_float(Offset));
