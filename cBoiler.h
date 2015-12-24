@@ -12,8 +12,8 @@
 #include <ArduinoJson.h>
 
 // Charge Margins Warmwater and Heating
-#define WMargin  13.0  // 6
-#define HMargin   4.0
+#define WMargin  10.0  // 13
+#define HMargin  4.0
 
 #define HeatingPeriodHorizon  1000*60*60*36
 
