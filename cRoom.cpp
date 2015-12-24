@@ -39,7 +39,7 @@ double cRoom::getSpTemp(void)
 }
 
 const float cRoom::RoomIsOffset[] = {-1.1, -1.6, -1.2, 0.6, -1.5, 0.6, -2.2, -1.4, -0.5, -0.5, -0.1, 0.2, 0.7, -1.6, -1, 0.2};
-const float cRoom::RoomSpOffset[] = {1.82, 0.53, 1.42, 0.8, -0.5, 0.71, 2.44, 0.79, 0.11, 0.62, 1.24, 1.69, 1.23, 0.34, 1.64, 0.98};
+const float cRoom::RoomSpOffset[] = {1, -0.17, 0.62, 0.2, -0.2, 0.01, 2.64, 0.39, -0.19, 0.12, 0.94, 1.19, 0.83, 0.44, 1.24, 0.88};
 
 // room valve pinout mapping
 const int cRoom::RoomValvePin[] = {26, 27, 25, 28, 24, 29, 23, 30, 22, 31, 34, 35, 33, 36, 32, 37};
