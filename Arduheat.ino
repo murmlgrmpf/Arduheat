@@ -8,10 +8,6 @@
 #include <ArduinoJson.h>
 #include <avr/pgmspace.h>
 
-// Speicherbedarf: 
-// 2168 ohne logging und webserver
-// 4352 mit  logging und webserver
-
 // Logging
 #include <FileIO.h>
 #include <Console.h>
@@ -45,12 +41,6 @@ void  setup()
   Bridge.begin();
   Console.begin();
   FileSystem.begin();
-  
-  // Listen for incoming connection only from localhost
-  // (no one from the external network could connect)
-
-  //while(!Console);  // wait for Serial port to connect.
-  //Console.println("Filesystem datalogger\n");
 	
 	// RTC
 	Wire.begin();
@@ -81,14 +71,14 @@ void loop()
 	if (trigger.get()) {
 		// Generate new logfile every day at midnight
 		if (TimeNow.hour()-rtc.now().hour()==23){
-                stopLogging();
+                  stopLogging();
 		  TimeNow = rtc.now();
 		  startLogging(&Heating);
 		}
 		TimeNow = rtc.now();
 		
                 if(logging) logWrite(false, &Heating);
-                writeConf(&Heating);
+                if(logging) writeConf(&Heating);
 	}
 	
  	if (Console.available()&&(logging)) stopLogging();
