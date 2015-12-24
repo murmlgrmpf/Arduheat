@@ -18,11 +18,11 @@ void cWarmWater::setParam()
 	double P = min(0.5,max(0.1, 1.127-0.011*IsTempBoilerTop.get()));
 	double D = min(7.0,max(2.6,17.9-0.19*IsTempBoilerTop.get()));
         // ax+b; 90 == 0.5;  55==1.0;
-        // a = (0.5-1.0)/(90-55) = -0.014; b = 1+0.014*55 = 1.77
-        double MaxPower = min(1.0,max(0.5,1.77-0.014*IsTempBoilerTop.get()));
-	SpTemp = max(45, 0.143*IsTempBoilerTop.get() + 37.1);
+        // a = (0.5-1.0)/(90-60) = -0.0166; b = 1+0.0166*60 = 2
+        double MaxPower = min(1.0,max(0.5,2-0.0166*IsTempBoilerTop.get()));
+	SpTemp = max(47, 0.143*IsTempBoilerTop.get() + 37.1);
 	Pump.SetTunings(P, Pump.GetKi(), D);
-  Pump.SetOutputLimits(0.0, MaxPower);
+        Pump.SetOutputLimits(0.0, MaxPower);
 }
 
 void cWarmWater::getSP( JsonObject& root )
