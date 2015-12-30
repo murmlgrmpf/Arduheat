@@ -57,7 +57,7 @@ class cSolar
 	
 	cSolar()
 	:Valve(PinValveSolarOpen,PinValveSolarClose),
-	Pump(PinPumpSolar,0.1, 0,05, 19.5, DIRECT),
+	Pump(PinPumpSolar,0.01, 0.0002, 0.0, DIRECT),
 	TempToCollector(&MPNumSys[0], &MPChanSys[idxTempSolarToCollector], &SysTempOffset[idxTempSolarToCollector]),
 	TempFromCollector(&MPNumSys[0], &MPChanSys[idxTempSolarFromCollector], &SysTempOffset[idxTempSolarFromCollector]),
 	TempToSystem(&MPNumSys[0], &MPChanSys[idxTempSolarToSystem], &SysTempOffset[idxTempSolarToSystem]),
