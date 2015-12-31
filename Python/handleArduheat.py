@@ -32,7 +32,6 @@ from bridgeSerial import bridgeSerial
 class handleArduheat():
     ext = '.CSV'
     count = 0
-    LogFile = str()
     printHeader = True
     logging = False
     date = str()
@@ -41,7 +40,6 @@ class handleArduheat():
     def __init__(self, SerialName, Folder):
         self.folder = Folder
         self.ConfFile = self.folder+"SYSTEM.CFG"
-        self.LogFile = self.getLogName()
         self.printHeader = True
         self.logging = False
         self.date = str()
@@ -58,17 +56,21 @@ class handleArduheat():
     def getLogName(self):
         return (self.folder+ time.strftime("%Y%m%d")[2:] + str(self.count).zfill(2) + self.ext)
         
-    def getConf(self,objarray):
+    def readConf(self,objarray):
         with open(self.ConfFile+'_','r') as cfgFile:
             lines = cfgFile.readlines()
             for line in lines:
-                cfg = json.loads(line)
-                for obj in objarray:
-                    if cfg.keys()==obj.keys():
-                        print("Success!\n")
-                        self.arduino.write(json.dumps(cfg,separators=(',', ':'))+ '\n')
+                try:
+                    cfg = json.loads(line)
+                    for obj in objarray:
+                        if cfg.keys()==obj.keys():
+                            print("Success!\n")
+                            self.arduino.write(json.dumps(cfg,separators=(',', ':'))+ '\n')
+                except:
+                    print("Fail read from file!\n")
+                    print(line+ '\n')
     
-    def setConf(self,objarray):
+    def writeConf(self,objarray):
         #Clear and write new config file
         if os.path.isfile(self.ConfFile):
             os.remove(self.ConfFile)
@@ -81,12 +83,9 @@ class handleArduheat():
         #Create new logfile, if new day or if not logging
         if not (self.date == time.strftime("%d")):
             self.date = time.strftime("%d")
-            self.logging = False
-        if not self.logging:
             self.count = 0
             while os.path.isfile(self.getLogName()):
                 self.count += 1
-            self.logging = True
             self.printHeader = True
         with open(self.getLogName(),'a') as csvFile:
             writedata = csv.writer(csvFile)
@@ -110,13 +109,18 @@ class handleArduheat():
     
     def processJsonString(self,jstr):
         print(jstr)
-        var = json.loads(jstr)
-        if 'log' in var:
-            self.writeLog(var['log'])
-        if 'setConf' in var:
-            self.setConf(var['setConf'])
-        if 'getConf' in var:
-            self.getConf(var['getConf'])
+        try:
+            var = json.loads(jstr)
+            if 'writeLog' in var:
+                self.writeLog(var['writeLog'])
+            if 'writeConf' in var:
+                self.writeConf(var['writeConf'])
+            if 'readConf' in var:
+                self.readConf(var['readConf'])
+        except:
+            print("Fail read from Arduino!")
+            print(jstr+'\n')
+                
 
 
 def signal_handler(sig, frame):
@@ -130,7 +134,7 @@ json_string = '{"getConf": [{"RTypes": [4, 4, 4, 4, 0, 0, 0, 2, 2, 2, 1, 1, 3, 4
 #json_string = '{"getConf":[{"Bcm":5.00}]}'
 json_string += '\n'
 
-arduHeat = handleArduheat('/dev/ttyATH0','/mnt/sda1/')
+arduHeat = handleArduheat('/dev/ttyATH0','/mnt/sda1/arduino/www/data/')
 arduHeat.arduino.write(json_string)
 #arduHeat.arduino.write(json_string)
 
