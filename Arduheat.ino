@@ -22,7 +22,7 @@ DateTime TimeNow;
 
 cTrigger trigger(10000);
 cHeating Heating;
-cConfig Config(&Serial1,&Heating);
+cConfig Config(&Serial,&Heating);
 
 
 /**
@@ -32,23 +32,21 @@ cConfig Config(&Serial1,&Heating);
 void  setup()
 {
     // Initialize the Bridge, Console and FileSystem
-    Serial1.begin(57600); // Set the baud.
-    while (!Serial1) {} // Wait until Serial1 is ready
+    Serial.begin(57600); // Set the baud.
+    while (!Serial) {} // Wait until Serial1 is ready
     
     // RTC
     Wire.begin();
     rtc.begin();
     ////////////////////////
     //// following line sets the RTC to the date & time this sketch was compiled
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    //rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     TimeNow = rtc.now();
 
     analogReference(DEFAULT);
     //analogReference(EXTERNAL);
-
-    // Synchronize Config
-    Config.readConf();
-    Config.writeConf();
+    
+    Config.resetConf();
 }
 
 /**
@@ -59,10 +57,10 @@ void loop()
 {
 	Heating.Control();
 	Heating.WarmWater.Control();
+        Config.updateConf();
         
 	if (trigger.get()) {
-                Config.writeLog();
-                Config.updateConf();
+                Config.sendLog();
                 TimeNow = rtc.now();
 	}
 }

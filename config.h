@@ -16,49 +16,44 @@ public:
         Heating = Heating_;
     }
     
-    void readConf() {
-        readConfElement(&(Heating->Rooms), &cRooms::getOffsetTime, &cRooms::setOffsetTime);
-        readConfElement(&(Heating->Rooms), &cRooms::getOffsetTemp, &cRooms::setOffsetTemp);
-        readConfElement(&(Heating->Rooms), &cRooms::getRooms, &cRooms::setRooms);
-        readConfElement(&(Heating->Burner), &cBurner::getSP, &cBurner::setSP);
-        readConfElement(&(Heating->WarmWater), &cWarmWater::getSP, &cWarmWater::setSP);
+    void resetConf() {
+        // Delete config on yun to trigger resynchronization with config file
+        serial->println("{\"Reset\":[]}");
     }
     
-    int writeConf() {
+    int sendConf() {
         // Write config to sd card via linux
-        serial->print("{\"writeConf\":[");
-        printElement(&(Heating->Rooms), &cRooms::getOffsetTime);
-        printElement(&(Heating->Rooms), &cRooms::getOffsetTemp);
-        printElement(&(Heating->Rooms), &cRooms::getRooms);
-        printElement(&(Heating->Burner),&cBurner::getSP);
+        serial->print("{\"Conf\":[");
+        printElement(&(Heating->Rooms), &cRooms::getOffsetTime); serial->print(",");
+        printElement(&(Heating->Rooms), &cRooms::getOffsetTemp); serial->print(",");
+        printElement(&(Heating->Rooms), &cRooms::getRooms); serial->print(",");
+        printElement(&(Heating->Burner),&cBurner::getSP); serial->print(",");
         printElement(&(Heating->WarmWater),&cWarmWater::getSP);
         serial->println("]}");
     }
 
     void updateConf() {
         readSerial();
-        int posReturn = 0;
         if (newData) {
+            int posReturn = 0;
             posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setOffsetTime);
             posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setOffsetTemp);
             posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setRooms);
             posReturn += readConfigLine(&(Heating->Burner), &cBurner::setSP);
             posReturn += readConfigLine(&(Heating->WarmWater), &cWarmWater::setSP);
-        }
-        if (posReturn>0) {
-            // Todo: send signal to linux
+            sendConf();
         }
     }
 
     //////////////Logfile//////////////////
-    void writeLog() {
+    void sendLog() {
         // Write data to file.  Start with log time in micros.
-        serial->print("{\"writeLog\":[");
-        printElement(&(Heating->Rooms), &cRooms::getData);
-        printElement(Heating, &cHeating::getData);
-        printElement(&(Heating->Burner), &cBurner::getData);
-        printElement(&(Heating->Boiler), &cBoiler::getData);
-        printElement(&(Heating->WarmWater), &cWarmWater::getData);
+        serial->print("{\"Log\":[");
+        printElement(&(Heating->Rooms), &cRooms::getData); serial->print(",");
+        printElement(Heating, &cHeating::getData); serial->print(",");
+        printElement(&(Heating->Burner), &cBurner::getData); serial->print(",");
+        printElement(&(Heating->Boiler), &cBoiler::getData); serial->print(",");
+        printElement(&(Heating->WarmWater), &cWarmWater::getData); serial->print(",");
         printElement(&(Heating->Solar), &cSolar::getData);
         serial->println("]}");
     }
@@ -78,35 +73,21 @@ private:
         char endMarker = '\n';
         char rc;
         while (serial->available() > 0 && newData == false) {
-        rc = serial->read();
+            rc = serial->read();
 
-        if (rc != endMarker) {
-        receivedChars[ndx] = rc;
-        ndx++;
-        if (ndx >= numChars) {
-            ndx = numChars - 1;
+            if (rc != endMarker) {
+                receivedChars[ndx] = rc;
+                ndx++;
+                if (ndx >= numChars) {
+                        ndx = numChars - 1;
+                }
+            }
+            else {
+                receivedChars[ndx] = '\0'; // terminate the string
+                ndx = 0;
+                newData = true;
+            }
         }
-        }
-        else {
-        receivedChars[ndx] = '\0'; // terminate the string
-        ndx = 0;
-        newData = true;
-        }
-        }
-    }
-
-    template <typename T>
-    void readConfElement(T* Obj, void(T::*getF)(ArduinoJson::JsonObject&), int(T::*setF)(ArduinoJson::JsonObject&)) {
-        // Sending the getConf triggers the linux side to send the object
-        serial->print("{\"readConf\":[");
-        printElement(Obj,getF);
-        serial->println("]}");
-        // Wait for the object to arrive from linux
-        unsigned long LastTime = millis();
-        while(!newData&&(millis()-LastTime<TimeOut))
-            readSerial();
-        // Read in config
-        readConfigLine(Obj, setF);
     }
 
     template <typename T>

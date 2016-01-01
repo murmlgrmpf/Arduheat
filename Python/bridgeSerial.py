@@ -50,8 +50,7 @@ class bridgeSerial(threading.Thread):
 
         threading.Thread.__init__(self)
         self.daemon = True
-        self.arduino = serial.Serial(self.port_id, self.baud_rate,
-                                     timeout=int(self.timeout), writeTimeout=0)
+        self.arduino = serial.Serial(self.port_id, self.baud_rate, timeout=int(self.timeout), write_timeout=11)
 
         self.stop_event = threading.Event()
 
@@ -126,7 +125,7 @@ class bridgeSerial(threading.Thread):
                     if c=='\n':
                         self.callback(self.command)
                         self.command = str()
-                    if len(self.command)>200:
+                    if len(self.command)>1000:
                         self.command = str()
                 else:
                     time.sleep(.1)
