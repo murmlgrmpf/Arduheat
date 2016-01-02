@@ -150,6 +150,7 @@ class handleArduheat(threading.Thread):
         if not (self.date == time.strftime("%d")):
             self.date = time.strftime("%d")
             printHeader = True
+            self.count = 0
             while os.path.isfile(self.getLogName()):
                 self.count += 1
         #Write into logfile
