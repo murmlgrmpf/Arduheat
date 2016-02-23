@@ -11,10 +11,8 @@ Pump(PinPumpBoiler, 0.011, 0.0002, 0.0, REVERSE)
 {
 	Rooms = Rooms_;
 	WarmWater = WarmWater_;
-	// Set to non heating period
-	Rooms->lastHeating = millis()-HeatingPeriodHorizon;
 	// Set minimal Pump Power to 2%
-	Pump.SetOutputLimits(0.04, 1);
+	Pump.SetOutputLimits(0.0, 1.0);
 	Pump.SetSampleTime(500);
 }
 

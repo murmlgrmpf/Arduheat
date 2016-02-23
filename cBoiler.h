@@ -12,10 +12,8 @@
 #include <ArduinoJson.h>
 
 // Charge Margins Warmwater and Heating
-#define WMargin  10.0  // 13
+#define WMargin  12.0  // 13
 #define HMargin  4.0
-
-#define HeatingPeriodHorizon  1000*60*60*36
 
 class cBoiler
 {
@@ -26,22 +24,34 @@ class cBoiler
 	/// SpTemp is the minimum temperature that is needed to charge the boiler.
 	double SpTemp(void)
 	{
-		double SpTempCharge = TempReserve1.get()+HMargin;
-		
-		if (bneedChargeHeating)
-			SpTempCharge = Rooms->getSpHeating() + HMargin;
-		if (needChargeWarmWater())
-			SpTempCharge = WarmWater->SpTemp + WMargin;
-		
+		double SpTempCharge = 0.0;
+
+    if (needChargeWarmWater())
+      SpTempCharge = WarmWater->SpTemp + WMargin;
+    else if (bneedChargeHeating)
+      SpTempCharge = Rooms->getSpHeating() + HMargin;
+    else {
+      if (Rooms->HeatingPeriod.get())
+        // If heating period: Charge floating for room heating
+        SpTempCharge = TempReserve1.get()+HMargin;
+      else
+        // If not heating period: charge only (floating) for warm water
+        SpTempCharge = max(WarmWater->SpTemp, TempReserve2.get()) + WMargin;
+    }
+    
 		return (SpTempCharge);
 	}
 	
 	boolean needChargeWarmWater(void)
 	{
-		// Hysteresis by top and head temperature sensors.
-		// If top falls below setpoint: charge. If head gets above setpoint: dont charge.
-		if (WarmWater->SpTemp+HMargin > TempTop.get())  bneedChargeWarmWater = true;
-		if (WarmWater->SpTemp+HMargin < TempHead.get()) bneedChargeWarmWater = false;
+    if (WarmWater->Period.get()) {
+  		// Hysteresis by top and head temperature sensors.
+  		// If top falls below setpoint: charge. If head gets above setpoint: dont charge.
+  		if (WarmWater->SpTemp+HMargin > TempTop.get())  bneedChargeWarmWater = true;
+  		if (WarmWater->SpTemp+HMargin+4 < TempHead.get()) bneedChargeWarmWater = false;
+      }
+    else
+      bneedChargeWarmWater = false;
 		
 		return bneedChargeWarmWater;
 	}
@@ -53,50 +63,46 @@ class cBoiler
 		// If TempReserve2 comes above setpoint or heating of the rooms not needed: dont charge.
 		if ((Rooms->getSpHeating() > TempReserve1.get()) && needHeating)  bneedChargeHeating = true;
 		if ((Rooms->getSpHeating() < TempReserve2.get()) || !needHeating) bneedChargeHeating = false;
-		
+    
+    // Trigger charge warm water
+    // if (bneedChargeHeating)
+    //     bneedChargeWarmWater = true;
+    
 		return bneedChargeHeating;
 	}
 	
 	void charge(float TempHeatSource, boolean bneedSink = false)
 	{
-		boolean need = (bneedChargeWarmWater || bneedChargeHeating || bneedSink);
+    double SpTempCharge = SpTemp();
+    
+		boolean need = (needChargeWarmWater() || bneedChargeHeating || bneedSink);
 		
 		if (need) // if charging is needed, charging is fixed to true
 			bCharging = true;
-		else // Hysteresis
+		else // Hysteresis for Simultaneous charging of boiler
 		{
-			if (SpTemp() < TempHeatSource)
+			if (SpTempCharge+2 < TempHeatSource)
 				bCharging = true;
-			if (SpTemp()-2 > TempHeatSource)
+			if (SpTempCharge-2 > TempHeatSource)
 				bCharging = false;
-		}
-		
-		Valve.set((bDischarging || bCharging)); // Open Valve if charging or discharging
-		
-		double SpTempCharge = 0.0;
-		boolean HeatingPeriod = (millis()- Rooms->lastHeating < HeatingPeriodHorizon);
-		
-		if (HeatingPeriod)
-			SpTempCharge = max(SpTemp(), Rooms->getSpHeating()+1.5*HMargin);
-		else
-		{
-			SpTempCharge = max(SpTemp(), WarmWater->SpTemp + WMargin);
-			Rooms->lastHeating = millis()-HeatingPeriodHorizon; // Rolling horizon for overflow of millis
 		}
 		
 		if (bCharging) // Run Pump
 			Pump.run(SpTempCharge, TempHeatSource);
 		else // Stop Charging: Stop PID and Pump
 			Pump.run();
+                
+    // Open Valve if charge pump running (charging) or discharging
+    setValve();
 	}
 	
 	void discharge( boolean bNeedSourceBoiler )
 	{
 		bDischarging = bNeedSourceBoiler;
-		Valve.set((bDischarging || bCharging)); // Open Valve if charging or discharging
+		setValve(); // Open Valve if charging or discharging
 	}
 	
-	void triggerChargeWarmWater() {bneedChargeWarmWater = true;};
+	void setValve() {Valve.set(bDischarging || (Pump.get()>0.0));};
 	
 	void getData(JsonObject& root);
 	
