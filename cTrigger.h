@@ -20,14 +20,41 @@ class cTrigger
 		boolean active = (millis()-StartTime > TimePeriod);
 		
 		// When trigger is hit: restart timer
-		if(active) StartTime = millis();
+		if(active) restart();
 		
 		return active;
 	}
 	
+	void restart(void) {StartTime = millis();}
+	
 	private:
 	unsigned long TimePeriod;
 	unsigned long StartTime;
+};
+
+class cTimer: public cTrigger
+{
+public:
+    cTimer(unsigned long TimePeriod_):
+    cTrigger(TimePeriod_)
+    {
+        active=true;
+    }
+    
+    boolean get(void) {
+        if (active && cTrigger::get())
+            active = false;
+        
+        return active;
+    }
+    
+    void restart(void) {
+        cTrigger::restart();
+        active = true;
+    }
+    
+private:
+    boolean active;
 };
 
 
