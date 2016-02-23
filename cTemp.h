@@ -18,7 +18,7 @@
 #define Beta 0.00001937 //! Factors for Temperature Sensors
 #define R25 2000.0 
 //! Smoothing filter coefficient
-#define AlphaT 10.0 //Was 10 - ! Error decay rate
+#define AlphaT 8.0 //Was 10 - ! Error decay rate
 #define TimePeriod 100
 #define nMultiSample 3
 
@@ -40,53 +40,50 @@ class cTempSensor
 	* \param dOffset
 	*
 	*/
-	cTempSensor(const int * MultiplexNumber_ , const int* MultiplexChannel_, const float* Offset_)//:
+	cTempSensor(const int * MultiplexNumber_ , const int* MultiplexChannel_, const float* Offset_, float TempFilt_=60.0, float AlphaT_=AlphaT, unsigned long TimePeriod_ =TimePeriod):
+        Trigger(TimePeriod_)
 	{
-		StartTime = millis();
-		
 		pinMultiplexInput = &MPInput[pgm_read_word(MultiplexNumber_)];
 		MultiplexChannel = MultiplexChannel_;
 		//Offset = Offset_;
 		Offset = Offset_;
 		// Initialize temperature using high value to avoid switching on the burner
 		// during initialization
-		TempFilt = 60;
-		
+		TempFilt = TempFilt_;
+		alphaFilt = AlphaT_*TimePeriod/1000;
 		initMultiplexer();
 	}
 	
 	
 	float get( void )
 	{
-		if (millis()-StartTime > TimePeriod) {
-			StartTime = millis();
-			
+		if (Trigger.get()) {
 			// Set the right multiplexer channel
 			digitalWrite(pgm_read_word(&MPControl[0]),HIGH && (pgm_read_word(MultiplexChannel) & B00000001));
 			digitalWrite(pgm_read_word(&MPControl[1]),HIGH && (pgm_read_word(MultiplexChannel) & B00000010));
 			digitalWrite(pgm_read_word(&MPControl[2]),HIGH && (pgm_read_word(MultiplexChannel) & B00000100));
 			digitalWrite(pgm_read_word(&MPControl[3]),HIGH && (pgm_read_word(MultiplexChannel) & B00001000));
 
-      // Multisampling
-      float TempMult = 0.0;
-      for (int i = 1;i<=nMultiSample;i++)
-      {
-  			// Determine raw temperature reading
-  			float Ua = analogRead(pgm_read_word(pinMultiplexInput))/1023.0*Vcc;
-  			float Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
-  			float Kt = R*Ue/(Vcc-Ue) /R25;
-  			float Temp = 25+(sqrt(pow(Alpha, 2)-4*Beta+4*Beta*Kt)-Alpha)/(2*Beta);
-        TempMult = TempMult+Temp/nMultiSample;
-      }
-			// Apply filtering: exponential filtering coefficient [1/#Measurements]
-			float alphaFilt = AlphaT*TimePeriod/1000;
-			TempFilt = (alphaFilt/(alphaFilt+1))*TempMult  + (1/(alphaFilt+1))*TempFilt;
+                        // Multisampling
+                        float TempMult = 0.0;
+                        for (int i = 1;i<=nMultiSample;i++)
+                        {
+                            // Determine raw temperature reading
+                            float Ua = analogRead(pgm_read_word(pinMultiplexInput))/1023.0*Vcc;
+                            float Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
+                            float Kt = R*Ue/(Vcc-Ue) /R25;
+                            float Temp = 25+(sqrt(pow(Alpha, 2)-4*Beta+4*Beta*Kt)-Alpha)/(2*Beta);
+                            TempMult = TempMult+Temp/nMultiSample;
+                        }
+                        // Apply filtering: exponential filtering coefficient [1/#Measurements]
+                        
+                        TempFilt = (alphaFilt/(alphaFilt+1))*TempMult  + (1/(alphaFilt+1))*TempFilt;
 		}
+		
 		// Return filtered temperature plus offset
 		return(TempFilt+pgm_read_float(Offset));
 	}
 	
-
 	
 	private:
 	static void initMultiplexer(void)
@@ -100,16 +97,16 @@ class cTempSensor
 		pinMode(pgm_read_word(&MPControl[1]), OUTPUT);
 		pinMode(pgm_read_word(&MPControl[2]), OUTPUT);
 		pinMode(pgm_read_word(&MPControl[3]), OUTPUT);
-	}  
-	
-	unsigned long StartTime;
-	  
-	double TempFilt;
+	}
+        
+        cTrigger Trigger;
+        
+        float alphaFilt;
+	float TempFilt;
 	const float* Offset;
 	
 	const int* pinMultiplexInput;
 	const int* MultiplexChannel;
-	
 };
 
 #endif
