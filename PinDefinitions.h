@@ -2,7 +2,7 @@
 #define PinDefinitions_h
 
 // Pin mapping Arduino
-#define PinPumpCirculation        6 // 9
+#define PinPumpCirculation       6 // 9
 #define PinValveBoilerOpen       41
 #define PinValveSolarClose       42
 #define PinValveSolarOpen        43
@@ -18,7 +18,7 @@
 #define PinMixerClose            16 // 7
 #define PinWarmWaterSwitch       19
 #define PinHeatControl           12 // 3
-#define PinSolarIntensity	      A3
+#define PinSolarIntensity	       A3
 
 // System Temperatures
 #define idxTempHeatingReturn        0
@@ -41,7 +41,7 @@
 #define P(str) (strcpy_P(p_buffer, PSTR(str)), p_buffer)
 
 const PROGMEM int MPChanSys[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-const PROGMEM float SysTempOffset[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+const PROGMEM float SysTempOffset[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1.66};
 
 // On system Multiplexer 2
 const PROGMEM int MPNumSys[] = {2};
