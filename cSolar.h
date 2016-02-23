@@ -6,10 +6,10 @@
 #include "cTemp.h"
 #include "cValve.h"
 #include "cPump.h"
+#include "cLFPWM.h"
+#include "cTrigger.h"
 #include <cPID.h>
 #include <ArduinoJson.h>
-// 5min*60sec/min*1000ms/s = 300000ms
-#define ProbeInterval 300000
 
 // Intensity smoothing
 #define AlphaT 10 //! Filter sampling interval
@@ -21,11 +21,14 @@
 #define Uf0 1.211
 #define Wmax 1300
 #define Ufmax 2.233
+// Solar Probing period
+#define ProbePeriod 1800000 //30min*60sec/min*1000ms/sec = 2700000ms
 
 class cSolarIntensity
 {
 	public:
-	cSolarIntensity(void)
+	cSolarIntensity(void):
+	Trigger(TimePeriod)
 	{
 		pinMode(PinSolarIntensity, INPUT);
 		float intensity = 0;
@@ -33,8 +36,7 @@ class cSolarIntensity
 
 	float get( void )
 	{
-		if (millis()-StartTime > TimePeriod) {
-			StartTime = millis();
+		if (Trigger.get()) {
 			
 			float Ua = analogRead(PinSolarIntensity)/1023.0*Vcc;
 			float Uf = (Ua + Vcc*(Ri1/Ri3))/(1+Ri1/Ri2+Ri1/Ri3);
@@ -47,7 +49,7 @@ class cSolarIntensity
 	}
 	private:
 	float intensity;
-	unsigned long StartTime;
+        cTrigger Trigger;
 };
 
 
@@ -61,45 +63,30 @@ class cSolar
 	TempToCollector(&MPNumSys[0], &MPChanSys[idxTempSolarToCollector], &SysTempOffset[idxTempSolarToCollector]),
 	TempFromCollector(&MPNumSys[0], &MPChanSys[idxTempSolarFromCollector], &SysTempOffset[idxTempSolarFromCollector]),
 	TempToSystem(&MPNumSys[0], &MPChanSys[idxTempSolarToSystem], &SysTempOffset[idxTempSolarToSystem]),
-	TempFromSystem(&MPNumSys[0], &MPChanSys[idxTempSolarFromSystem], &SysTempOffset[idxTempSolarFromSystem])
+	TempFromSystem(&MPNumSys[0], &MPChanSys[idxTempSolarFromSystem], &SysTempOffset[idxTempSolarFromSystem]),
+	Probe(ProbePeriod)
 	{
-		boolean sufficientHeat =false;
-		boolean probing = false;
-		StartTime = millis();
-		
+		boolean sufficientHeat = false;
 		Pump.SetOutputLimits(0.1, 1.0);
         }
 	
 	boolean harvest(double SpTempSource, boolean enable = true)
 	{
-		// Trigger Probing
-		//if ((millis()-StartTime>ProbeInterval) && (SolarIntensity.get()>335))
-		if (SolarIntensity.get()>335)
-		{
-			probing=true;
-			StartTime = millis();
-		}
-		
 		// Harvesting hysteresis
 		if (TempFromCollector.get() < SpTempSource-2) // Exploit ChargeMargin of Boiler = 4
-		sufficientHeat = false;
+                    sufficientHeat = false;
 		//if (TempFromCollector.get() > SpTempSource+4)
 		if (TempFromCollector.get() > SpTempSource+2)
-		sufficientHeat = true;
+                    sufficientHeat = true;
 		
 		if (sufficientHeat)// Run pump such that temperature difference between Return and Lead is equal to 10 degree.
 		{
 			float TempDiff = TempFromCollector.get()-SpTempSource;
-			Pump.run(TempFromSystem.get()+TempDiff,TempToCollector.get());
+			Pump.run(TempFromSystem.get()+TempDiff+3,TempToCollector.get());
 		}
-		else if (probing)
+		else if (Probe.get(0.1) && (SolarIntensity.get()>335))
 		{
-			Pump.run(0.1);
-			// Check if probing interval is over
-			if (millis()-StartTime>ProbeInterval) {
-				probing = false;
-				StartTime = millis();
-			}
+			Pump.run(0.25);
 		}
 		else Pump.run();
 		
@@ -110,24 +97,26 @@ class cSolar
 		return sufficientHeat;
 	}
 	
+	float TempSource()
+        {
+            return(max(TempToSystem.get(),TempFromSystem.get()));
+        }
+	
 	void getData(JsonObject& root);
 	
-	void probe(boolean bFlame);
-	
 	boolean sufficientHeat;
-	boolean probing;
 	
 	cTempSensor TempFromCollector;
 	cTempSensor TempToSystem;
 	
 	private:
 	
-	unsigned long StartTime;
-	
 	cTempSensor TempToCollector;
 	cTempSensor TempFromSystem;
 	
 	cSolarIntensity SolarIntensity;
+        
+        cLFPWM Probe;
 	
 	cValve Valve;
 	cPump Pump;

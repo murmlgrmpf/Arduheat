@@ -11,6 +11,6 @@ void cSolar::getData( JsonObject& root )
 	root["SP"] = Pump.get();
 	root["SV"] =  static_cast<int>( Valve.get());
 	root["Ssuht"] = static_cast<int>( sufficientHeat);
-	root["Sprobing"] = static_cast<int>( probing);
+	root["Sprobing"] = static_cast<int>( Probe.get(0.1));
 	root["Sint"] = SolarIntensity.get();
 }
