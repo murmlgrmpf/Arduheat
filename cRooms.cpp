@@ -3,9 +3,10 @@
 cRooms::cRooms( void ):
 IsTempHeatingLead((&MPNumSys[0]),(&MPChanSys[idxTempHeatingLead]),(&SysTempOffset[idxTempHeatingLead])),
 IsTempHeatingReturn((&MPNumSys[0]),(&MPChanSys[idxTempHeatingReturn]),(&SysTempOffset[idxTempHeatingReturn])),
-TempOutside((&MPNumSys[0]),(&MPChanSys[idxTempOutside]),(&SysTempOffset[idxTempOutside])),
+TempOutside((&MPNumSys[0]),(&MPChanSys[idxTempOutside]),(&SysTempOffset[idxTempOutside]),TRoomInit, AlphaTRoom),
 Pump(PinPumpHeating,0.5, 0.0, 0.0, DIRECT, 0.0),
-Mixer(PinMixerOpen,PinMixerClose, 0.09, 0.001, 6.0, DIRECT)
+Mixer(PinMixerOpen,PinMixerClose, 0.1, 0.0008, 3.9, DIRECT),
+HeatingPeriod(129600000) // 36(h)*60(min/h)*60(s/min)*1000(ms/s)
 {
 	SetType = Normal;
 	// Initialize PID controllers for pumps
@@ -82,6 +83,8 @@ void cRooms::ChargeRooms( boolean ChargeRooms )
 		// Run Pump and Mixer
 		Mixer.run(getSpHeating(), IsTempHeatingLead.get());
 		Pump.run(SpTempHeatingReturn, IsTempHeatingReturn.get());
+    // Restart Heating Period timer
+    HeatingPeriod.restart();
 	}
 	else
 	{
@@ -97,7 +100,8 @@ boolean cRooms::need(void)
 	// Reset Values
 	dMaxSp = 0.0;
 	dMaxDiff = -10.0;
-	
+	needCharge = false;
+        
 	// Read state of rooms
 	for(int i = 0; i<nRooms; i++)
 	{
@@ -105,19 +109,11 @@ boolean cRooms::need(void)
 		if (Room[i].getSpTemp()>dMaxSp)
 			dMaxSp = Room[i].getSpTemp();
 		// Store maximum sp-is difference
-// 		if ((Room[i].getSpTemp() - Room[i].IsTemp.get()) > dMaxDiff)
-// 			dMaxDiff = Room[i].getSpTemp() - Room[i].IsTemp.get();
-		// Check for rooms needing heat
-		if (Room[i].getNeed()>dMaxDiff)
-			dMaxDiff = Room[i].getNeed();
+		if (Room[i].getDeltaT()>dMaxDiff)
+			dMaxDiff = Room[i].getDeltaT();
+                // Check for rooms needing heat
+                needCharge = needCharge||Room[i].getNeed();
 	}
-	
-	// Hysteresis for charging the rooms
-	if (dMaxDiff-RoomMargin > 0) needCharge = true;
-	if (dMaxDiff+RoomMargin < 0) needCharge = false;
-	
-	// Save last time that the rooms needed heating in order to detect summer mode vs. winter mode
-	if (needCharge) lastHeating = millis();
 	
 	return needCharge;
 }

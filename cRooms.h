@@ -22,10 +22,10 @@
 
 // Set default parameters for SpHeating curve
 #define dsteil 0.6
-#define dkh    4
-#define dverst 2
+#define dkh    5
+#define dverst 0 // Raumeinfluss war 2
 #define dminvl 30.0
-#define dmaxvl 40.0
+#define dmaxvl 42.0 // 40
 
 
 class cRooms
@@ -43,6 +43,7 @@ class cRooms
 	{14, this},{15, this}};
 	cPump Pump;
 	cMixer Mixer;
+  cTimer HeatingPeriod;
 	
 	boolean need(void);
 	double getSpHeating(void);
@@ -62,8 +63,6 @@ class cRooms
 	int setRooms(JsonObject& root);
 	
 	void getData(JsonObject& root);
-	
-	unsigned long lastHeating;
 	
 	private:
 	
