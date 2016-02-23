@@ -4,6 +4,7 @@
 #include "Arduino.h"
 
 #include "cLFPWM.h"
+#include "cTrigger.h"
 #include <PID_v1.h>
 
 class cMixer  : public PID
@@ -12,6 +13,7 @@ class cMixer  : public PID
 	/// Creates the mixer
 	cMixer(int pinOpen_, int pinClose_,double p, double i, double d, int mode):
 	PWM(20000),
+	Timer(180000),// 3(min)*60(s/min)*1000(ms/s)
 	PID(&Is, &Power, &Setpoint, p, i, d, mode)
 	{
 		pinOpen = pinOpen_;
@@ -53,18 +55,25 @@ class cMixer  : public PID
 	
 	private:
 	cLFPWM PWM;
+  cTimer Timer;
 	int pinOpen;
 	int pinClose;
 	
 	double Is;
 	double Setpoint;
 	double Power;
+  boolean direction;
 	
-	void run()
+	void run(void)
 	{
-		boolean direction = (Power>=0);
-		// Check PWM and hysteresis
-		if(PWM.get(abs(Power))&&(abs(Power)> 0.05)) {
+                // If direction did change or power is less than 100%: reset timer
+                if ((direction != (Power>=0))||(abs(Power)<1.0))
+                    Timer.restart();
+                
+		direction = (Power>=0); // set current direction
+                
+		// Check PWM and hysteresis and Timer for limit switch off
+		if((PWM.get(abs(Power)))&&(abs(Power)> 0.06)&&(Timer.get())) {
 			// Drive in direction
 			digitalWrite_wrap(pinClose, direction);
 			digitalWrite_wrap(pinOpen, !direction);
