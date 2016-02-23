@@ -66,7 +66,7 @@ void cHeating::checkSources(void)
 	// #2 Solar
 	else if (Solar.harvest(SpTempSource, true)) {
 		Source = SoSolar;
-		TempSource = Solar.TempToSystem.get();
+		TempSource = Solar.TempSource();
 		needSink = true;
 	}
 	// #3 If burner is not burning: Burner residual heat: true if temperature high enough
