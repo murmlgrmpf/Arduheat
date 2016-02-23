@@ -12,7 +12,9 @@
 
 #define TempRoomLow 13.0
 #define TempRoomHigh 30.0
-#define RoomMargin 0.6
+#define RoomMargin 0.4
+#define AlphaTRoom 0.2
+#define TRoomInit 25.0
 
 enum RoomTypes {Living, Sleeping, Hallway, Bath, Side, nRoomTypes};
 // enum SetTypes  {Normal, Holiday, nSetTypes};
@@ -32,15 +34,19 @@ class cRoom
 	cRoom(int RoomNumber , cRooms* Rooms_ );
 	
 	/// Compute need of room.
-	double getNeed(void)
+	double getDeltaT(void)
 	{
 		double need = getSpTemp()-IsTemp.get();
 		// Open Valve if heat is needed
 		
-		Valve.set((need+RoomMargin > 0));
+                // Hysteresis for charging the rooms
+                if (getSpTemp()-RoomMargin/2 > IsTemp.get()) Valve.set(true);
+                if (getSpTemp()+RoomMargin/2 < IsTemp.get()) Valve.set(false);
 		
 		return need;
 	}
+	
+	boolean getNeed(void) {return Valve.get();}
 	
 	static DayTypes getDayType( uint8_t day  )
 	{

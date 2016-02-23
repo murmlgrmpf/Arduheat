@@ -4,8 +4,8 @@
 /// Creates a room.
 /** As the rooms get created in an array, only the default constructor can be used cRoom(void) */
 cRoom::cRoom(int RoomNumber , cRooms* Rooms_ ):
-IsTemp(&MultiplexNumberRooms[RoomNumber], &MultiplexChannelRoomsIs[RoomNumber], &RoomIsOffset[RoomNumber]),
-SpTempOverride(&MultiplexNumberRooms[RoomNumber], &MultiplexChannelRoomsSp[RoomNumber], &RoomSpOffset[RoomNumber]),
+IsTemp(&MultiplexNumberRooms[RoomNumber], &MultiplexChannelRoomsIs[RoomNumber], &RoomIsOffset[RoomNumber], TRoomInit, AlphaTRoom),
+SpTempOverride(&MultiplexNumberRooms[RoomNumber], &MultiplexChannelRoomsSp[RoomNumber], &RoomSpOffset[RoomNumber], TRoomInit, AlphaTRoom),
 Valve(&RoomValvePin[RoomNumber])
 {
 	RoomType = static_cast<RoomTypes>(pgm_read_word(&DefaultRoomType[RoomNumber]));
@@ -38,8 +38,8 @@ double cRoom::getSpTemp(void)
 	return SpTemp;
 }
 
-const float cRoom::RoomIsOffset[] = {-1.1, -1.6, -1.2, 0.6, -1.5, 0.6, -2.2, -1.4, -0.5, -1.5, -0.6, 0.2, 0.7, -1.6, -1, 0.2};
-const float cRoom::RoomSpOffset[] = {1, -0.17, 0.62, 0.2, -0.2, 0.01, 2.64, 0.39, -0.19, 0.12, 0.24, 1.19, 0.83, 0.44, 1.24, 0.88};
+const float cRoom::RoomIsOffset[] = {-1.69, -0.48, 0.19, 1.32, -1.6, 1.86, -1.34, -1.22, -0.41, -0.13, -0.55, 0.2, 0.66, -0.93, -0.33, 0.49};
+const float cRoom::RoomSpOffset[] = {1.36, -0.47, 0.77, -0.24, 0.05, -0.01, 3.04, 0.22, -1.17, -0.06, 0.14, 0.71, 1.03, 0.67, 2.03, 0.89};
 
 // room valve pinout mapping
 const int cRoom::RoomValvePin[] = {26, 27, 25, 28, 24, 29, 23, 30, 22, 31, 34, 35, 33, 36, 32, 37};
