@@ -1,7 +1,8 @@
+#include <PID_v1.h>
+
 #include <Arduino.h>
 #include "cWarmWater.h"// important for global TimeNow variable
 #include "cHeating.h"
-#include <cPID.h>
 
 #include "config.h"
 
@@ -43,8 +44,9 @@ void  setup()
     //rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     TimeNow = rtc.now();
 
-    analogReference(DEFAULT);
-    //analogReference(EXTERNAL);
+    //analogReference(DEFAULT);
+    analogReference(EXTERNAL);
+    analogRead (0);
     
     Config.resetConf();
 }
