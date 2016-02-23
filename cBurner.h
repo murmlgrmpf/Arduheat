@@ -8,7 +8,7 @@
 #include <ArduinoJson.h>
 
 #define DefaultMinBurnTimeMinutes 15 //20
-#define DefaultMaxTempOperation 80
+#define DefaultMaxTempOperation 90 //was 80 - because of start peak
 
 class cBurner
 {
