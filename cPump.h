@@ -15,8 +15,8 @@ class cPump : public PID
 	/** The power of the pump is set to zero by default.*/
 	/** \param PinPump the pin used to drive the Pump*/
 	/** \param Power the power the pump in percent*/
-	cPump(int PinPump_,float p, float i, float d, int mode, double Power_ = 0.0):
-	PWM(PWMPeriod),
+	cPump(int PinPump_,float p, float i, float d, int mode, double Power_ = 0.0, unsigned long PWMPeriod_ = PWMPeriod):
+	PWM(PWMPeriod_),
 	PID(&Is, &Power, &Setpoint, p, i, d, mode)
 	{
 		PinPump = PinPump_;
@@ -61,6 +61,7 @@ class cPump : public PID
 	{
 		return Power;
 	}
+	
 	
 	//private:
 	int PinPump;
