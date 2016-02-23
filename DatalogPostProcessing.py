@@ -14,13 +14,14 @@ import matplotlib.pyplot as plt
 plt.close('all')
 
 ###############Select Plots##############
-plotrooms = 0
+plotrooms = True
 ##############Select File################
 
-Logfile = "Logs/15100800.CSV"
+Logfile = "Logs/16022301.CSV"
 #Logfile = "Logs/15042300.CSV"
 
-readdata = csv.reader(open(Logfile))
+with open(Logfile) as f:
+    readdata = csv.reader(f)
 
 #########################################
 plt.close("all")
@@ -49,10 +50,12 @@ times = np.genfromtxt(Logfile, delimiter=',', usecols=0, dtype=str)
 header = np.genfromtxt(Logfile, delimiter=',', dtype=str)[0,:]
 raw_data = np.genfromtxt(Logfile, delimiter=',',skip_header=1)
 
-times =times. tolist()[1:]
+times =times.tolist()[1:-1]
 Header = header.tolist()[1:]
 
-data= raw_data[:,1:]
+
+
+data= raw_data[:-1,1:]
 
 itime=[]
 days = 0
@@ -74,19 +77,19 @@ time = np.array(itime)
 # Plot Rooms
 if plotrooms:
     plt.figure()
-    for n in range(1,17):
-        plt.plot(time, data[:,n], label = Header[n])
+    for n in range(0,16):
+        plt.plot(time, data[:,2+n], label = Header[2+n])
     plt.legend()
     
     plt.figure()
-    for n in range(1,17):
-        plt.plot(time, data[:,16+n], label = Header[16+n])
+    for n in range(0,16):
+        plt.plot(time, data[:,19+n], label = Header[19+n])
     plt.legend()
     
-    for n in range(1,17):
+    for n in range(0,16):
         plt.figure()
-        plt.plot(time, data[:,n], label = Header[n])
-        plt.plot(time, data[:,16+n], label = Header[16+n])
+        plt.plot(time, data[:,2+n], label = Header[2+n])
+        plt.plot(time, data[:,19+n], label = Header[19+n])
         plotId('RTitoR')
         plotId('RTitoSys')
         plt.legend()
