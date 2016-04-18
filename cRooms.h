@@ -51,7 +51,7 @@ class cRooms
 	double getSpHeating(void);
 	SetTypes SetType;
 	
-	void ChargeRooms(boolean bneedChargeRooms);
+	void ChargeRooms(boolean bneedChargeRooms, boolean bcloseMixer=false);
 	
 	void initDefaultSetpoint();
 	double MasterSpTemps[nRoomTypes];

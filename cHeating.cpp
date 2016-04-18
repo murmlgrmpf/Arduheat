@@ -142,7 +142,7 @@ void cHeating::selectSink( int Sink )
 {
 	switch (Sink) {
 		case SiChargeWarmWater: {
-			Rooms.ChargeRooms(false);
+			Rooms.ChargeRooms(false,true);
 			Boiler.charge(TempSource);
 			break;
 		}

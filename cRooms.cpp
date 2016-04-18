@@ -75,7 +75,7 @@ void cRooms::initDefaultSetpoint()
 }
 
 
-void cRooms::ChargeRooms( boolean ChargeRooms )
+void cRooms::ChargeRooms( boolean ChargeRooms , boolean bcloseMixer)
 {
 	double SpTempHeatingReturn = getSpHeating()-DiffTempHeatingLeadReturn;
 	
@@ -91,7 +91,10 @@ void cRooms::ChargeRooms( boolean ChargeRooms )
 	{
 		// Stop Pump and Mixer Heating
 		Pump.run(0.0);
-		Mixer.run(0.0);
+                if (bcloseMixer)
+                    Mixer.run(-1.0);
+                else
+                    Mixer.run(0.0);
 	}
 }
 
