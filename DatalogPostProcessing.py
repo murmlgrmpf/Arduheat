@@ -17,7 +17,7 @@ plt.close('all')
 plotrooms = True
 ##############Select File################
 
-Logfile = "Logs/16022301.CSV"
+Logfile = "Logs/16041700.CSV"
 #Logfile = "Logs/15042300.CSV"
 
 with open(Logfile) as f:
@@ -83,13 +83,20 @@ if plotrooms:
     
     plt.figure()
     for n in range(0,16):
-        plt.plot(time, data[:,19+n], label = Header[19+n])
+        plt.plot(time, data[:,18+n], label = Header[18+n])
+    plt.legend()
+    
+    plt.figure()
+    for n in range(0,16):
+        plt.plot(time, data[:,35+n], label = Header[35+n])
     plt.legend()
     
     for n in range(0,16):
         plt.figure()
         plt.plot(time, data[:,2+n], label = Header[2+n])
-        plt.plot(time, data[:,19+n], label = Header[19+n])
+        plt.plot(time, data[:,18+n], label = Header[18+n])
+        plt.plot(time, data[:,35+n], label = Header[35+n])
+        
         plotId('RTitoR')
         plotId('RTitoSys')
         plt.legend()
