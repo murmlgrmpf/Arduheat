@@ -65,7 +65,7 @@ class cTempSensor
 			digitalWrite(pgm_read_word(&MPControl[3]),HIGH && (pgm_read_word(MultiplexChannel) & B00001000));
 
                         // Multisampling
-                        float TempMult = 0.0;
+                        float TempMult = pgm_read_float(Offset);
                         for (int i = 1;i<=nMultiSample;i++)
                         {
                             // Determine raw temperature reading
@@ -81,9 +81,10 @@ class cTempSensor
 		}
 		
 		// Return filtered temperature plus offset
-		return(TempFilt+pgm_read_float(Offset));
+		return(TempFilt);
 	}
 	
+	double* getPtr(void) {return &TempFilt;}
 	
 	private:
 	static void initMultiplexer(void)
@@ -102,7 +103,7 @@ class cTempSensor
         cTrigger Trigger;
         
         float alphaFilt;
-	float TempFilt;
+	double TempFilt;
 	const float* Offset;
 	
 	const int* pinMultiplexInput;
