@@ -6,7 +6,8 @@ IsTempHeatingReturn((&MPNumSys[0]),(&MPChanSys[idxTempHeatingReturn]),(&SysTempO
 TempOutside((&MPNumSys[0]),(&MPChanSys[idxTempOutside]),(&SysTempOffset[idxTempOutside]),TRoomInit, AlphaTRoom),
 Pump(PinPumpHeating,0.5, 0.0, 0.0, DIRECT, 0.0),
 Mixer(PinMixerOpen,PinMixerClose, 0.1, 0.0008, 3.9, DIRECT),
-HeatingPeriod(129600000) // 36(h)*60(min/h)*60(s/min)*1000(ms/s)
+HeatingPeriod(129600000), // 36(h)*60(min/h)*60(s/min)*1000(ms/s)
+PWM(600000) // 10(min)*60(s/min)*1000(ms/s) = 600000 ; 10 minute room heating interval
 {
 	SetType = Normal;
 	// Initialize PID controllers for pumps
@@ -14,7 +15,7 @@ HeatingPeriod(129600000) // 36(h)*60(min/h)*60(s/min)*1000(ms/s)
 	Mixer.SetOutputLimits(-1.0, 1.0);
 	Mixer.SetSampleTime(5000);
 	
-	dMaxDiff =0;
+	MaxNeed =0;
 	dMaxSp = 0;
 	
 	initDefaultSetpoint();
@@ -23,7 +24,7 @@ HeatingPeriod(129600000) // 36(h)*60(min/h)*60(s/min)*1000(ms/s)
 void cRooms::initDefaultSetpoint()
 {
 //   TempOffsetSchedule =20.0;
-	MasterSpTemps[Living] = 20.0;//15;//
+	MasterSpTemps[Living] = 20.2;//15;//
 	MasterSpTemps[Sleeping] =20.0;//15;//
 	MasterSpTemps[Hallway] = 19.0;//15;//
 	MasterSpTemps[Bath] = 22.0;//15;//
@@ -88,44 +89,52 @@ void cRooms::ChargeRooms( boolean ChargeRooms )
 	}
 	else
 	{
-		// Stop Pump Heating
+		// Stop Pump and Mixer Heating
 		Pump.run(0.0);
-		// Close Mixer
-		Mixer.run(-1.0);
+		Mixer.run(0.0);
 	}
 }
 
-boolean cRooms::need(void)
+double cRooms::getNeed(void)
 {
-	// Reset Values
-	dMaxSp = 0.0;
-	dMaxDiff = -10.0;
-	needCharge = false;
+    	dMaxSp = 0.0;
+	MaxNeed = 0.0;
         
 	// Read state of rooms
 	for(int i = 0; i<nRooms; i++)
 	{
 		// Store maximum set point
-		if (Room[i].getSpTemp()>dMaxSp)
-			dMaxSp = Room[i].getSpTemp();
+                dMaxSp = max(dMaxSp, Room[i].getSpTemp());
 		// Store maximum sp-is difference
-		if (Room[i].getDeltaT()>dMaxDiff)
-			dMaxDiff = Room[i].getDeltaT();
+                MaxNeed = max(MaxNeed, Room[i].getNeed());
+	}
+    
+        return MaxNeed;
+}
+
+boolean cRooms::active(void)
+{
+	// Reset Values
+        boolean active = false;
+        
+	// Read state of rooms
+	for(int i = 0; i<nRooms; i++)
+	{
                 // Check for rooms needing heat
-                needCharge = needCharge||Room[i].getNeed();
+                active = active||Room[i].getValve();
 	}
 	
-	return needCharge;
+	return active;
 }
 
 double cRooms::getSpHeating(void)
 {
-	// Update dMaxDiff and dMaxSp
-	need();
+	// Update MaxNeed and dMaxSp
+	getNeed();
 	
 	double t1 = (TempOutside.get()/(320-4*TempOutside.get()));
 	double t2 = pow(dMaxSp,t1);
-	double swhk = 0.55*dsteil*t2*(-TempOutside.get()+20)*2+dMaxSp+dkh+dMaxDiff*dverst;
+	double swhk = 0.55*dsteil*t2*(-TempOutside.get()+20)*2+dMaxSp+dkh+MaxNeed*dverst;
 	double swhkLimit = min(max(swhk,dminvl),dmaxvl);
 	
 	return swhkLimit;
@@ -331,14 +340,16 @@ void cRooms::getData( JsonObject& root )
 {
 	JsonArray& RoomsIsTemps = root.createNestedArray("RTi");
 	JsonArray& RoomsSPTemps = root.createNestedArray("RTs");
+        JsonArray& RoomsNeeds = root.createNestedArray("Rneed");
 	
 	for (int i = 0; i<nRooms;i++){
 		RoomsIsTemps.add(Room[i].IsTemp.get());
 		RoomsSPTemps.add(Room[i].getSpTemp());
+                RoomsNeeds.add(Room[i].getNeed());
 	}
 	
 	root["Toutside"] = TempOutside.get();
-	root["Rn"] = static_cast<int>( need());
+	root["Rn"] = static_cast<int>( active());
 	root["RTsHeating"] = getSpHeating();
 	
 	root["RTitoR"] = IsTempHeatingLead.get();

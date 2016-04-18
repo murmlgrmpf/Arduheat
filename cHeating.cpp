@@ -40,8 +40,8 @@ void cHeating::checkSinks(void)
 		SpTempSource = Boiler.SpTemp();
 		needSource = true;
 	}
-	// #2 Determine whether there is need for heating the rooms
-	else if (Rooms.need()) {
+	// #2 Determine whether there is an actively heating room
+	else if (Rooms.active()) {
 		Sink = SiChargeRooms;
 		SpTempSource = Rooms.getSpHeating();
 		needSource = true;
@@ -76,7 +76,7 @@ void cHeating::checkSources(void)
 		needSink = true;
 	}
 	// #4 Boiler
-	else if (! (Boiler.needChargeWarmWater() || Boiler.needChargeHeating(Rooms.need())) ) {
+	else if (! (Boiler.needChargeWarmWater() || Boiler.needChargeHeating(Rooms.active())) ) {
 		Source = SoBoiler;
 		TempSource = 0.0;
 		needSink = false;
@@ -94,7 +94,7 @@ void cHeating::selectSource( int Source )
 	switch (Source) {
 		case SoBurner: {
 			// Check hysteresis for charging the boiler
-			if( Boiler.needChargeWarmWater() || Boiler.needChargeHeating(Rooms.need()) )
+			if( Boiler.needChargeWarmWater() || Boiler.needChargeHeating(Rooms.active()) )
 				Burner.burn(SpTempSource, true);
 			else
 				Burner.burn(SpTempSource, false);

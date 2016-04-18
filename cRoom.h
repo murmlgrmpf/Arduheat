@@ -8,6 +8,7 @@
 // RTC for DateTime class
 #include <RTClib.h>
 
+#include <PID_v1.h>
 #include <avr/pgmspace.h>
 
 #define TempRoomLow 13.0
@@ -26,27 +27,17 @@ extern DateTime TimeNow;
 // Forward declaration of cRooms class
 class cRooms;
 
-class cRoom
+class cRoom : public PID
 {
 	public:
 	/// Creates a room.
 	/** As the rooms get created in an array, only the default constructor can be used cRoom(void) */
-	cRoom(int RoomNumber , cRooms* Rooms_ );
+	cRoom(int RoomNumber , cRooms* Rooms_ , double p=3 , double i=0.0001 , double d=0);
 	
-	/// Compute need of room.
-	double getDeltaT(void)
-	{
-		double need = getSpTemp()-IsTemp.get();
-		// Open Valve if heat is needed
-		
-                // Hysteresis for charging the rooms
-                if (getSpTemp()-RoomMargin/2 > IsTemp.get()) Valve.set(true);
-                if (getSpTemp()+RoomMargin/2 < IsTemp.get()) Valve.set(false);
-		
-		return need;
-	}
+        /// Compute need of room.
+        double getNeed(void);
 	
-	boolean getNeed(void) {return Valve.get();}
+	boolean getValve(void) {return Valve.get();}
 	
 	static DayTypes getDayType( uint8_t day  )
 	{
@@ -65,6 +56,9 @@ class cRoom
 	RoomTypes RoomType;
 	cTempSensor SpTempOverride;
 	cTempSensor IsTemp;
+        
+        double spT;
+        double need;
 	
 	private:
 	

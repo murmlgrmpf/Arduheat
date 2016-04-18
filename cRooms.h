@@ -10,6 +10,7 @@
 #include "cPump.h"
 #include "cMixer.h"
 #include "cRoom.h"
+#include "cLFPWM.h"
 #include <ArduinoJson.h>
 
 // RTC for DateTime class
@@ -43,9 +44,10 @@ class cRooms
 	{14, this},{15, this}};
 	cPump Pump;
 	cMixer Mixer;
-  cTimer HeatingPeriod;
+        cTimer HeatingPeriod;
 	
-	boolean need(void);
+        double getNeed(void);
+	boolean active(void);
 	double getSpHeating(void);
 	SetTypes SetType;
 	
@@ -63,13 +65,13 @@ class cRooms
 	int setRooms(JsonObject& root);
 	
 	void getData(JsonObject& root);
+        
+        cLFPWM PWM;
 	
 	private:
 	
-	double dMaxDiff;
+	double MaxNeed;
 	double dMaxSp;
-	
-	boolean needCharge;
 };
 
 
