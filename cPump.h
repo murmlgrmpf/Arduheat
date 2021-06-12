@@ -4,9 +4,9 @@
 #include "Arduino.h"
 #include "PinDefinitions.h"
 #include "cLFPWM.h"
-#include <PID_v1.h>
+#include <cPID.h>
 
-#define PWMPeriod 1000
+#define PWMPeriod 4000
 
 class cPump : public PID
 {
@@ -34,27 +34,30 @@ class cPump : public PID
 	double run(double Power_ = 0.0)
 	{
 		Power = Power_;
-		SetMode(MANUAL);
 		
+		SetMode(MANUAL);
+	
 		Compute();
 		// Pump is running if switching time of PWM is not yet exceeded
-		digitalWrite_wrap(PinPump, !PWM.get(Power)); // Pump switched on if true and off if false
+		digitalWrite_wrap(PinPump, PWM.get(Power)); // Pump switched on if true and off if false
 		return Power;
 	}
 	/// Regulate the power by pid controller
 	/** Update setpoint and is value, then execute pid controller and set pump
 	\param Setpoint_ update Setpoint value
 	\param Is_ update Is value*/
-	double run(double Setpoint_, double Is_)
+	double run(double Setpoint_, double Is_, double PowerStatic_ = 0.0)
 	{
 		Is = Is_;
 		Setpoint = Setpoint_;
 		SetMode(AUTOMATIC);
 		
 		Compute();
+		PWM.setSampleTime(160/min(0.03, max(0.002, (Power+PowerStatic_))));
 		// Pump is running if switching time of PWM is not yet exceeded
-		digitalWrite_wrap(PinPump, !PWM.get(Power)); // Pump switched on if true and off if false
+		digitalWrite_wrap(PinPump, PWM.get(Power+PowerStatic_)); // Pump switched on if true and off if false
 		return Power;
+		
 	}
 	
 	double get(void)
@@ -68,7 +71,7 @@ class cPump : public PID
 	double Is;
 	double Setpoint;
 	double Power;
-	
+
 	cLFPWM PWM;
 	
 };

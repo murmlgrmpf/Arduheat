@@ -45,7 +45,7 @@ class cMixer  : public PID
 		Setpoint = Setpoint_;
 		// Start Sequence in order to initialize I-portion
 		if (GetMode()==MANUAL)
-			Power = 0.0;
+			Power = 0.5;// Test - was 0.0
 
 		SetMode(AUTOMATIC);
 		Compute();
@@ -59,14 +59,14 @@ class cMixer  : public PID
 	
 	private:
 	cLFPWM PWM;
-	cTimer Timer;
+  cTimer Timer;
 	int pinOpen;
 	int pinClose;
 	
 	double Is;
 	double Setpoint;
 	double Power;
-	boolean direction;
+  boolean direction;
 	
 	void run(void)
 	{
@@ -77,7 +77,7 @@ class cMixer  : public PID
 		direction = (Power>=0); // set current direction
                 
 		// Check PWM and hysteresis and Timer for limit switch off
-		if((PWM.get(abs(Power)))&&(abs(Power)> 0.09)&&(Timer.get())) {
+		if((PWM.get(abs(Power)))&&(abs(Power)> 0.06)&&(Timer.get())) {
 			// Drive in direction
 			digitalWrite_wrap(pinClose, !direction);
 			digitalWrite_wrap(pinOpen, direction);

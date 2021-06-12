@@ -15,6 +15,8 @@ class cLFPWM
 		LastTime = millis();
 	}
 	
+	void setSampleTime(unsigned long SampleTime_){SampleTime = max(100,SampleTime_);}
+	
 	boolean get( double Power )
 	{
 		// Limit Power

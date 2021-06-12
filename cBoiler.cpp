@@ -7,13 +7,12 @@ TempReserve1((&MPNumSys[0]),(&MPChanSys[idxTempBoilerReserve1]),(&SysTempOffset[
 TempReserve2((&MPNumSys[0]),(&MPChanSys[idxTempBoilerReserve2]),(&SysTempOffset[idxTempBoilerReserve2])),
 TempHead((&MPNumSys[0]),&MPChanSys[idxTempBoilerHead],(&SysTempOffset[idxTempBoilerHead])),
 TempTop((&MPNumSys[0]),&MPChanSys[idxTempBoilerTop],(&SysTempOffset[idxTempBoilerTop])),
-Pump(PinPumpBoiler, 0.011, 0.0002, 0.0, REVERSE)
+
+Pump(PinPumpBoiler, 0.025, 0.0, 0.0, REVERSE)
 {
 	Rooms = Rooms_;
 	WarmWater = WarmWater_;
-	// Set minimal Pump Power to 2%
 	Pump.SetOutputLimits(0.0, 1.0);
-	Pump.SetSampleTime(500);
 }
 
 void cBoiler::getData( JsonObject& root )
@@ -23,7 +22,7 @@ void cBoiler::getData( JsonObject& root )
 	//strcpy_P(buffer, (char*)pgm_read_word(&(sBoilerValve)));
 	root["BV"] =  static_cast<int>( Valve.get());
 
-	root["BT0"] = TempCharge.get();
+	root["BT0"] = TempCharge.getRaw();
 	root["BT1"] = TempTop.get();
 	root["BT2"] = TempHead.get();
 	root["BT3"] = TempReserve1.get();
@@ -35,5 +34,5 @@ void cBoiler::getData( JsonObject& root )
 	root["Bdisc"] =  static_cast<int>( bDischarging);
 	root["Bc"] =  static_cast<int>( bCharging);
 	root["BTsW"] =  WarmWater->SpTemp;
-	root["BTsc"] =   SpTemp();
+	root["BTsc"] =  SpTemp();
 }

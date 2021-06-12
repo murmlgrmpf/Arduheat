@@ -28,8 +28,8 @@ class cRoomValve
 	void set(boolean bState)
 	{
                 bisOpen = bState;
-		digitalWrite_wrap(pgm_read_word(pinOpen), !bisOpen); // Valve gets opened on low/false
-// 		digitalWrite(pinClose, !!bState);
+		digitalWrite_wrap(pgm_read_word(pinOpen), bisOpen);
+// 		digitalWrite(pinClose, !bState);
 	}
 	
 	/// Reads the is state of the valve.

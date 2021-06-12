@@ -2,7 +2,7 @@
 #define cValve_h
 
 #include "Arduino.h"
-#define DefaultDriveTime 2000
+#define DefaultDriveTime 3300
 
 class cValve
 {

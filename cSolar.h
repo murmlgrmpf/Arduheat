@@ -22,7 +22,9 @@
 #define Wmax 1300
 #define Ufmax 2.233
 // Solar Probing period
-#define ProbePeriod 1800000 //30min*60sec/min*1000ms/sec = 2700000ms
+#define ProbePeriod 90000 //1,5min*60sec/min*1000ms/sec
+#define minWaitPeriod 240000//4min*60sec/min*1000ms/sec
+#define maxWaitPeriod 1800000//30min*60sec/min*1000ms/sec
 
 class cSolarIntensity
 {
@@ -49,7 +51,7 @@ class cSolarIntensity
 	}
 	private:
 	float intensity;
-        cTrigger Trigger;
+	cTrigger Trigger;
 };
 
 
@@ -60,47 +62,61 @@ class cSolar
 	cSolar()
 	:Valve(PinValveSolarOpen,PinValveSolarClose),
 	Pump(PinPumpSolar,0.01, 0.0002, 0.0, DIRECT),
-	TempToCollector(&MPNumSys[0], &MPChanSys[idxTempSolarToCollector], &SysTempOffset[idxTempSolarToCollector]),
 	TempFromCollector(&MPNumSys[0], &MPChanSys[idxTempSolarFromCollector], &SysTempOffset[idxTempSolarFromCollector]),
 	TempToSystem(&MPNumSys[0], &MPChanSys[idxTempSolarToSystem], &SysTempOffset[idxTempSolarToSystem]),
-	TempFromSystem(&MPNumSys[0], &MPChanSys[idxTempSolarFromSystem], &SysTempOffset[idxTempSolarFromSystem]),
-	Probe(ProbePeriod)
+	Probing(ProbePeriod),
+	Waiting(minWaitPeriod)
 	{
 		boolean sufficientHeat = false;
-		Pump.SetOutputLimits(0.1, 1.0);
-        }
+		Pump.SetOutputLimits(0.15, 1.0);
+	}
+	
+	boolean hasHeat(double SpTempSource)
+	{
+		// introduce FlipFlop for Hysteresis of Solar Charge
+		if ((sufficientHeat == false) && (SolarIntensity.get()>500) && (TempFromCollector.getRaw() > (SpTempSource + 2)))
+		sufficientHeat = true;
+		if ((sufficientHeat == true) && (TempFromCollector.getRaw() < max(30, (SpTempSource - 8))))
+		sufficientHeat = false;
+
+		return(sufficientHeat);
+	}
 	
 	boolean harvest(double SpTempSource, boolean enable = true)
 	{
-		// Harvesting hysteresis
-		if (TempFromCollector.get() < SpTempSource-2) // Exploit ChargeMargin of Boiler = 4
-                    sufficientHeat = false;
-		//if (TempFromCollector.get() > SpTempSource+4)
-		if (TempFromCollector.get() > SpTempSource+2)
-                    sufficientHeat = true;
+		double tempdiff = (SpTempSource - TempFromCollector.getRaw());
 		
-		if (sufficientHeat)// Run pump such that temperature difference between Return and Lead is equal to 10 degree.
+		// Probing timer restart
+		if ((!Waiting.get()) && (SolarIntensity.get()>500) && (TempFromCollector.getRaw() > 10))
 		{
-			float TempDiff = TempFromCollector.get()-SpTempSource;
-			Pump.run(TempFromSystem.get()+TempDiff+3,TempToCollector.get());
+			Probing.restart();
 		}
-		else if (Probe.get(0.1) && (SolarIntensity.get()>335))
+		
+		if (sufficientHeat)
 		{
-			Pump.run(0.25);
+			Pump.run(0.4);
+			Waiting.restart();
 		}
-		else Pump.run();
+		else if (Probing.get() && (TempFromCollector.getRaw() > 10))
+		{
+			Pump.run(1.0);
+			
+			unsigned long WaitPeriod = static_cast<unsigned long>(min((minWaitPeriod + max((tempdiff-7),0)*1.4*60*1000),maxWaitPeriod));
+			Waiting.setTimePeriod(WaitPeriod);
+			Waiting.restart();
+		}
+		else Pump.run(); // Stop Pump
 		
 		// Open valve if sufficient heat is available
 		Valve.set(sufficientHeat && enable);
 		
 		// Return if there is residual heat so that charging of boiler continues
-		return sufficientHeat;
+		return(sufficientHeat);
 	}
 	
 	float TempSource()
-        {
-            return(max(TempToSystem.get(),TempFromSystem.get()));
-        }
+	{
+		return(TempToSystem.getRaw());	}
 	
 	void getData(JsonObject& root);
 	
@@ -110,13 +126,10 @@ class cSolar
 	cTempSensor TempToSystem;
 	
 	private:
-	
-	cTempSensor TempToCollector;
-	cTempSensor TempFromSystem;
-	
 	cSolarIntensity SolarIntensity;
-        
-        cLFPWM Probe;
+
+	cTimer Probing;
+	cTimer Waiting;
 	
 	cValve Valve;
 	cPump Pump;

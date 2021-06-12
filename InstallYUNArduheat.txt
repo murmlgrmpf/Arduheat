@@ -1,0 +1,5 @@
+copy handleArduheat.py and bridgeSerial.py to arduino sd card root folder
+disable ttyATH0.... in /etc/inittab by commenting the line with #
+google for installing pip on yun
+pip install pyserial
+

@@ -25,6 +25,9 @@ class cTrigger
 		return active;
 	}
 	
+	void setTimePeriod(unsigned long TimePeriod_){
+		TimePeriod = TimePeriod_;
+	}	
 	void restart(void) {StartTime = millis();}
 	
 	private:

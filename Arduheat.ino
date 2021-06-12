@@ -41,7 +41,7 @@ void  setup()
     rtc.begin();
     ////////////////////////
     //// following line sets the RTC to the date & time this sketch was compiled
-    //rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     TimeNow = rtc.now();
 
     //analogReference(DEFAULT);

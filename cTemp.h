@@ -54,33 +54,34 @@ class cTempSensor
 		initMultiplexer();
 	}
 	
+	float getRaw( void )
+        {
+            // Set the right multiplexer channel
+            digitalWrite(pgm_read_word(&MPControl[0]),HIGH && (pgm_read_word(MultiplexChannel) & B00000001));
+            digitalWrite(pgm_read_word(&MPControl[1]),HIGH && (pgm_read_word(MultiplexChannel) & B00000010));
+            digitalWrite(pgm_read_word(&MPControl[2]),HIGH && (pgm_read_word(MultiplexChannel) & B00000100));
+            digitalWrite(pgm_read_word(&MPControl[3]),HIGH && (pgm_read_word(MultiplexChannel) & B00001000));
+            // Multisampling
+            float TempMult = pgm_read_float(Offset); //Initialize with offset
+            for (int i = 1;i<=nMultiSample;i++)
+            {
+                // Determine raw temperature reading
+                float Ua = analogRead(pgm_read_word(pinMultiplexInput))/1023.0*Vcc;
+                float Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
+                float Kt = R*Ue/(Vcc-Ue) /R25;
+                float Temp = 25+(sqrt(pow(Alpha, 2)-4*Beta+4*Beta*Kt)-Alpha)/(2*Beta);
+                TempMult = TempMult+Temp/nMultiSample; // Add up offset and the average temperature measurement from the sensor
+            }
+            return(TempMult);
+        }
 	
 	float get( void )
 	{
 		if (Trigger.get()) {
-			// Set the right multiplexer channel
-			digitalWrite(pgm_read_word(&MPControl[0]),HIGH && (pgm_read_word(MultiplexChannel) & B00000001));
-			digitalWrite(pgm_read_word(&MPControl[1]),HIGH && (pgm_read_word(MultiplexChannel) & B00000010));
-			digitalWrite(pgm_read_word(&MPControl[2]),HIGH && (pgm_read_word(MultiplexChannel) & B00000100));
-			digitalWrite(pgm_read_word(&MPControl[3]),HIGH && (pgm_read_word(MultiplexChannel) & B00001000));
-
-                        // Multisampling
-                        float TempMult = pgm_read_float(Offset);
-                        for (int i = 1;i<=nMultiSample;i++)
-                        {
-                            // Determine raw temperature reading
-                            float Ua = analogRead(pgm_read_word(pinMultiplexInput))/1023.0*Vcc;
-                            float Ue = (Ua + Vcc*(R1/R3))/(1+R1/R2+R1/R3);
-                            float Kt = R*Ue/(Vcc-Ue) /R25;
-                            float Temp = 25+(sqrt(pow(Alpha, 2)-4*Beta+4*Beta*Kt)-Alpha)/(2*Beta);
-                            TempMult = TempMult+Temp/nMultiSample;
-                        }
                         // Apply filtering: exponential filtering coefficient [1/#Measurements]
-                        
-                        TempFilt = (alphaFilt/(alphaFilt+1))*TempMult  + (1/(alphaFilt+1))*TempFilt;
+						TempFilt = (alphaFilt/(alphaFilt+1))*getRaw()  + (1/(alphaFilt+1))*TempFilt;
 		}
-		
-		// Return filtered temperature plus offset
+		// Return filtered temperature
 		return(TempFilt);
 	}
 	

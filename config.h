@@ -27,7 +27,6 @@ public:
         printElement(&(Heating->Rooms), &cRooms::getOffsetTime); serial->print(",");
         printElement(&(Heating->Rooms), &cRooms::getOffsetTemp); serial->print(",");
         printElement(&(Heating->Rooms), &cRooms::getRooms); serial->print(",");
-        printElement(&(Heating->Burner),&cBurner::getSP); serial->print(",");
         printElement(&(Heating->WarmWater),&cWarmWater::getSP);
         serial->println("]}");
     }
@@ -39,7 +38,6 @@ public:
             posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setOffsetTime);
             posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setOffsetTemp);
             posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setRooms);
-            posReturn += readConfigLine(&(Heating->Burner), &cBurner::setSP);
             posReturn += readConfigLine(&(Heating->WarmWater), &cWarmWater::setSP);
             sendConf();
         }
@@ -48,14 +46,14 @@ public:
     //////////////Logfile//////////////////
     void sendLog() {
         // Write data to file.  Start with log time in micros.
-        serial->print("{\"Log\":[");
+		serial->print("{\"Log\":[");
         printElement(&(Heating->Rooms), &cRooms::getData); serial->print(",");
         printElement(Heating, &cHeating::getData); serial->print(",");
-        printElement(&(Heating->Burner), &cBurner::getData); serial->print(",");
-        printElement(&(Heating->Boiler), &cBoiler::getData); serial->print(",");
-        printElement(&(Heating->WarmWater), &cWarmWater::getData); serial->print(",");
-        printElement(&(Heating->Solar), &cSolar::getData);
-        serial->println("]}");
+		printElement(&(Heating->TransferStation), &cTransferStation::getData); serial->print(",");
+		printElement(&(Heating->Boiler), &cBoiler::getData); serial->print(",");
+		printElement(&(Heating->WarmWater), &cWarmWater::getData); serial->print(",");
+		printElement(&(Heating->Solar), &cSolar::getData);
+		serial->println("]}");
     }
 
 private:

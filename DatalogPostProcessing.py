@@ -16,9 +16,8 @@ plt.close('all')
 ###############Select Plots##############
 plotrooms = True
 ##############Select File################
-
-Logfile = "Logs/16041700.CSV"
-#Logfile = "Logs/15042300.CSV"
+Logfile = "Logs/19041901.CSV"
+#Logfile = "//DISKSTATION/Installation/Windows Programs/_Programs Heating7Arduino/Logs/15042300.CSV"
 
 with open(Logfile) as f:
     readdata = csv.reader(f)
@@ -118,12 +117,20 @@ for column in OverrideOffsets.T:
 plt.figure().suptitle('Warm water')
 ax1 = plt.subplot(2,1,1)
 plotIdax(ax1,'WTi')
+plotIdax(ax1,'WTifromB')
 plotIdax(ax1,'BT1')
+plotIdax(ax1,'WTitoB')
 plt.legend(); plt.gca().xaxis.grid(True)
 ax2 = plt.subplot(2,1,2, sharex=ax1)
-plotIdax(ax2,'WP')
-plotIdax(ax2,'Wn')
-#plotIdax(ax2,'WarmWaterNeed')
+plotIdax(ax2,'WS')
+plotIdax(ax2,'WG')
+#plotIdax(ax2,'WP')
+id1 = 'Wn'
+e = data[:,Header.index(id1)]/20
+ax2.plot(time, e, label = 'Wn = l/min / 20')
+ax2.set_ylim(0,1.0)
+plt.legend(); plt.gca().xaxis.grid(True)
+#plotIdax(ax2,'Wn')
 
 plt.figure().suptitle('Rooms Pump')
 ax1 = plt.subplot(2,1,1)
@@ -137,7 +144,7 @@ plt.legend(); plt.gca().xaxis.grid(True)
 ax2 = plt.subplot(2,1,2, sharex=ax1)
 plotIdax(ax2,'BncW')
 plotIdax(ax2,'Rn')
-plotIdax(ax2,'BuBurns')
+plotIdax(ax2,'Tssuht')
 plt.legend(); plt.gca().xaxis.grid(True)
 
 plt.figure().suptitle('Mixer')
@@ -145,6 +152,7 @@ ax1 = plt.subplot(2,1,1)
 id1 = 'RTsHeating'
 id2 = 'RTitoR'
 id3 = 'RM'
+id4 = 'RTitoSys'
 e = np.subtract(data[:,Header.index(id1)], data[:,Header.index(id2)])
 ax1.plot(time, e, label = 'e Mischer')
 ax1.plot(time,data[:,Header.index(id3)], label = (id3))
@@ -156,20 +164,19 @@ ax2 = plt.subplot(2,1,2, sharex=ax1)
 plotIdax(ax2,'Rn')
 plotIdax(ax2,'RTitoR')
 plotIdax(ax2,'RTsHeating')
+plotIdax(ax2,'RTitoSys')
 plt.legend(); plt.gca().xaxis.grid(True)
 
-plt.figure().suptitle('Boiler Charge Pump')
+plt.figure().suptitle('Transfer Station')
 ax1 = plt.subplot(2,1,1)
-plotIdax(ax1,'BTsc')
-plotIdax(ax1,'BT0')
-plotIdax(ax1,'BuT')
-plotIdax(ax1,'RTsHeating')
+plotIdax(ax1,'TsTtoTele')
+plotIdax(ax1,'TsTfromTele')
+plotIdax(ax1,'TsTOp')
 plt.legend(); plt.gca().xaxis.grid(True)
 ax2 = plt.subplot(2,1,2, sharex=ax1)
-plotIdax(ax2,'BP')
-plotIdax(ax2,'BncW')
-plotIdax(ax2,'BncH')
-plotIdax(ax2,'BuBurns')
+plotIdax(ax2,'Tssuht')
+plotIdax(ax2,'TsV')
+plotIdax(ax2,'TsPower')
 plt.legend(); plt.gca().xaxis.grid(True)
 
 plt.figure().suptitle('Boiler')
@@ -180,7 +187,7 @@ plotIdax(ax1,'BT1')
 plotIdax(ax1,'BT2')
 plotIdax(ax1,'BT3')
 plotIdax(ax1,'BT4')
-plotIdax(ax1,'BuT')
+plotIdax(ax1,'TsTOp')
 plotIdax(ax1,'STtoSys')
 plt.legend(); plt.gca().xaxis.grid(True)
 ax2 = plt.subplot(2,1,2, sharex=ax1)
@@ -191,10 +198,8 @@ plt.legend()
 
 plt.figure().suptitle('Solar')
 ax1 = plt.subplot(2,1,1)
-plotIdax(ax1,'STfromCol')
-plotIdax(ax1,'STtoCol')
-plotIdax(ax1,'STfromSys')
 plotIdax(ax1,'STtoSys')
+plotIdax(ax1,'STfromCol')
 plotIdax(ax1,'Toutside')
 plt.legend(); plt.gca().xaxis.grid(True)
 ax2 = plt.subplot(2,1,2, sharex=ax1)

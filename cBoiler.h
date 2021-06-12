@@ -11,9 +11,9 @@
 #include <cPID.h>
 #include <ArduinoJson.h>
 
-// Charge Margins Warmwater and Heating
-#define WMargin  12.0  // 13
-#define HMargin  4.0
+// Charge Margin WarmWater for staged SetPoint
+#define WMargin  13.0
+#define SMargin  4.0
 
 class cBoiler
 {
@@ -27,18 +27,12 @@ class cBoiler
 		double SpTempCharge = 0.0;
 
     if (needChargeWarmWater())
-      SpTempCharge = WarmWater->SpTemp + WMargin;
+      SpTempCharge = 46 + WMargin; // charge WarmWater
     else if (bneedChargeHeating)
-      SpTempCharge = Rooms->getSpHeating() + HMargin;
+      SpTempCharge = (Rooms->getSpHeating()); // charge Rooms
     else {
-      if (Rooms->HeatingPeriod.get())
-        // If heating period: Charge floating for room heating
-        SpTempCharge = TempReserve1.get()+HMargin;
-      else
-        // If not heating period: charge only (floating) for warm water
-        SpTempCharge = max(WarmWater->SpTemp, TempReserve2.get()) + WMargin;
+      SpTempCharge = TempReserve1.get() + SMargin; // Solar Charge
     }
-    
 		return (SpTempCharge);
 	}
 	
@@ -47,8 +41,8 @@ class cBoiler
     if (WarmWater->Period.get()) {
   		// Hysteresis by top and head temperature sensors.
   		// If top falls below setpoint: charge. If head gets above setpoint: dont charge.
-  		if (WarmWater->SpTemp+HMargin > TempTop.get())  bneedChargeWarmWater = true;
-  		if (WarmWater->SpTemp+HMargin+4 < TempHead.get()) bneedChargeWarmWater = false;
+  		if (TempTop.get() < 50)  bneedChargeWarmWater = true;
+  		if (TempHead.get() > 50) bneedChargeWarmWater = false;
       }
     else
       bneedChargeWarmWater = false;
@@ -56,54 +50,67 @@ class cBoiler
 		return bneedChargeWarmWater;
 	}
 	
-	boolean needChargeHeating(boolean needHeating)
-	{
-		// Hysteresis by TempReserve1 and 2 or no need for heating the rooms.
-		// If TempReserve1 falls below setpoint and heating of the rooms is needed: charge.
-		// If TempReserve2 comes above setpoint or heating of the rooms not needed: dont charge.
-		if ((Rooms->getSpHeating() > TempReserve1.get()) && needHeating)  bneedChargeHeating = true;
-		if ((Rooms->getSpHeating() < TempReserve2.get()) || !needHeating) bneedChargeHeating = false;
-    
-    // Trigger charge warm water
-    // if (bneedChargeHeating)
-    //     bneedChargeWarmWater = true;
-    
-		return bneedChargeHeating;
-	}
-	
 	void charge(float TempHeatSource, boolean bneedSink = false)
 	{
     double SpTempCharge = SpTemp();
     
-		boolean need = (needChargeWarmWater() || bneedChargeHeating || bneedSink);
+		boolean need = (needChargeWarmWater() || bneedSink);
+
 		
-		if (need) // if charging is needed, charging is fixed to true
-			bCharging = true;
+// if charging is needed, charging is fixed to true	
+		if (need)
+		bCharging = true;
+
 		else // Hysteresis for Simultaneous charging of boiler
 		{
-			if (SpTempCharge+2 < TempHeatSource)
-				bCharging = true;
-			if (SpTempCharge-2 > TempHeatSource)
-				bCharging = false;
+			if ((bCharging == false) && (TempHeatSource > (TempReserve1.get() + 3)))
+			bCharging = true;
+			if ((bCharging == true) && (TempHeatSource < (TempReserve1.get() + 1)))
+			bCharging = false;
 		}
-		
-		if (bCharging) // Run Pump
-			Pump.run(SpTempCharge, TempHeatSource);
-		else // Stop Charging: Stop PID and Pump
-			Pump.run();
-                
-    // Open Valve if charge pump running (charging) or discharging
-    setValve();
-	}
+
+			double BoilerPumpMin = max(0.03,((0.06-0.03)/(80-50)*(TempReserve1.get()-50)+0.03)); //minimal Pump Power as function of Boiler Temp
+			if (needChargeWarmWater()) //different start condition for charging of WarmWater
+			BoilerPumpMin = 0.2;			
+
+		Pump.SetOutputLimits(BoilerPumpMin, 1.0);
 	
-	void discharge( boolean bNeedSourceBoiler )
+	if (bneedChargeWarmWater) {
+		TempHeatSource = TempHeatSource + 45;
+		SpTempCharge = 56;
+		}
+		// Run Pump				
+		if (bCharging)
+		Pump.run(SpTempCharge, TempHeatSource);
+		
+		else // Stop Charging: Stop PID and Pump
+		Pump.run();
+
+		Pump.get();
+			
+		setValve(); // Open Valve if charge pump running (charging)
+	}
+
+boolean Hot(void)
+{
+	// introduce FlipFlop for Hysteresis of Boiler Discharge
+	if ((bHot == false) && (TempReserve1.get() > (Rooms->getSpHeating() + 3)))
+	bHot = true;
+	if ((bHot == true) && (TempReserve1.get() < Rooms->getSpHeating()))
+	bHot = false;
+	
+	return bHot;
+}
+
+	void discharge(boolean bNeedSourceBoiler)
 	{
 		bDischarging = bNeedSourceBoiler;
-		setValve(); // Open Valve if charging or discharging
+		setValve(); // Open Valve if discharging
 	}
 	
-	void setValve() {Valve.set(bDischarging || (Pump.get()>0.0));};
-	
+	void setValve() {Valve.set(bDischarging || (Pump.get()>0.0));
+}
+
 	void getData(JsonObject& root);
 	
 	cValve Valve;
@@ -120,10 +127,13 @@ class cBoiler
 	cRooms* Rooms;
 	cWarmWater* WarmWater;
 	
+	double PumpPeriod;
+	
 	boolean bneedChargeWarmWater;
 	boolean bneedChargeHeating;
 	boolean bDischarging;
 	boolean bCharging;
+	boolean bHot;
 };
 
 #endif

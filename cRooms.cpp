@@ -1,22 +1,24 @@
 #include "cRooms.h"
 
-cRooms::cRooms( void ):
+cRooms::cRooms( cWarmWater* WarmWater_ ):
 IsTempHeatingLead((&MPNumSys[0]),(&MPChanSys[idxTempHeatingLead]),(&SysTempOffset[idxTempHeatingLead])),
 IsTempHeatingReturn((&MPNumSys[0]),(&MPChanSys[idxTempHeatingReturn]),(&SysTempOffset[idxTempHeatingReturn])),
 TempOutside((&MPNumSys[0]),(&MPChanSys[idxTempOutside]),(&SysTempOffset[idxTempOutside]),TRoomInit, AlphaTRoom),
 Pump(PinPumpHeating,0.5, 0.0, 0.0, DIRECT, 0.0),
-Mixer(PinMixerOpen,PinMixerClose, 0.1, 0.0008, 3.9, DIRECT),
-HeatingPeriod(129600000), // 36(h)*60(min/h)*60(s/min)*1000(ms/s)
-PWM(600000) // 10(min)*60(s/min)*1000(ms/s) = 600000 ; 10 minute room heating interval
+Mixer(PinMixerOpen,PinMixerClose, 0.09, 0.0, 2.3, DIRECT),
+PWM(30000) // 0.25(min)*60(s/min)*1000(ms/s) = 15000 ; 15 seconds room heating interval
+//PWM(120000) // 2(min)*60(s/min)*1000(ms/s) = 120000 ; 2 minutes room heating interval
 {
 	SetType = Normal;
 	// Initialize PID controllers for pumps
 	Pump.SetOutputLimits(0.3, 1.0);
 	Mixer.SetOutputLimits(-1.0, 1.0);
-	Mixer.SetSampleTime(5000);
+	Mixer.SetSampleTime(1000);
 	
-	MaxNeed =0;
+	MaxNeed = 0;
 	dMaxSp = 0;
+	
+	WarmWater = WarmWater_;
 	
 	initDefaultSetpoint();
 }
@@ -24,22 +26,26 @@ PWM(600000) // 10(min)*60(s/min)*1000(ms/s) = 600000 ; 10 minute room heating in
 void cRooms::initDefaultSetpoint()
 {
 //   TempOffsetSchedule =20.0;
-	MasterSpTemps[Living] = 20.2;//15;//
-	MasterSpTemps[Sleeping] =20.0;//15;//
-	MasterSpTemps[Hallway] = 19.0;//15;//
-	MasterSpTemps[Bath] = 22.0;//15;//
-	MasterSpTemps[Side] = 15.0;//15;//
-	
+
+	MasterSpTemps[Living] = 21.2;
+	MasterSpTemps[Sleeping] = 20.0;
+	MasterSpTemps[Hallway] = 19.0;
+	MasterSpTemps[Bath] = 22.0;
+	MasterSpTemps[Side] = 14.0;
+	MasterSpTemps[Trim] = 18.0;
+	MasterSpTemps[Work] = 20.3;
+        
 	double temp[nSwitch];
 	temp[0] = 0.0;
-	temp[1] = -1.0;//0.0;//
+	temp[1] = -1.2;
 	temp[2] = 0.0;
-	temp[3] = -1.0;//0.0;//
+	temp[3] = -1.2;
 	TimeSpan switchtime[nSwitch];
 	switchtime[0].set(0,5,45,0);
 	switchtime[1].set(0,8,0,0);
 	switchtime[2].set(0,18,0,0);
-	switchtime[3].set(0,21,00,0);
+	switchtime[3].set(0,21,0,0);
+
 	// Iterate over all sets (At home, away)
 	for(int iSet = 0; iSet<nSetTypes; iSet++)
 	{
@@ -47,7 +53,8 @@ void cRooms::initDefaultSetpoint()
 		{
 			for(int iSwitch = 0; iSwitch<nSwitch; iSwitch++)
 			{
-				// Discriminate between Rooms that do not reduce temperature during the day and those who do
+				// Discriminate between Rooms that do not reduce temperature during the day and those which do
+
 				if((iSwitch==1)){
 					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].time.set(switchtime[iSwitch]);
 					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].temp = temp[iSwitch-1];
@@ -55,6 +62,9 @@ void cRooms::initDefaultSetpoint()
 					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].temp = temp[iSwitch-1];
 					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].time.set(switchtime[iSwitch]);
 					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].temp = temp[iSwitch-1];
+					TempOffsetSchedule[iSet][Work][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Work][iDayType][iSwitch].temp = temp[iSwitch-1];				
+					
 				}
 				else {
 					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].time.set(switchtime[iSwitch]);
@@ -63,6 +73,17 @@ void cRooms::initDefaultSetpoint()
 					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].temp = temp[iSwitch];
 					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].time.set(switchtime[iSwitch]);
 					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].temp = temp[iSwitch];
+					TempOffsetSchedule[iSet][Work][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Work][iDayType][iSwitch].temp = temp[iSwitch];					
+				}
+				
+				if((iSwitch==2)){
+					TempOffsetSchedule[iSet][Trim][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Trim][iDayType][iSwitch].temp = temp[iSwitch-1];					
+				}
+				else {
+					TempOffsetSchedule[iSet][Trim][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Trim][iDayType][iSwitch].temp = temp[iSwitch];			
 				}
 				
 				TempOffsetSchedule[iSet][Sleeping][iDayType][iSwitch].time.set(switchtime[iSwitch]);
@@ -82,25 +103,20 @@ void cRooms::ChargeRooms( boolean ChargeRooms , boolean bcloseMixer)
 	if (ChargeRooms)
 	{
 		// Run Pump and Mixer
-		Mixer.run(getSpHeating(), IsTempHeatingLead.get());
+		Mixer.run(getSpHeating(), IsTempHeatingLead.getRaw());
 		Pump.run(SpTempHeatingReturn, IsTempHeatingReturn.get());
-    // Restart Heating Period timer
-    HeatingPeriod.restart();
 	}
 	else
 	{
 		// Stop Pump and Mixer Heating
 		Pump.run(0.0);
-                if (bcloseMixer)
-                    Mixer.run(-1.0);
-                else
-                    Mixer.run(0.0);
+		Mixer.run(-1.0);
 	}
 }
 
 double cRooms::getNeed(void)
 {
-    	dMaxSp = 0.0;
+    dMaxSp = 0.0;
 	MaxNeed = 0.0;
         
 	// Read state of rooms
@@ -117,17 +133,13 @@ double cRooms::getNeed(void)
 
 boolean cRooms::active(void)
 {
-	// Reset Values
-        boolean active = false;
-        
-	// Read state of rooms
-	for(int i = 0; i<nRooms; i++)
-	{
-                // Check for rooms needing heat
-                active = active||Room[i].getValve();
-	}
+	// introduce FlipFlop for Hysteresis of MaxNeed
+	if ((bAct == false) && (MaxNeed > 0.95))
+	bAct = true;
+	if ((bAct == true) && (MaxNeed < 0.35))
+	bAct = false;
 	
-	return active;
+	return bAct;
 }
 
 double cRooms::getSpHeating(void)
@@ -149,7 +161,7 @@ void cRooms::getOffsetTime( JsonObject& root )
 	// Iterate over all sets (At home, away)
 	for(int iSet = 0; iSet<nSetTypes; iSet++)
 	{
-		for(int iRoomType = 0; iRoomType<nRoomTypes; iRoomType++) // Iterate over all Roomtypes (Living, sleeping, hallway, side)
+		for(int iRoomType = 0; iRoomType<nRoomTypes; iRoomType++) // Iterate over all Roomtypes (Living, sleeping, hallway, side, trim)
 		{
 			for(int iDayType = 0; iDayType<nDayTypes; iDayType++)
 			{
@@ -174,7 +186,7 @@ int cRooms::setOffsetTime( JsonObject& root )
 			{
 				for(int iSet = 0; iSet<nSetTypes; iSet++)
 				{
-					for(int iRoomType = 0; iRoomType<nRoomTypes; iRoomType++) // Iterate over all Roomtypes (Living, sleeping, hallway, side)
+					for(int iRoomType = 0; iRoomType<nRoomTypes; iRoomType++) // Iterate over all Roomtypes (Living, sleeping, hallway, side, trim)
 					{
 						for(int iDayType = 0; iDayType<nDayTypes; iDayType++)
 						{
@@ -207,7 +219,7 @@ void cRooms::getOffsetTemp( JsonObject& root )
 	// Iterate over all sets (At home, away)
 	for(int iSet = 0; iSet<nSetTypes; iSet++)
 	{
-		for(int iRoomType = 0; iRoomType<nRoomTypes; iRoomType++) // Iterate over all Roomtypes (Living, sleeping, hallway, bath, side)
+		for(int iRoomType = 0; iRoomType<nRoomTypes; iRoomType++) // Iterate over all Roomtypes (Living, sleeping, hallway, bath, side, trim)
 		{
 			for(int iDayType = 0; iDayType<nDayTypes; iDayType++) // Weekend, Workday
 			{
@@ -232,7 +244,7 @@ int cRooms::setOffsetTemp( JsonObject& root )
 			{
 				for(int iSet = 0; iSet<nSetTypes; iSet++) // Normal
 				{
-					for(int iRoomType = 0; iRoomType<nRoomTypes; iRoomType++) // (Living, sleeping, hallway, bath, side)
+					for(int iRoomType = 0; iRoomType<nRoomTypes; iRoomType++) // (Living, sleeping, hallway, bath, side, trim)
 					{
 						for(int iDayType = 0; iDayType<nDayTypes; iDayType++) // Weekend, Workday
 						{
@@ -348,7 +360,7 @@ void cRooms::getData( JsonObject& root )
 	for (int i = 0; i<nRooms;i++){
 		RoomsIsTemps.add(Room[i].IsTemp.get());
 		RoomsSPTemps.add(Room[i].getSpTemp());
-                RoomsNeeds.add(Room[i].getNeed());
+		RoomsNeeds.add(Room[i].getNeed());
 	}
 	
 	root["Toutside"] = TempOutside.get();

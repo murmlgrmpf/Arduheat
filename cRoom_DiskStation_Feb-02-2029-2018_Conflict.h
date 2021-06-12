@@ -4,7 +4,6 @@
 #include "Arduino.h"
 #include "cTemp.h"
 #include "cRoomValve.h"
-#include "PinDefinitions.h"
 
 // RTC for DateTime class
 #include <RTClib.h>
@@ -12,13 +11,13 @@
 #include <PID_v1.h>
 #include <avr/pgmspace.h>
 
-#define TempRoomLow 13.5
+#define TempRoomLow 13.0
 #define TempRoomHigh 30.0
 #define RoomMargin 0.4
 #define AlphaTRoom 0.1
 #define TRoomInit 25.0
 
-enum RoomTypes {Living, Sleeping, Hallway, Bath, Side, Trim, Work, nRoomTypes};
+enum RoomTypes {Living, Sleeping, Hallway, Bath, Side, Trim, nRoomTypes};
 // enum SetTypes  {Normal, Holiday, nSetTypes};
 enum SetTypes  {Normal, nSetTypes};
 enum DayTypes  {Weekend, Workday, nDayTypes};
@@ -33,7 +32,7 @@ class cRoom : public PID
 	public:
 	/// Creates a room.
 	/** As the rooms get created in an array, only the default constructor can be used cRoom(void) */
-	cRoom(int RoomNumber , cRooms* Rooms_ , double p=2.1 , double i=0.0 , double d=0.0);
+	cRoom(int RoomNumber , cRooms* Rooms_ , double p=1.1 , double i=0.0012 , double d=0.0);
 	
         /// Compute need of room.
         double getNeed(void);
@@ -63,7 +62,8 @@ class cRoom : public PID
 	
 	private:
 	
-	cRoomValve Valve;	// Calibration by measurements
+	cRoomValve Valve;
+	// Calibration by measurements
 	
 	static const PROGMEM int MultiplexChannelRoomsIs[];
 	static const PROGMEM int MultiplexChannelRoomsSp[];

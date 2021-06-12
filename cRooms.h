@@ -12,28 +12,30 @@
 #include "cRoom.h"
 #include "cLFPWM.h"
 #include <ArduinoJson.h>
+#include "cWarmWater.h"
 
 // RTC for DateTime class
 #include <RTClib.h>
 
-#define nSwitch     4 // Number of switching times each day
-#define nRooms     16 // Number of rooms
+#define nSwitch     4 //Number of switching times each day
+#define nRooms     16 //Number of rooms
 
 #define DiffTempHeatingLeadReturn 5 //
 
 // Set default parameters for SpHeating curve
-#define dsteil 0.6
-#define dkh    5
-#define dverst 0 // Raumeinfluss war 2
+#define dsteil 0.6 // Steigung
+#define dkh    2.5  // Verschiebung vertikal
+#define dverst 1.8 // Raumeinfluss
 #define dminvl 30.0
-#define dmaxvl 42.0 // 40
+#define dmaxvl 43.0
 
 
 class cRooms
 {
 	public:
-	cRooms(void);
-	
+	boolean bAct;
+	cRooms(cWarmWater* WarmWater_);
+
 	cTempSensor IsTempHeatingLead;
 	cTempSensor IsTempHeatingReturn;
 	cTempSensor TempOutside;
@@ -44,9 +46,8 @@ class cRooms
 	{14, this},{15, this}};
 	cPump Pump;
 	cMixer Mixer;
-        cTimer HeatingPeriod;
 	
-        double getNeed(void);
+    double getNeed(void);
 	boolean active(void);
 	double getSpHeating(void);
 	SetTypes SetType;
@@ -67,11 +68,11 @@ class cRooms
 	void getData(JsonObject& root);
         
         cLFPWM PWM;
-	
+        cWarmWater* WarmWater;
+        
 	private:
-	
-	double MaxNeed;
 	double dMaxSp;
+	double MaxNeed;	
 };
 
 

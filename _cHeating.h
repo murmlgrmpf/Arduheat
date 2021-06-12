@@ -9,7 +9,6 @@
 #include "cTransferStation.h"
 #include "cWarmWater.h"
 #include "cSolar.h"
-//#include "cPool.h"
 
 // RTC for DateTime class
 #include <RTClib.h>
@@ -27,7 +26,6 @@ class cHeating
 	cBoiler Boiler;
 	cTransferStation TransferStation;
 	cSolar Solar;
-//	cPool Pool;
 	
 	cHeating(void);
 	
@@ -49,7 +47,7 @@ class cHeating
 	boolean needSource;
 	boolean needSink;
 	
-	enum Sinks {SiCombined, SiChargeWarmWater, SiChargeHeating, SiChargeRooms, SiChargePool, SiOff} Sink;
+	enum Sinks {SiCombined, SiChargeWarmWater, SiChargeHeating, SiChargeRooms, SiOff} Sink;
 	enum Sources {SoTransferStation, SoSolar, SoBoiler, SoOff} Source;
 	
 };
