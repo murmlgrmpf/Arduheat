@@ -96,14 +96,18 @@ void cRooms::initDefaultSetpoint()
 }
 
 
-void cRooms::ChargeRooms( boolean ChargeRooms , boolean bcloseMixer)
+void cRooms::charge( boolean ChargeRooms , boolean bControlbyMixer)
 {
-	double SpTempHeatingReturn = getSpHeating()-DiffTempHeatingLeadReturn;
+	double SpTempHeatingReturn = SpTemp()-DiffTempHeatingLeadReturn;
 	
 	if (ChargeRooms)
 	{
 		// Run Pump and Mixer
-		Mixer.run(getSpHeating(), IsTempHeatingLead.getRaw());
+		if (bControlbyMixer)
+			Mixer.run(SpTemp(), IsTempHeatingLead.getRaw());
+		else
+			Mixer.run(1.0);
+		
 		Pump.run(SpTempHeatingReturn, IsTempHeatingReturn.get());
 	}
 	else
@@ -142,7 +146,7 @@ boolean cRooms::active(void)
 	return bAct;
 }
 
-double cRooms::getSpHeating(void)
+double cRooms::SpTemp(void)
 {
 	// Update MaxNeed and dMaxSp
 	getNeed();
@@ -365,7 +369,7 @@ void cRooms::getData( JsonObject& root )
 	
 	root["Toutside"] = TempOutside.get();
 	root["Rn"] = static_cast<int>( active());
-	root["RTsHeating"] = getSpHeating();
+	root["RTsHeating"] = SpTemp();
 	
 	root["RTitoR"] = IsTempHeatingLead.get();
 	root["RTitoSys"] = IsTempHeatingReturn.get();

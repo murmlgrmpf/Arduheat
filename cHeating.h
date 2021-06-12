@@ -9,7 +9,7 @@
 #include "cTransferStation.h"
 #include "cWarmWater.h"
 #include "cSolar.h"
-//#include "cPool.h"
+#include "cPool.h"
 
 // RTC for DateTime class
 #include <RTClib.h>
@@ -27,7 +27,7 @@ class cHeating
 	cBoiler Boiler;
 	cTransferStation TransferStation;
 	cSolar Solar;
-//	cPool Pool;
+	cPool Pool;
 	
 	cHeating(void);
 	
