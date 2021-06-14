@@ -85,7 +85,7 @@ class cBoiler
 			if (needChargeWarmWater()) //start condition for charging of WarmWater
 				BoilerPumpMin = 0.2;
 			else //minimal Pump Power as function of Boiler Temp	
-				BoilerPumpMin = max(0.03,((0.06-0.03)/(80-50)*(TempReserve1.get()-50)+0.03)); 
+				BoilerPumpMin = max(0.03,((0.1-0.03)/(80-50)*(TempReserve1.get()-50)+0.03)); 
 
 			Pump.SetOutputLimits(BoilerPumpMin, 1.0);
 	
