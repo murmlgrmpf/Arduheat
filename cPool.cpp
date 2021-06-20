@@ -24,7 +24,7 @@ boolean cPool::charge(boolean mayCharge, double TempSource){
 void cPool::getData( JsonObject& root )	
 	{
 	root["TPool"] = TempPool.get();
-	root["bPoolActive"] = static_cast<int>((poolActive()/10));
+	root["bPoolActive"] = static_cast<int>(poolActive());
 	//root["BP"] = Boiler.Pump.get();
 	root["PV"] = static_cast<int>( Valve.get());
 	}
