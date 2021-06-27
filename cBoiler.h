@@ -15,7 +15,7 @@
 #define WMargin  13.0
 #define SMargin  4.0
 #define TempSufficientWarmWaterMargin 2.0
-#define TempSufficientWarmWater 60.0
+#define TempSufficientWarmWater 58.0
 
 class cBoiler
 {
