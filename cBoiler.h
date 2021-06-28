@@ -54,9 +54,9 @@ class cBoiler
 	
 	boolean shouldCharge(void)
 	{
-		if (TempReserve1.get() <= TempSufficientWarmWater)
+		if (TempHead.get() <= TempSufficientWarmWater)
 			bshouldChargeWarmWater = true;
-		else if (TempReserve1.get() > TempSufficientWarmWater+TempSufficientWarmWaterMargin)
+		else if (TempHead.get() > TempSufficientWarmWater+TempSufficientWarmWaterMargin)
 			bshouldChargeWarmWater = false;
 		return bshouldChargeWarmWater;
 	}
