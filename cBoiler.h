@@ -54,7 +54,8 @@ class cBoiler
 	
 	boolean shouldCharge(void)
 	{
-		if (TempHead.get() <= TempSufficientWarmWater)
+		if (TempTop.get() <= TempSufficientWarmWater)
+//		if (TempHead.get() <= TempSufficientWarmWater)
 			bshouldChargeWarmWater = true;
 		else if (TempHead.get() > TempSufficientWarmWater+TempSufficientWarmWaterMargin)
 			bshouldChargeWarmWater = false;
@@ -82,7 +83,7 @@ class cBoiler
 
 		if (bCharging){
 			double BoilerPumpMin = 0.0;
-			if (needChargeWarmWater()) //start condition for charging of WarmWater
+			if (needChargeWarmWater()) //starting condition for charging of WarmWater
 				BoilerPumpMin = 0.2;
 			else //minimal Pump Power as function of Boiler Temp	
 				BoilerPumpMin = max(0.03,((0.1-0.03)/(80-50)*(TempReserve1.get()-50)+0.03)); 
@@ -94,7 +95,7 @@ class cBoiler
 				SpTempCharge = 56;
 			}
 		
-			// Run Pump				
+			// Run Pump
 			Pump.run(SpTempCharge, TempHeatSource);
 		}
 		//else // Stop Charging: Stop PID and Pump
