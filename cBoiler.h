@@ -14,7 +14,7 @@
 // Charge Margin WarmWater for staged SetPoint
 #define WMargin  13.0
 #define SMargin  4.0
-#define TempSufficientWarmWaterMargin 2.0
+//#define TempSufficientWarmWaterMargin 2.0
 #define TempSufficientWarmWater 58.0
 
 class cBoiler
@@ -57,7 +57,8 @@ class cBoiler
 		if (TempTop.get() <= TempSufficientWarmWater)
 //		if (TempHead.get() <= TempSufficientWarmWater)
 			bshouldChargeWarmWater = true;
-		else if (TempHead.get() > TempSufficientWarmWater+TempSufficientWarmWaterMargin)
+		else if (TempHead.get() > TempSufficientWarmWater)
+//		else if (TempHead.get() > TempSufficientWarmWater+TempSufficientWarmWaterMargin)
 			bshouldChargeWarmWater = false;
 		return bshouldChargeWarmWater;
 	}
