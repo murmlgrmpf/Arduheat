@@ -98,7 +98,7 @@
 #define P(str) (strcpy_P(p_buffer, PSTR(str)), p_buffer)
 
 const PROGMEM int MPChanSys[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-const PROGMEM float SysTempOffset[] = {-1.4,-1.2,-0.1,-0.47,-0.6,-0.4,-0.6,-0.9,0,0,0,0,-1.65,0.0,-1.8,-0.76}; //InputBoard1
+const PROGMEM float SysTempOffset[] = {-1.4,-1.2,-0.1,-0.47,-0.6,-0.4,-0.6,-0.9,0,0,0,0,-1.65,0.0,-0.6,-0.76}; //InputBoard1
 //const PROGMEM float SysTempOffset[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1.66}; //InputBoard1_old
 
 // On system Multiplexer 2
