@@ -11,7 +11,7 @@
 #include <cPID.h>
 #include <ArduinoJson.h>
 
-#define spTempPoolMax 23.0
+#define spTempPoolMax 22.0
 #define PoolMargin 5.0
 #define PoolHysteresis 1.0
 
