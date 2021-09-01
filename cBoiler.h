@@ -14,7 +14,7 @@
 // Charge Margin WarmWater for staged SetPoint
 #define WMargin  13.0
 #define SMargin  4.0
-#define TempSufficientWarmWater 58.0
+#define TempSufficientWarmWater 49.0
 
 class cBoiler
 {
