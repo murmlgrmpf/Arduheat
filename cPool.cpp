@@ -11,7 +11,7 @@ TempPool(&MPNumSys[0], &MPChanSys[idxTempPool], &SysTempOffset[idxTempPool])
 boolean cPool::charge(boolean mayCharge, double TempSource){
 	double SpTempCharge = SpTemp();
 	if (mayCharge) {
-		Boiler->Pump.SetOutputLimits(0.0, 1.0);
+		Boiler->Pump.SetOutputLimits(0.2, 1.0);
 		Boiler->Pump.run(SpTempCharge, TempSource);
 	}
 	Valve.set(mayCharge);

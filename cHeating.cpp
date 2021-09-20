@@ -82,8 +82,8 @@ void cHeating::checkSinks(void)
 	else if (Pool.shouldCharge()) {
 		Sink = SiChargePool;
 		SpTempSource = Pool.SpTemp();
-		needSource = false; 
-                //needSource = false;  //toggle false to deactivate charging pool
+		needSource = true; 
+                //needSource = false;  //toggle true - false to deactivate charging pool
 	}
 	// Else Charge into boiler anyway
 	else {
