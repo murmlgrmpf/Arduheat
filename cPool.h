@@ -38,14 +38,12 @@ class cPool
 
 	void getData(JsonObject& root);
 
-	cBoiler* Boiler;
-
 	private:
 	
 	boolean bmayChargePool;
 	cTempSensor TempPool;
 	cValve Valve;
-//	cBoiler* Boiler;
+	cBoiler* Boiler;
 	
 	boolean poolActive(void)
 	{
