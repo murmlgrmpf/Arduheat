@@ -22,8 +22,8 @@ class cPool
 	cPool(cBoiler* Boiler_);
 	
 	double SpTemp(void) {
-//		return(TempPool.get()+PoolMargin);
-		return 50;
+		return(TempPool.get()+PoolMargin);
+//		return 50;
 	}
 	
 	boolean shouldCharge(void){
