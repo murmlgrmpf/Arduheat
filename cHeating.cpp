@@ -159,7 +159,7 @@ void cHeating::selectSink( int Sink )
 	boolean poolMayCharge = false;
 	boolean roomsMayCharge = false;
 	
-	boolean controlByRoomsMixer = (!(TransferStation.GetMode()==AUTOMATIC) || SiCombined);
+	boolean controlByRoomsMixer = (!(TransferStation.GetMode()==AUTOMATIC) || (Boiler.needChargeWarmWater() && Rooms.bAct));
 //	boolean controlByRoomsMixer = !(TransferStation.GetMode()==AUTOMATIC);
 	switch (Sink) {
 		case SiCombined: {
