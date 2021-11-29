@@ -81,11 +81,10 @@ void cHeating::checkSinks(void)
 	// #4 Charge the pool
 	else if (Pool.shouldCharge()) {
 		Sink = SiChargePool;
-//		SpTempSource = Pool.SpTemp();
+		SpTempSource = Pool.SpTemp();
 		needSource = false; //needSource = false;  //toggle true - false to deactivate charging pool
-			if (needSource = false)
-				SpTempSource = Pool.SpTemp();
-			else (SpTempSource = 55);
+			if (needSource = true)
+			 (SpTempSource = 55);
 	}
 	// Else Charge into boiler anyway
 	else {
@@ -105,7 +104,6 @@ void cHeating::checkSources(void)
 		needSink = true;
 	}
 	// #3 Boiler
-//	else if ((! Boiler.needChargeWarmWater()) && (Boiler.Hot())) {
 	else if ((! Boiler.needChargeWarmWater()) && (Boiler.Hot()) && (! Pool.shouldCharge())) {
 		Source = SoBoiler;
 		TempSource = Boiler.TempReserve1.get();
@@ -162,7 +160,7 @@ void cHeating::selectSink( int Sink )
 	boolean poolMayCharge = false;
 	boolean roomsMayCharge = false;
 	
-	boolean controlByRoomsMixer = (!(TransferStation.GetMode()==AUTOMATIC) || (Boiler.needChargeWarmWater() && Rooms.bAct));
+	boolean controlByRoomsMixer = ((TransferStation.GetMode()!=AUTOMATIC) || (Boiler.needChargeWarmWater() && Rooms.bAct));
 	switch (Sink) {
 		case SiCombined: {
 			roomsMayCharge = true;
