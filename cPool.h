@@ -23,7 +23,6 @@ class cPool
 	
 	double SpTemp(void) {
 		return(TempPool.get()+PoolMargin);
-//		return 50;
 	}
 	
 	boolean shouldCharge(void){
@@ -34,13 +33,24 @@ class cPool
 			
 		return(bmayChargePool && poolActive());
 	}
+
+//Switch for charging by TransferStation
+	boolean FeedPool(void){
+		if ((bFeedPool == false) && (TempPool.get() < 5))
+			bFeedPool = true;
+		if ((bFeedPool == true) && (TempPool.get() > 50))
+			bFeedPool = false;
 	
+		return bFeedPool;
+	}
+
 	boolean charge(boolean mayCharge, double TempSource);
 
 	void getData(JsonObject& root);
 
 	private:
 	
+	boolean bFeedPool;
 	boolean bmayChargePool;
 	cTempSensor TempPool;
 	cValve Valve;

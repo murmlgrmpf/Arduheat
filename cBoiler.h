@@ -107,9 +107,9 @@ boolean Hot(void)
 {
 	// introduce FlipFlop for Hysteresis of Boiler Discharge
 	if ((bHot == false) && (TempReserve1.get() > (Rooms->SpTemp() + 3)))
-	bHot = true;
+		bHot = true;
 	if ((bHot == true) && (TempReserve1.get() < Rooms->SpTemp()))
-	bHot = false;
+		bHot = false;
 	
 	return bHot;
 }

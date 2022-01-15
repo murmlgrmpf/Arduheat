@@ -18,13 +18,14 @@
 #define PinPumpHeating               22
 #define PinMixerOpen                 14
 #define PinMixerClose                25
-#define PinPoolSwitch		         19
-#define PinSolarIntensity	         A3
-#define PinWarmWaterFlow	         A4
-#define PinFlowRegulator	          3
+#define PinPoolSwitch                19
+#define PinSolarIntensity            A3
+#define PinWarmWaterFlow             A4
+#define PinFlowRegulator              3
 //#define PinValveTransferStation	   15 //New Ball Valves
-//#define PinValveBoiler	            2 //New Ball Valves
-//#define PinValveSolar	               24 //New Ball Valves
+//#define PinValveBoiler                2 //New Ball Valves
+//#define PinValveSolar                24 //New Ball Valves
+//#define PinValvePool                  8 //New Ball Valves
 //#define PinPumpWarmWaterPWM           7 //Future Eco Pumps
 //#define PinPumpBoilerPWM              6 //Future Eco Pumps
 //#define PinPumpHeatingPWM             5 //Future Eco Pumps
@@ -38,7 +39,6 @@
 #define PinValveSolarOpen            45
 #define PinValveTransferStationClose 47
 #define PinValveTransferStationOpen  49
-#define PinStartHeatSource1          14 // Not Used
 #define PinValveBoilerClose           5
 #define PinValvePoolClose            41
 #define PinValvePoolOpen             40
@@ -49,12 +49,13 @@
 #define PinMixerOpen                  2
 #define PinMixerClose                22
 #define PinPoolSwitch                19
-#define PinSolarIntensity	         A3
-#define PinWarmWaterFlow	         A4
-#define PinFlowRegulator	          6
-//#define PinValveTransferStation	   14 //New Ball Valves
-//#define PinValveBoiler	            3 //New Ball Valves
-//#define PinValveSolar	                5 //New Ball Valves
+#define PinSolarIntensity            A3
+#define PinWarmWaterFlow             A4
+#define PinFlowRegulator              6
+//#define PinValveTransferStation    14 //New Ball Valves
+//#define PinValveBoiler              3 //New Ball Valves
+//#define PinValveSolar               5 //New Ball Valves
+//#define PinValvePool                4 //New Ball Valves
 */
 // Pin mapping Arduino Board Version V8:
 /*
@@ -75,7 +76,7 @@
 #define PinWarmWaterSwitch           19
 #define PinSolarIntensity	         A3
 #define PinWarmWaterFlow	         A4
-#define PinFlowRegulator		     12
+#define PinFlowRegulator	         12
 */
 //System Temperatures
 #define idxTempHeatingReturn                   0

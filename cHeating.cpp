@@ -82,7 +82,7 @@ void cHeating::checkSinks(void)
 	else if (Pool.shouldCharge()) {
 		Sink = SiChargePool;
 		SpTempSource = Pool.SpTemp();
-		needSource = false; //needSource = false;  //toggle true - false to deactivate charging pool
+		needSource = Pool.FeedPool(); //needSource controlled by external toggle switch
 			if (needSource = true)
 			 (SpTempSource = 55);
 	}
