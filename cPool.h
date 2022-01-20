@@ -34,7 +34,7 @@ class cPool
 		return(bmayChargePool && poolActive());
 	}
 
-//Switch for charging by TransferStation
+//Pool Heating controlled by external toggle switch via manipulation of Pool Temperature Signal
 	boolean FeedPool(void){
 		if ((bFeedPool == false) && (TempPool.get() < 5))
 			bFeedPool = true;

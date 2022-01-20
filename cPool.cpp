@@ -28,4 +28,5 @@ void cPool::getData( JsonObject& root )
 	root["bPoolActive"] = static_cast<int>(poolActive());
 	//root["BP"] = Boiler.Pump.get();
 	root["PV"] = static_cast<int>( Valve.get());
+	root["bFeedPool"] =  static_cast<int>(FeedPool());
 	}
