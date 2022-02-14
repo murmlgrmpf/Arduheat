@@ -59,8 +59,8 @@ class cSolar
 {
 	public:
 	
-	cSolar()
-	:Valve(PinValveSolarOpen,PinValveSolarClose),
+	cSolar():
+	Valve(PinValveSolarOpen,PinValveSolarClose),
 	Pump(PinPumpSolar,0.01, 0.0002, 0.0, DIRECT),
 	TempFromCollector(&MPNumSys[0], &MPChanSys[idxTempSolarFromCollector], &SysTempOffset[idxTempSolarFromCollector]),
 	TempToSystem(&MPNumSys[0], &MPChanSys[idxTempSolarToSystem], &SysTempOffset[idxTempSolarToSystem]),
@@ -69,6 +69,9 @@ class cSolar
 	{
 		boolean sufficientHeat = false;
 		Pump.SetOutputLimits(0.15, 1.0);
+		
+		pinMode(PinValveSolar, OUTPUT);
+		digitalWrite(PinValveSolar, LOW);
 	}
 	
 	boolean hasHeat(double SpTempSource)
@@ -109,6 +112,9 @@ class cSolar
 		
 		// Open valve if sufficient heat is available
 		Valve.set(sufficientHeat && enable);
+		
+		if (sufficientHeat && enable)
+			digitalWrite(PinValveSolar, HIGH);
 		
 		// Return if there is residual heat so that charging of boiler continues
 		return(sufficientHeat);

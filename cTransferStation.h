@@ -12,13 +12,16 @@ class cTransferStation : public PID
 {
 	public:
 	
-	cTransferStation()
-	:Valve(PinValveTransferStationOpen,PinValveTransferStationClose),
+	cTransferStation():
+	Valve(PinValveTransferStationOpen,PinValveTransferStationClose),
 //	TempToTeleheating(&MPNumSys[0], &MPChanSys[idxTempTransferStationToTeleheating], &SysTempOffset[idxTempTransferStationToTeleheating]),
 	TempFromTeleheating(&MPNumSys[0], &MPChanSys[idxTempTransferStationFromTeleheating], &SysTempOffset[idxTempTransferStationFromTeleheating]),
 	TempOperation(&MPNumSys[0], &MPChanSys[idxTempTransferStationOperation], &SysTempOffset[idxTempTransferStationOperation]),
 	PID(&Is, &Power, &Setpoint, 0.003, 0.0001, 0.001, DIRECT)
 	{
+		pinMode(PinValveTransferStation, OUTPUT);
+		digitalWrite(PinValveTransferStation, LOW);
+
 		boolean sufficientHeat = false;
 		pinMode_wrap(PinFlowRegulator, OUTPUT);
 		
@@ -58,7 +61,10 @@ class cTransferStation : public PID
 		sufficientHeat = false;
 		if ((sufficientHeat == false) && ((TempOperation.getRaw() > SpTempSource) || (TempFromTeleheating.getRaw()) > SpTempSource-8) && enable)
 		sufficientHeat = true;
-	
+
+		if (sufficientHeat&&(!disable))
+			digitalWrite(PinValveTransferStation, HIGH);
+
 		// Open valve if sufficient heat is available
 		Valve.set(sufficientHeat&&(!disable));
 		

@@ -98,6 +98,8 @@ class cBoiler
 		}
 		//else // Stop Charging: Stop PID and Pump
 		//Pump.run();
+
+		digitalWrite(PinValveBoiler, HIGH);
 		
 		setValve(); // Open Valve if charge pump running (charging)
 		return bCharging;

@@ -22,10 +22,10 @@
 #define PinSolarIntensity            A3
 #define PinWarmWaterFlow             A4
 #define PinFlowRegulator              3
-//#define PinValveTransferStation	   15 //New Ball Valves
-//#define PinValveBoiler                2 //New Ball Valves
-//#define PinValveSolar                24 //New Ball Valves
-//#define PinValvePool                  8 //New Ball Valves
+#define PinValveTransferStation      15 //New Ball Valves
+#define PinValveBoiler                2 //New Ball Valves
+#define PinValveSolar                24 //New Ball Valves
+#define PinValvePool                  8 //New Ball Valves
 //#define PinPumpWarmWaterPWM           7 //Future Eco Pumps
 //#define PinPumpBoilerPWM              6 //Future Eco Pumps
 //#define PinPumpHeatingPWM             5 //Future Eco Pumps
@@ -52,10 +52,10 @@
 #define PinSolarIntensity            A3
 #define PinWarmWaterFlow             A4
 #define PinFlowRegulator              6
-//#define PinValveTransferStation    14 //New Ball Valves
-//#define PinValveBoiler              3 //New Ball Valves
-//#define PinValveSolar               5 //New Ball Valves
-//#define PinValvePool                4 //New Ball Valves
+#define PinValveTransferStation    14 //New Ball Valves
+#define PinValveBoiler              3 //New Ball Valves
+#define PinValveSolar               5 //New Ball Valves
+#define PinValvePool                4 //New Ball Valves
 */
 // Pin mapping Arduino Board Version V8:
 /*

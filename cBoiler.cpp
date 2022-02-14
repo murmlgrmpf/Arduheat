@@ -1,7 +1,7 @@
 #include "cBoiler.h"
 
-cBoiler::cBoiler(cRooms* Rooms_,cWarmWater* WarmWater_)
-:Valve(PinValveBoilerOpen,PinValveBoilerClose),
+cBoiler::cBoiler(cRooms* Rooms_,cWarmWater* WarmWater_):
+Valve(PinValveBoilerOpen,PinValveBoilerClose),
 TempCharge((&MPNumSys[0]),(&MPChanSys[idxTempBoilerCharge]),(&SysTempOffset[idxTempBoilerCharge])),
 TempReserve1((&MPNumSys[0]),(&MPChanSys[idxTempBoilerReserve1]),(&SysTempOffset[idxTempBoilerReserve1])),
 TempReserve2((&MPNumSys[0]),(&MPChanSys[idxTempBoilerReserve2]),(&SysTempOffset[idxTempBoilerReserve2])),
@@ -13,6 +13,9 @@ Pump(PinPumpBoiler, 0.025, 0.0, 0.0, REVERSE)
 	Rooms = Rooms_;
 	WarmWater = WarmWater_;
 	Pump.SetOutputLimits(0.0, 1.0);
+	
+	pinMode(PinValveBoiler, OUTPUT);
+	digitalWrite(PinValveBoiler, LOW);
 }
 
 void cBoiler::getData( JsonObject& root )
