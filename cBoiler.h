@@ -92,15 +92,18 @@ class cBoiler
 				TempHeatSource = TempHeatSource + 45;
 				SpTempCharge = 56;
 			}
-		
+
 			// Run Pump
 			Pump.run(SpTempCharge, TempHeatSource);
 		}
 		//else // Stop Charging: Stop PID and Pump
 		//Pump.run();
 
-		digitalWrite(PinValveBoiler, HIGH);
-		
+		if (bCharging)
+			digitalWrite(PinValveBoiler, HIGH);
+		else
+			digitalWrite(PinValveBoiler, LOW);
+
 		setValve(); // Open Valve if charge pump running (charging)
 		return bCharging;
 	}

@@ -64,6 +64,8 @@ class cTransferStation : public PID
 
 		if (sufficientHeat&&(!disable))
 			digitalWrite(PinValveTransferStation, HIGH);
+		else
+			digitalWrite(PinValveTransferStation, LOW);
 
 		// Open valve if sufficient heat is available
 		Valve.set(sufficientHeat&&(!disable));

@@ -17,8 +17,13 @@ boolean cPool::charge(boolean mayCharge, double TempSource){
 		Boiler->Pump.SetOutputLimits(1.0, 1.0);
 //		Boiler->Pump.run(SpTempCharge, TempSource);
 		Boiler->Pump.run(1.0);
-		digitalWrite(PinValvePool, HIGH);
 	}
+
+	if (mayCharge)
+		digitalWrite(PinValvePool, HIGH);
+	else
+		digitalWrite(PinValvePool, LOW);
+
 	Valve.set(mayCharge);
 
 	return mayCharge;

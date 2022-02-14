@@ -115,6 +115,8 @@ class cSolar
 		
 		if (sufficientHeat && enable)
 			digitalWrite(PinValveSolar, HIGH);
+		else
+			digitalWrite(PinValveSolar, LOW);
 		
 		// Return if there is residual heat so that charging of boiler continues
 		return(sufficientHeat);
