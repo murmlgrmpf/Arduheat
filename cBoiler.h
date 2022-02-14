@@ -123,9 +123,19 @@ boolean Hot(void)
 	{
 		bDischarging = bNeedSourceBoiler;
 		setValve(); // Open Valve if discharging
+		
+		if (bDischarging)
+			digitalWrite(PinValveBoiler, HIGH);
+		else
+			digitalWrite(PinValveBoiler, LOW);
 	}
 	
 	void setValve() {Valve.set(bCharging || bDischarging);
+		
+		if (bCharging || bDischarging)
+			digitalWrite(PinValveBoiler, HIGH);
+		else
+			digitalWrite(PinValveBoiler, LOW);
 	}
 
 	void getData(JsonObject& root);
