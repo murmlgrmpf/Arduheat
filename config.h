@@ -21,7 +21,7 @@ public:
         serial->println("{\"Reset\":[]}");
     }
     
-    int sendConf() {
+    void sendConf() {
         // Write config to sd card via linux
         serial->print("{\"Conf\":[");
         printElement(&(Heating->Rooms), &cRooms::getOffsetTime); serial->print(",");
@@ -68,7 +68,7 @@ private:
     }
     
     void readSerial() {
-        static byte ndx = 0;
+        static uint32_t ndx = 0;
         char endMarker = '\n';
         char rc;
         while (serial->available() > 0 && newData == false) {
