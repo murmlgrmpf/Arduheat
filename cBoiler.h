@@ -100,7 +100,7 @@ class cBoiler
 		return bCharging;
 	}
 
-boolean Hot(void){
+	boolean Hot(void){
 		// introduce FlipFlop for Hysteresis of Boiler Discharge
 		if ((bHot == false) && (TempReserve1.get() > (Rooms->SpTemp() + 3)))
 			bHot = true;
@@ -110,7 +110,7 @@ boolean Hot(void){
 		return bHot;
 	}
 
-boolean RelPool(void){
+	boolean RelPool(void){
 		// introduce Hysteresis for Change of Pool and Boiler charging
 		if (TempHead.get() > 54)
 			bRelPool = true;
