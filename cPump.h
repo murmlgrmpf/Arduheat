@@ -16,8 +16,8 @@ class cPump : public PID
 	/** \param PinPump the pin used to drive the Pump*/
 	/** \param Power the power the pump in percent*/
 	cPump(int PinPump_,float p, float i, float d, int mode, double Power_ = 0.0, unsigned long PWMPeriod_ = PWMPeriod):
-	PWM(PWMPeriod_),
-	PID(&Is, &Power, &Setpoint, p, i, d, mode)
+	PID(&Is, &Power, &Setpoint, p, i, d, mode),
+	PWM(PWMPeriod_)	
 	{
 		PinPump = PinPump_;
 		pinMode_wrap(PinPump, OUTPUT);
@@ -67,13 +67,11 @@ class cPump : public PID
 	
 	
 	//private:
+	cLFPWM PWM;
 	int PinPump;
 	double Is;
 	double Setpoint;
 	double Power;
-
-	cLFPWM PWM;
-	
 };
 
 #endif
