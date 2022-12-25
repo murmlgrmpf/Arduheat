@@ -1,61 +1,86 @@
 #ifndef PinDefinitions_h
 #define PinDefinitions_h
 
-// Pin mapping Arduino Board Version V8.6:
-
+// Pin mapping Arduino Board Version V8.7:
+/*
 #define PinPumpCirculation           17
-#define PinValveBoilerOpen           42
-#define PinValveSolarClose           47
-#define PinValveSolarOpen            49
-#define PinValveTransferStationClose 51
-#define PinValveTransferStationOpen  53
-#define PinValveBoilerClose          43
-#define PinValvePoolClose            45
-#define PinValvePoolOpen             44
 #define PinPumpWarmWater             18
 #define PinPumpBoiler                16
 #define PinPumpSolar                 23
 #define PinPumpHeating               22
 #define PinMixerOpen                 14
 #define PinMixerClose                25
-#define PinPoolSwitch                19
+#define PinPoolSwitch                47 //Pin 2 on Connector 4x Control
+#define PinFeedPoolSwitch            49 //Pin 4 on Connector 4x Control
+//#define PinReserve                   51 //Pin 6 on Connector 4x Control
+//#define PinReserve                   53 //Pin 8 on Connector 4x Control
 #define PinSolarIntensity            A3
 #define PinWarmWaterFlow             A4
 #define PinFlowRegulator              3
-#define PinValveTransferStation      15 //New Ball Valves
-#define PinValveBoiler                2 //New Ball Valves
-#define PinValveSolar                24 //New Ball Valves
-#define PinValvePool                  8 //New Ball Valves
-//#define PinPumpWarmWaterPWM           7 //Future Eco Pumps
-//#define PinPumpBoilerPWM              6 //Future Eco Pumps
-//#define PinPumpHeatingPWM             5 //Future Eco Pumps
-//#define PinPumpSolarPWM               4 //Future Eco Pumps
+#define PinValveTransferStation      15
+#define PinValveBoiler                2
+#define PinValveSolar                24
+#define PinValvePool                 44 //Pin 10 on Connector 3
+//#define PinReserve                      37 //Pin 9 on Connector 3
+//#define PinReserve                      45 //Pin 8 on Connector 3
+//#define PinReserve                      36 //Pin 7 on Connector 3
+//#define PinPumpWarmWaterPWM         7 //Future Eco Pumps
+//#define PinPumpBoilerPWM            6 //Future Eco Pumps
+//#define PinPumpHeatingPWM           5 //Future Eco Pumps
+//#define PinPumpSolarPWM             4 //Future Eco Pumps
+*/
+
+// Pin mapping Arduino Board Version V8.6:
+
+#define PinPumpCirculation           17
+#define PinPumpWarmWater             18
+#define PinPumpBoiler                16
+#define PinPumpSolar                 23
+#define PinPumpHeating               22
+#define PinMixerOpen                 14
+#define PinMixerClose                25
+#define PinPoolSwitch                47 //Pin 2 on Connector 4x Control
+#define PinFeedPoolSwitch            49 //Pin 4 on Connector 4x Control
+//#define PinReserve                   51 //Pin 6 on Connector 4x Control
+//#define PinReserve                   53 //Pin 8 on Connector 4x Control
+#define PinSolarIntensity            A3
+#define PinWarmWaterFlow             A4
+#define PinFlowRegulator              3
+#define PinValveTransferStation      15
+#define PinValveBoiler                2
+#define PinValveSolar                24
+#define PinValvePool                 42 // Pin 10 on Connector 3
+//#define PinReserve                      43 //Pin 9 on Connector 3
+//#define PinReserve                      45 //Pin 8 on Connector 3
+//#define PinReserve                      44 //Pin 7 on Connector 3
+//#define PinPumpWarmWaterPWM         7 //Future Eco Pumps
+//#define PinPumpBoilerPWM            6 //Future Eco Pumps
+//#define PinPumpHeatingPWM           5 //Future Eco Pumps
+//#define PinPumpSolarPWM             4 //Future Eco Pumps
 
 // Pin mapping Arduino Board Version V8.4:
 /*
 #define PinPumpCirculation           16
-#define PinValveBoilerOpen            3
-#define PinValveSolarClose           43
-#define PinValveSolarOpen            45
-#define PinValveTransferStationClose 47
-#define PinValveTransferStationOpen  49
-#define PinValveBoilerClose           5
-#define PinValvePoolClose            41
-#define PinValvePoolOpen             40
 #define PinPumpWarmWater             17
 #define PinPumpBoiler                15
 #define PinPumpSolar                 18
 #define PinPumpHeating               23
 #define PinMixerOpen                  2
 #define PinMixerClose                22
-#define PinPoolSwitch                19
+#define PinPoolSwitch                45 //Pin 2 on Connector 4x Control
+#define PinFeedPoolSwitch            43 //Pin 4 on Connector 4x Control
+//#define PinReserve                   47 //Pin 6 on Connector 4x Control
+//#define PinReserve                   49 //Pin 8 on Connector 4x Control
 #define PinSolarIntensity            A3
 #define PinWarmWaterFlow             A4
 #define PinFlowRegulator              6
-#define PinValveTransferStation    14 //New Ball Valves
-#define PinValveBoiler              3 //New Ball Valves
-#define PinValveSolar               5 //New Ball Valves
-#define PinValvePool                4 //New Ball Valves
+#define PinValveTransferStation      14
+#define PinValveBoiler                3
+#define PinValveSolar                 5
+#define PinValvePool                 50 //Pin 10 on Connector 3
+//#define PinReserve                      41 //Pin 9 on Connector 3
+//#define PinReserve                      51 //Pin 8 on Connector 3
+//#define PinReserve                      40 //Pin 7 on Connector 3
 */
 // Pin mapping Arduino Board Version V8:
 /*
@@ -105,7 +130,7 @@ const PROGMEM float SysTempOffset[] = {-1.4,-1.2,-0.1,-0.47,-0.6,-0.4,-0.6,-0.9,
 // On system Multiplexer 2
 const PROGMEM int MPNumSys[] = {2};
 
-	const PROGMEM int MPControl[] = {48, 50, 52, 46}; //Board_V8.6
+	const PROGMEM int MPControl[] = {48, 50, 52, 46}; //Board_V8.6, 8.7
 //	const PROGMEM int MPControl[] = {44, 46, 48, 42}; //Board_V8.4
 //	const PROGMEM int MPControl[] = {48, 49, 47, 46}; //Board_V8
 
