@@ -3,7 +3,7 @@
 
 void cSolar::getData( JsonObject& root )
 {
-	root["STfromCol"] =  TempFromCollector.getRaw();
+	root["STfromCol"] = TempFromCollector.getRaw();
 	root["STtoSys"] =  TempToSystem.getRaw();
 	root["SP"] = Pump.get();
 	root["SV"] =  static_cast<int>( Valve.get());
