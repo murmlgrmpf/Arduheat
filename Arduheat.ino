@@ -1,6 +1,9 @@
+#include <Arduino.h>
+#include <SPI.h>
+
 #include <PID_v1.h>
 
-#include <Arduino.h>
+
 #include "cWarmWater.h"// important for global TimeNow variable
 #include "cHeating.h"
 
