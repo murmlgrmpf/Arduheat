@@ -33,11 +33,11 @@ int cWarmWater::setSP( JsonObject& root )
 {
 	if(root.containsKey("WTs")) {
 		if(root["WTs"].is<double>()) {
-                    double SpTemp_ = root["WTs"].as<double>();
-                    if ((SpTemp_>40)&&(SpTemp_<60)&&(SpTemp_!=SpTemp)) {
+			double SpTemp_ = root["WTs"].as<double>();
+		if ((SpTemp_>40)&&(SpTemp_<60)&&(SpTemp_!=SpTemp)) {
 			SpTemp = SpTemp_;
-			return true;
-                    }
+		return true;
+	}
 		}
 	}
 	
