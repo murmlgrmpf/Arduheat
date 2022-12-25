@@ -13,16 +13,12 @@ class cTransferStation : public PID
 	public:
 	
 	cTransferStation():
-	Valve(PinValveTransferStationOpen,PinValveTransferStationClose),
-//	TempToTeleheating(&MPNumSys[0], &MPChanSys[idxTempTransferStationToTeleheating], &SysTempOffset[idxTempTransferStationToTeleheating]),
+	PID(&Is, &Power, &Setpoint, 0.003, 0.0001, 0.001, DIRECT),
 	TempFromTeleheating(&MPNumSys[0], &MPChanSys[idxTempTransferStationFromTeleheating], &SysTempOffset[idxTempTransferStationFromTeleheating]),
 	TempOperation(&MPNumSys[0], &MPChanSys[idxTempTransferStationOperation], &SysTempOffset[idxTempTransferStationOperation]),
-	PID(&Is, &Power, &Setpoint, 0.003, 0.0001, 0.001, DIRECT)
+	Valve(PinValveTransferStation)
 	{
-		pinMode(PinValveTransferStation, OUTPUT);
-		digitalWrite(PinValveTransferStation, LOW);
-
-		boolean sufficientHeat = false;
+		sufficientHeat = false;
 		pinMode_wrap(PinFlowRegulator, OUTPUT);
 		
 		Power = 0.0;
@@ -36,7 +32,7 @@ class cTransferStation : public PID
 	double IsTempkorr = (TempOperation.getRaw()-(2.2*min(1.7,(SpTempSource-TempOperation.getRaw()))));
 	Is = IsTempkorr;
 
-    Setpoint = SpTempSource;
+	Setpoint = SpTempSource;
 		
 		if (enable)
 		
@@ -61,11 +57,6 @@ class cTransferStation : public PID
 		sufficientHeat = false;
 		if ((sufficientHeat == false) && ((TempOperation.getRaw() > SpTempSource) || (TempFromTeleheating.getRaw()) > SpTempSource-8) && enable)
 		sufficientHeat = true;
-
-		if (sufficientHeat&&(!disable))
-			digitalWrite(PinValveTransferStation, HIGH);
-		else
-			digitalWrite(PinValveTransferStation, LOW);
 
 		// Open valve if sufficient heat is available
 		Valve.set(sufficientHeat&&(!disable));
@@ -94,8 +85,6 @@ class cTransferStation : public PID
 	double Is;
 	double Setpoint;
 	double Power;
-	
-//	cTempSensor TempToTeleheating;
 	
 	cValve Valve;
 };
