@@ -12,9 +12,9 @@ class cMixer  : public PID
 	public:
 	/// Creates the mixer
 	cMixer(int pinOpen_, int pinClose_,double p, double i, double d, int mode):
+	PID(&Is, &Power, &Setpoint, p, i, d, mode),
 	PWM(20000),
-	Timer(180000),// 3(min)*60(s/min)*1000(ms/s)
-	PID(&Is, &Power, &Setpoint, p, i, d, mode)
+	Timer(180000) // 3(min)*60(s/min)*1000(ms/s)
 	{
 		pinOpen = pinOpen_;
 		pinMode_wrap(pinOpen, OUTPUT);
