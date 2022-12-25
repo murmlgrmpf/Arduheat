@@ -16,20 +16,20 @@ Pool(&Boiler)
 
 
 void cHeating::Circulation(void){
-	TimeSpan Now;
-	Now.set(0, TimeNow.hour(), TimeNow.minute(), 0);
+	TimeSpan Now(0, TimeNow.hour(), TimeNow.minute(), 0);
+	//Now.set(0, TimeNow.hour(), TimeNow.minute(), 0);
 	// TimeNow.dayOfWeek() 0 = Sonntag, 6 = Samstag
 	
-	TimeSpan dt1,dt2,dt3,dt4;
-	dt1.set(0, 7, 0, 0);
-	dt2.set(0, 10, 0, 0); // (0, 18, 0, 0)
-	dt3.set(0, 18, 0, 0);
-	dt4.set(0, 19, 55, 0); // (0, 21, 0, 0)
+	//TimeSpan dt1,dt2,dt3,dt4;
+	TimeSpan dt1(0, 7, 0, 0);
+	TimeSpan dt2(0, 9, 10, 0); // (0, 18, 0, 0)
+	TimeSpan dt3(0, 18, 0, 0);
+	TimeSpan dt4(0, 19, 55, 0); // (0, 21, 0, 0)
 	
 	if ((((dt1.totalseconds()<Now.totalseconds())&&(Now.totalseconds()<dt2.totalseconds())) || ((dt3.totalseconds()<Now.totalseconds())&&(Now.totalseconds()<dt4.totalseconds())))&&(WarmWater.Period.get()))
-	digitalWrite(PinPumpCirculation, HIGH);
+		digitalWrite(PinPumpCirculation, HIGH);
 	else
-	digitalWrite(PinPumpCirculation, LOW);
+		digitalWrite(PinPumpCirculation, LOW);
 
 	//		digitalWrite(PinPumpCirculation, HIGH); //activate, if permanent Circulation required
 }
@@ -73,18 +73,19 @@ void cHeating::checkSinks(void)
 		needSource = true;
 	}
 	// #3 Charge into boiler
-	else if (Boiler.shouldCharge())  {
+	else if (Boiler.shouldCharge()) {
 		Sink = SiChargeHeating;
 		SpTempSource = Boiler.SpTemp();
 		needSource = false;
 	}
 	// #4 Charge the pool
-	else if (Pool.shouldCharge()) {
+	else if ((Pool.shouldCharge()) && (Boiler.RelPool() || Pool.forceChargePool())) {
 		Sink = SiChargePool;
 		SpTempSource = Pool.SpTemp();
-		needSource = Pool.FeedPool(); //needSource controlled by external toggle switch
-			if (needSource = true)
-			 (SpTempSource = 55);
+		if (SpTempSource >= 55)
+			needSource = true;
+		else
+			needSource = false;
 	}
 	// Else Charge into boiler anyway
 	else {
