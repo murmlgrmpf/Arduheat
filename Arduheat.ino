@@ -1,23 +1,13 @@
 #include <Arduino.h>
 #include <SPI.h>
-
 #include <PID_v1.h>
-
-
-#include "cWarmWater.h"// important for global TimeNow variable
-#include "cHeating.h"
-
-#include "config.h"
-
-#include <ArduinoJson.h>
-#include <avr/pgmspace.h>
-
-#include "cTrigger.h"
-
 // RTC
 #include <Wire.h>
 #include <RTClib.h>
-#include "cRooms.h" // important for global TimeNow variable
+
+#include "cHeating.h"
+#include "config.h"
+#include "cTrigger.h"
 
 //// RTC //////////
 RTC_DS1307 rtc;
@@ -27,7 +17,6 @@ DateTime TimeNow;
 cTrigger trigger(10000);
 cHeating Heating;
 cConfig Config(&Serial,&Heating);
-
 
 /**
 * @fn void setup(void)
