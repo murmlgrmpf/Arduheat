@@ -36,6 +36,7 @@ void cHeating::Circulation(void){
 
 
 void cHeating::Control(void) {
+	WarmWater.Control();
 	Circulation();
 	checkSinks();
 	checkSources();

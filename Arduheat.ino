@@ -49,7 +49,6 @@ void setup() {
 */
 void loop() {
 	Heating.Control();
-	Heating.WarmWater.Control();
 	Config.updateConf();
 
 	if (trigger.get()) {
