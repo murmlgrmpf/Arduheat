@@ -4,10 +4,10 @@
 /// Creates a room.
 /** As the rooms get created in an array, only the default constructor can be used cRoom(void) */
 cRoom::cRoom(int RoomNumber , cRooms* Rooms_ , double p , double i , double d):
+PID(IsTemp.getPtr(), &need, &spT, p, i, d, DIRECT),
 IsTemp(&MultiplexNumberRooms[RoomNumber], &MultiplexChannelRoomsIs[RoomNumber], &RoomIsOffset[RoomNumber], TRoomInit, AlphaTRoom),
 SpTempOverride(&MultiplexNumberRooms[RoomNumber], &MultiplexChannelRoomsSp[RoomNumber], &RoomSpOffset[RoomNumber], TRoomInit, AlphaTRoom),
-Valve(&RoomValvePin[RoomNumber]),
-PID(IsTemp.getPtr(), &need, &spT, p, i, d, DIRECT)
+Valve(&RoomValvePin[RoomNumber])
 {
 	RoomType = static_cast<RoomTypes>(pgm_read_word(&DefaultRoomType[RoomNumber]));
 	Rooms = Rooms_;
@@ -16,17 +16,16 @@ PID(IsTemp.getPtr(), &need, &spT, p, i, d, DIRECT)
         need=0.0;
         IsTemp.get();
         
-        SetSampleTime(1200000); // 15(min)*60(s)*1000(ms/s)
+        SetSampleTime(32767); // 15(min)*60(s)*1000(ms/s)
         SetMode(AUTOMATIC);
         SetOutputLimits(0.0, 1.0);
 }
 
 double cRoom::getSpTemp(void)
 {
-	DayTypes DayType = getDayType( TimeNow.dayOfWeek() );
+	DayTypes DayType = getDayType( TimeNow.dayOfTheWeek() );
 	
-	TimeSpan Now;
-	Now.set(0, TimeNow.hour(), TimeNow.minute(), 0);
+	TimeSpan Now(0, TimeNow.hour(), TimeNow.minute(), 0);
 	
 	double MasterSPTemp = 0.0;
 	// Check if manual override is valid
@@ -69,6 +68,7 @@ const float cRoom::RoomSpOffset[] = {0.16, -1.37, -0.08, -0.34, -1.75, -0.31, 2.
 //const float cRoom::RoomIsOffset[] = {-2.49, -1.29, -0.61, 0.52, -0.6, 1.06, -2.14, -2.02, -1.21, -0.03, -0.8, -1.0, -0.14, -1.73, -1.13, -0.31}; //InputBoard1_old
 //const float cRoom::RoomSpOffset[] = {0.56, -1.47, -0.58, -1.04, -1.65, -0.81, 2.24, -0.58, -1.97, -0.86, -0.66, -0.09, 0.23, -0.13, 1.23, 0.09}; //InputBoard1_old
 
+//const int cRoom::RoomValvePin[] = {31, 30, 28, 33, 29, 32, 26, 35, 27, 34, 41, 40, 38, 43, 39, 42}; //Board_V8.7
 const int cRoom::RoomValvePin[] = {31, 30, 28, 33, 29, 32, 26, 35, 27, 34, 39, 38, 36, 41, 37, 40}; //Board_V8.6
 //const int cRoom::RoomValvePin[] = {29, 28, 26, 31, 27, 30, 24, 33, 25, 32, 37, 36, 34, 39, 35, 38}; //Board_V8.4
 //const int cRoom::RoomValvePin[] = {26, 27, 25, 28, 24, 29, 23, 30, 22, 31, 34, 35, 33, 36, 32, 37}; //Board_V8
