@@ -40,9 +40,8 @@ class handleArduheat(threading.Thread):
     data = []
     
     def __init__(self, SerialName, Folder):
-	
-	threading.Thread.__init__(self)
-	self.daemon = False
+        threading.Thread.__init__(self)
+        self.daemon = False
         self.folder = Folder
         self.ConfFile = self.folder+"System.cfg"
         self.date = str()
@@ -62,7 +61,7 @@ class handleArduheat(threading.Thread):
         return self.stop_event.is_set()
     
     def open_(self):
-	self.arduino.open(True)
+        self.arduino.open(True)
         self.arduino.start()
     
     def close(self):
@@ -127,15 +126,15 @@ class handleArduheat(threading.Thread):
             if 'Conf' in var:
                 self.Conf(var['Conf'])
             if 'Reset' in var:
-		self.Reset()
+                self.Reset()
         except:
             print("Fail read from Arduino!")
             print(jstr+'\n')
     
     def Reset(self):
-	print("Reset Config.")
-	self.conf = []
-	self.date = str() # reset log
+        print("Reset Config.")
+        self.conf = []
+        self.date = str() # reset log
         
     def Conf(self, objarray):
         #Update config
@@ -174,11 +173,11 @@ class handleArduheat(threading.Thread):
             writedata.writerow(Datas)
     
     def run(self):
-	while not self.is_stopped():
-	    if not(self.conf):
-		self.syncConf()
-	    else:
-		time.sleep(.1)
+        while not self.is_stopped():
+            if not(self.conf):
+                self.syncConf()
+            else:
+                time.sleep(.1)
 	
 
 def signal_handler(sig, frame):
