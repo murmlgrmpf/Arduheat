@@ -31,7 +31,7 @@ void cRooms::initDefaultSetpoint()
 	MasterSpTemps[Sleeping] = 20.0;
 	MasterSpTemps[Hallway] = 19.0;
 	MasterSpTemps[Bath] = 22.0;
-	MasterSpTemps[Side] = 14.0;
+	MasterSpTemps[Side] = 13.8;
 	MasterSpTemps[Trim] = 18.0;
 	MasterSpTemps[Work] = 20.3;
         
@@ -41,10 +41,10 @@ void cRooms::initDefaultSetpoint()
 	temp[2] = 0.0;
 	temp[3] = -1.2;
 	TimeSpan switchtime[nSwitch];
-	switchtime[0].set(0,5,45,0);
-	switchtime[1].set(0,8,0,0);
-	switchtime[2].set(0,18,0,0);
-	switchtime[3].set(0,21,0,0);
+	switchtime[0] = TimeSpan(0,5,45,0);
+	switchtime[1] = TimeSpan(0,8,0,0);
+	switchtime[2] = TimeSpan(0,18,0,0);
+	switchtime[3] = TimeSpan(0,21,0,0);
 
 	// Iterate over all sets (At home, away)
 	for(int iSet = 0; iSet<nSetTypes; iSet++)
@@ -56,39 +56,39 @@ void cRooms::initDefaultSetpoint()
 				// Discriminate between Rooms that do not reduce temperature during the day and those which do
 
 				if((iSwitch==1)){
-					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].time = switchtime[iSwitch];
 					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].temp = temp[iSwitch-1];
-					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].time = switchtime[iSwitch];
 					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].temp = temp[iSwitch-1];
-					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].time = switchtime[iSwitch];
 					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].temp = temp[iSwitch-1];
-					TempOffsetSchedule[iSet][Work][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Work][iDayType][iSwitch].time = switchtime[iSwitch];
 					TempOffsetSchedule[iSet][Work][iDayType][iSwitch].temp = temp[iSwitch-1];				
 					
 				}
 				else {
-					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].time = switchtime[iSwitch];
 					TempOffsetSchedule[iSet][Living][iDayType][iSwitch].temp = temp[iSwitch];
-					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].time = switchtime[iSwitch];
 					TempOffsetSchedule[iSet][Hallway][iDayType][iSwitch].temp = temp[iSwitch];
-					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].time = switchtime[iSwitch];
 					TempOffsetSchedule[iSet][Side][iDayType][iSwitch].temp = temp[iSwitch];
-					TempOffsetSchedule[iSet][Work][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Work][iDayType][iSwitch].time = switchtime[iSwitch];
 					TempOffsetSchedule[iSet][Work][iDayType][iSwitch].temp = temp[iSwitch];					
 				}
 				
 				if((iSwitch==2)){
-					TempOffsetSchedule[iSet][Trim][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Trim][iDayType][iSwitch].time = switchtime[iSwitch];
 					TempOffsetSchedule[iSet][Trim][iDayType][iSwitch].temp = temp[iSwitch-1];					
 				}
 				else {
-					TempOffsetSchedule[iSet][Trim][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+					TempOffsetSchedule[iSet][Trim][iDayType][iSwitch].time = switchtime[iSwitch];
 					TempOffsetSchedule[iSet][Trim][iDayType][iSwitch].temp = temp[iSwitch];			
 				}
 				
-				TempOffsetSchedule[iSet][Sleeping][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+				TempOffsetSchedule[iSet][Sleeping][iDayType][iSwitch].time = switchtime[iSwitch];
 				TempOffsetSchedule[iSet][Sleeping][iDayType][iSwitch].temp = temp[iSwitch];
-				TempOffsetSchedule[iSet][Bath][iDayType][iSwitch].time.set(switchtime[iSwitch]);
+				TempOffsetSchedule[iSet][Bath][iDayType][iSwitch].time = switchtime[iSwitch];
 				TempOffsetSchedule[iSet][Bath][iDayType][iSwitch].temp = temp[iSwitch];
 			}
 		}
@@ -97,9 +97,7 @@ void cRooms::initDefaultSetpoint()
 
 
 void cRooms::charge( boolean ChargeRooms , boolean bControlbyMixer)
-{
-	double SpTempHeatingReturn = SpTemp()-DiffTempHeatingLeadReturn;
-	
+{	
 	if (ChargeRooms)
 	{
 		// Run Pump and Mixer
@@ -107,8 +105,10 @@ void cRooms::charge( boolean ChargeRooms , boolean bControlbyMixer)
 			Mixer.run(SpTemp(), IsTempHeatingLead.getRaw());
 		else
 			Mixer.run(1.0);
-		
-		Pump.run(SpTempHeatingReturn, IsTempHeatingReturn.get());
+
+		// New intelligent energy saving Pump
+		Pump.run(1.0);
+
 	}
 	else
 	{
@@ -127,9 +127,9 @@ double cRooms::getNeed(void)
 	for(int i = 0; i<nRooms; i++)
 	{
 		// Store maximum set point
-                dMaxSp = max(dMaxSp, Room[i].getSpTemp());
+        dMaxSp = max(dMaxSp, Room[i].getSpTemp());
 		// Store maximum sp-is difference
-                MaxNeed = max(MaxNeed, Room[i].getNeed());
+        MaxNeed = max(MaxNeed, Room[i].getNeed());
 	}
     
         return MaxNeed;
@@ -138,9 +138,9 @@ double cRooms::getNeed(void)
 boolean cRooms::active(void)
 {
 	// introduce FlipFlop for Hysteresis of MaxNeed
-	if ((bAct == false) && (MaxNeed > 0.95))
+	if ((bAct == false) && (MaxNeed > 0.8))
 	bAct = true;
-	if ((bAct == true) && (MaxNeed < 0.35))
+	if ((bAct == true) && (MaxNeed < 0.6)) // was 0.35
 	bAct = false;
 	
 	return bAct;
@@ -196,16 +196,19 @@ int cRooms::setOffsetTime( JsonObject& root )
 						{
 							for(int iSwitch = 0; iSwitch<nSwitch; iSwitch++)
 							{
-								int idx = iSwitch+iDayType*(nSwitch)+iRoomType*(nDayTypes)*(nSwitch)+iSet*(nRoomTypes)*(nDayTypes)*(nSwitch);
-                                                                if (times[idx].is<long>()) {
-                                                                  unsigned long oldTime = TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time.totalseconds(); 
-                                                                  unsigned long newTime = times[idx].as<long>();
-                                                                  if((newTime>=0)&&(24*60*60-newTime>=0)&&(newTime!=oldTime)){
-                                                                      TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time.set(newTime);
-                                                                      succes=1;
-                                                                  }
-                                                                }
-                                                                else fail=1;
+								int idx = iSwitch + iDayType * (nSwitch) + iRoomType * (nDayTypes) * (nSwitch) + iSet * (nRoomTypes) * (nDayTypes) * (nSwitch);
+								if (times[idx].is<long>())
+								{
+									unsigned long oldTime = TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time.totalseconds();
+									unsigned long newTime = times[idx].as<unsigned long>();
+									if ((newTime >= (unsigned long)0) && ((unsigned long)24 * (unsigned long)60 * (unsigned long)60 - newTime >= (unsigned long)0) && (newTime != oldTime))
+									{
+										TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time = newTime;
+										succes = 1;
+									}
+								}
+								else
+									fail = 1;
 							}
 						}
 					}
@@ -217,18 +220,12 @@ int cRooms::setOffsetTime( JsonObject& root )
 	return (!fail)&&(succes);
 }
 
-void cRooms::getOffsetTemp( JsonObject& root )
-{
-	JsonArray&  temps  = root.createNestedArray("RTo");
-	// Iterate over all sets (At home, away)
-	for(int iSet = 0; iSet<nSetTypes; iSet++)
-	{
-		for(int iRoomType = 0; iRoomType<nRoomTypes; iRoomType++) // Iterate over all Roomtypes (Living, sleeping, hallway, bath, side, trim)
-		{
-			for(int iDayType = 0; iDayType<nDayTypes; iDayType++) // Weekend, Workday
-			{
-				for(int iSwitch = 0; iSwitch<nSwitch; iSwitch++) // 4 switch times
-				{
+void cRooms::getOffsetTemp(JsonObject& root) {
+	JsonArray& temps = root.createNestedArray("RTo");
+	for (int iSet = 0; iSet < nSetTypes; iSet++) {                      // Iterate over all sets (At home, away)
+		for (int iRoomType = 0; iRoomType < nRoomTypes; iRoomType++) {  // Iterate over all Roomtypes (Living, sleeping, hallway, bath, side, trim)
+			for (int iDayType = 0; iDayType < nDayTypes; iDayType++) {  // Weekend, Workday
+				for (int iSwitch = 0; iSwitch < nSwitch; iSwitch++) {   // 4 switch times
 					temps.add(TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].temp);
 				}
 			}
@@ -236,34 +233,27 @@ void cRooms::getOffsetTemp( JsonObject& root )
 	}
 }
 
-int cRooms::setOffsetTemp( JsonObject& root )
-{
-        int fail=0;
-        int succes=0;
-	if(root.containsKey("RTo")) {
-		if(root["RTo"].is<JsonArray&>()){
+int cRooms::setOffsetTemp(JsonObject& root) {
+	int fail = 0;
+	int succes = 0;
+	if (root.containsKey("RTo")) {
+		if (root["RTo"].is<JsonArray&>()) {
 			JsonArray& temps = root["RTo"];
-			
-			if (temps.size()==(nSetTypes*nRoomTypes*nDayTypes*nSwitch))
-			{
-				for(int iSet = 0; iSet<nSetTypes; iSet++) // Normal
-				{
-					for(int iRoomType = 0; iRoomType<nRoomTypes; iRoomType++) // (Living, sleeping, hallway, bath, side, trim)
-					{
-						for(int iDayType = 0; iDayType<nDayTypes; iDayType++) // Weekend, Workday
-						{
-							for(int iSwitch = 0; iSwitch<nSwitch; iSwitch++) // 4 switch times
-							{
+			if (temps.size() == (nSetTypes * nRoomTypes * nDayTypes * nSwitch)) {
+				for (int iSet = 0; iSet < nSetTypes; iSet++) {                      // Iterate over all sets (At home, away)
+					for (int iRoomType = 0; iRoomType < nRoomTypes; iRoomType++) {  // (Living, sleeping, hallway, bath, side, trim)
+						for (int iDayType = 0; iDayType < nDayTypes; iDayType++) {  // Weekend, Workday
+							for (int iSwitch = 0; iSwitch < nSwitch; iSwitch++) {   // 4 switch times
 								// Last iteration
-								int idx = iSwitch+iDayType*(nSwitch)+iRoomType*(nDayTypes)*(nSwitch)+iSet*(nRoomTypes)*(nDayTypes)*(nSwitch);
-               if (temps[idx].is<double>()){
-                                                                double temp_ =  temps[idx].as<double>();
-                                                                if((temp_>-15.0)&&(temp_<15.0)&&(temp_!=TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].temp)){
-                                                                    TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].temp = temp_;
-                                                                    succes = 1;
-                                                                }
-               }
-               else fail=1;
+								int idx = iSwitch + iDayType * (nSwitch) + iRoomType * (nDayTypes) * (nSwitch) + iSet * (nRoomTypes) * (nDayTypes) * (nSwitch);
+								if (temps[idx].is<double>()) {
+									double temp_ = temps[idx].as<double>();
+									if ((temp_ > -15.0) && (temp_ < 15.0) && (temp_ != TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].temp)) {
+										TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].temp = temp_;
+										succes = 1;
+									}
+								} else
+									fail = 1;
 							}
 						}
 					}
@@ -271,8 +261,7 @@ int cRooms::setOffsetTemp( JsonObject& root )
 			}
 		}
 	}
- 
-	return ((!fail)&&(succes));
+	return ((!fail) && (succes));
 }
 
 void cRooms::getRooms( JsonObject& root )
@@ -291,66 +280,64 @@ void cRooms::getRooms( JsonObject& root )
 	root["SetType"] = SetType;
 }
 
-int cRooms::setRooms( JsonObject& root )
-{
+int cRooms::setRooms(JsonObject& root) {
 	int posReturn = 0;
 	int fail = 0;
-	
-	if(root.containsKey("RTypes")) {
-		if(root["RTypes"].is<JsonArray&>()){
+
+	if (root.containsKey("RTypes")) {
+		if (root["RTypes"].is<JsonArray&>()) {
 			JsonArray& RoomsTypes = root["RTypes"];
-			if (RoomsTypes.size()==nRooms) {
-				for (int i = 0; i<nRooms;i++){
-					if ( RoomsTypes[i].is<long>()){
-                                            RoomTypes RoomType_ = static_cast<RoomTypes>(RoomsTypes[i].as<long>());
-                                            if((RoomType_>=0)&&(RoomType_<nRoomTypes)&&(RoomType_!=Room[i].RoomType)){
-                                                Room[i].RoomType = RoomType_;
-                                            }
-                                        }
-					else fail=1;
+			if (RoomsTypes.size() == nRooms) {
+				for (int i = 0; i < nRooms; i++) {
+					if (RoomsTypes[i].is<long>()) {
+						RoomTypes RoomType_ = static_cast<RoomTypes>(RoomsTypes[i].as<long>());
+						if ((RoomType_ >= 0) && (RoomType_ < nRoomTypes) && (RoomType_ != Room[i].RoomType)) {
+							Room[i].RoomType = RoomType_;
+						}
+					} else
+						fail = 1;
 				}
-			}
-			else fail=1;
-		}
-		else fail=1;
+			} else
+				fail = 1;
+		} else
+			fail = 1;
 		posReturn++;
 	}
-	
-	if(root.containsKey("RTs")) {
-		if(root["RTs"].is<JsonArray&>()){
+
+	if (root.containsKey("RTs")) {
+		if (root["RTs"].is<JsonArray&>()) {
 			JsonArray& RoomsTemps = root["RTs"];
-			if (RoomsTemps.size()==nRoomTypes) {
-				for (int i = 0; i<nRoomTypes;i++){
-					if ( RoomsTemps[i].is<double>()){
-                                            double MasterSpTemps_ = RoomsTemps[i].as<double>();
-                                            if ((MasterSpTemps_>10.0)&&(MasterSpTemps_<25.0)&&(MasterSpTemps_!=MasterSpTemps[i])){
-                                                MasterSpTemps[i] = MasterSpTemps_;
-                                            }
-                                        }
-					else fail=1;
+			if (RoomsTemps.size() == nRoomTypes) {
+				for (int i = 0; i < nRoomTypes; i++) {
+					if (RoomsTemps[i].is<double>()) {
+						double MasterSpTemps_ = RoomsTemps[i].as<double>();
+						if ((MasterSpTemps_ > 10.0) && (MasterSpTemps_ < 25.0) && (MasterSpTemps_ != MasterSpTemps[i])) {
+							MasterSpTemps[i] = MasterSpTemps_;
+						}
+					} else
+						fail = 1;
 				}
-			}
-			else fail=1;
-		}
-		else fail=1;
+			} else
+				fail = 1;
+		} else
+			fail = 1;
 		posReturn++;
 	}
-	
-	if(root.containsKey("SetType")) {
-		if(root["SetType"].is<long>()) {
-			SetTypes SetType_ =  static_cast<SetTypes>(root["SetType"].as<long>());
-                        if((SetType_>=0)&&(SetType_<nSetTypes)&&(SetType_!=SetType)){
-                            SetType = SetType_;
-                            posReturn++;
-                        }
-		}
-		else fail=1;
+
+	if (root.containsKey("SetType")) {
+		if (root["SetType"].is<long>()) {
+			SetTypes SetType_ = static_cast<SetTypes>(root["SetType"].as<long>());
+			if ((SetType_ >= 0) && (SetType_ < nSetTypes) && (SetType_ != SetType)) {
+				SetType = SetType_;
+				posReturn++;
+			}
+		} else
+			fail = 1;
 	}
-	
-	if (fail == 0) { // If all three parameter objects were successfully filled
+
+	if (fail == 0) {  // If all three parameter objects were successfully filled
 		return posReturn;
-	}
-	else {
+	} else {
 		return 0;
 	}
 }
