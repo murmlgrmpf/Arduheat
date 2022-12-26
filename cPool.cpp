@@ -1,28 +1,20 @@
 #include "cPool.h"
 
 cPool::cPool(cBoiler* Boiler_):
-Valve(PinValvePoolOpen,PinValvePoolClose),
-TempPool(&MPNumSys[0], &MPChanSys[idxTempPool], &SysTempOffset[idxTempPool])
+TempPool(&MPNumSys[0], &MPChanSys[idxTempPool], &SysTempOffset[idxTempPool]),
+Valve(PinValvePool)
 {
 	Boiler = Boiler_;
 	pinMode(PinPoolSwitch, INPUT_PULLUP);
-
-	pinMode(PinValvePool, OUTPUT);
-	digitalWrite(PinValvePool, LOW);
+	pinMode(PinFeedPoolSwitch, INPUT_PULLUP);
 }
 
 boolean cPool::charge(boolean mayCharge, double TempSource){
 	double SpTempCharge = SpTemp();
 	if (mayCharge) {
-		Boiler->Pump.SetOutputLimits(1.0, 1.0);
-//		Boiler->Pump.run(SpTempCharge, TempSource);
-		Boiler->Pump.run(1.0);
+		Boiler->Pump.SetOutputLimits(0.2, 1.0);
+		Boiler->Pump.run(SpTempCharge, TempSource);
 	}
-
-	if (mayCharge)
-		digitalWrite(PinValvePool, HIGH);
-	else
-		digitalWrite(PinValvePool, LOW);
 
 	Valve.set(mayCharge);
 
@@ -31,11 +23,9 @@ boolean cPool::charge(boolean mayCharge, double TempSource){
 
 
 
-void cPool::getData( JsonObject& root )	
-	{
-	root["TPool"] = TempPool.get();
-	root["bPoolActive"] = static_cast<int>(poolActive());
-	//root["BP"] = Boiler.Pump.get();
-	root["PV"] = static_cast<int>(Valve.get());
-	root["bFeedPool"] =  static_cast<int>(FeedPool());
+void cPool::getData( JsonObject& root )	{
+		root["TPool"] = TempPool.get();
+		root["bPoolActive"] = static_cast<int>(poolCirculationPumpActive());
+		root["PV"] = static_cast<int>(Valve.get());
+		root["bFeedPool"] = static_cast<int>(forceChargePool());
 	}

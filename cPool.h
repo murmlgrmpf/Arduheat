@@ -5,14 +5,14 @@
 #include "PinDefinitions.h"
 #include "cTemp.h"
 #include "cBoiler.h"
-#include "cValve.h"
 #include "cPump.h"
+#include "cValve.h"
 #include "cLFPWM.h"
 #include <cPID.h>
 #include <ArduinoJson.h>
 
-#define spTempPoolMax 22.0
-#define PoolMargin 5.0
+#define spTempPoolMax 26.0
+#define PoolMargin 12.0
 #define PoolHysteresis 1.0
 
 class cPool
@@ -22,31 +22,30 @@ class cPool
 	cPool(cBoiler* Boiler_);
 	
 	double SpTemp(void) {
-		return(TempPool.get()+PoolMargin);
+		double SpTemp_ = 0.0;
+		if (forceChargePool())
+			SpTemp_ = 55;
+		else
+			SpTemp_ = TempPool.get() + PoolMargin;
+		
+		return(SpTemp_);
 	}
 	
 	boolean shouldCharge(void){
-		if (TempPool.get()<spTempPoolMax)
-			bmayChargePool = true;
-		else if (TempPool.get()>=spTempPoolMax+PoolHysteresis)
-			bmayChargePool = false;
-			
-		return(bmayChargePool && poolActive());
+		if ((bmayChargePool ==false) && (TempPool.get() < spTempPoolMax))
+		bmayChargePool = true;
+		else if ((bmayChargePool ==true) && (TempPool.get() >= spTempPoolMax + PoolHysteresis))
+		bmayChargePool = false;
+
+		return(bmayChargePool && poolCirculationPumpActive());
 	}
 
-//Pool Heating controlled by external toggle switch via manipulation of Pool Temperature Signal
-	boolean FeedPool(void){
-		if ((bFeedPool == false) && (TempPool.get() < 5))
-			bFeedPool = true;
-		if ((bFeedPool == true) && (TempPool.get() > 50))
-			bFeedPool = false;
-	
-		return bFeedPool;
-	}
+	boolean forceChargePool(void) {return(!digitalRead(PinFeedPoolSwitch));}
 
 	boolean charge(boolean mayCharge, double TempSource);
 
 	void getData(JsonObject& root);
+
 
 	private:
 	
@@ -56,14 +55,11 @@ class cPool
 	cValve Valve;
 	cBoiler* Boiler;
 	
-	boolean poolActive(void)
+	boolean poolCirculationPumpActive(void)
 	{
 		return(!digitalRead(PinPoolSwitch));
 	}
-	
+
 };
-
-
-
 
 #endif
