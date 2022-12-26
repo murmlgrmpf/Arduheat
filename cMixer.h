@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 
+#include "PinDefinitions.h"
 #include "cLFPWM.h"
 #include "cTrigger.h"
 #include <PID_v1.h>
