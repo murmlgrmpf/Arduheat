@@ -7,7 +7,7 @@ Rooms(&WarmWater),
 Boiler(&Rooms, &WarmWater),
 TransferStation(),
 Solar(),
-Pool(&Boiler)
+Pool(&(Boiler.Pump))
 // Initialize and activate WarmWater Circulation Heating system
 {
 	pinMode(PinPumpCirculation, OUTPUT);
@@ -161,7 +161,6 @@ void cHeating::selectSink( int Sink )
 	boolean poolMayCharge = false;
 	boolean roomsMayCharge = false;
 	
-	boolean controlByRoomsMixer = ((TransferStation.GetMode()!=AUTOMATIC) || (Boiler.needChargeWarmWater() && Rooms.bAct));
 	switch (Sink) {
 		case SiCombined: {
 			roomsMayCharge = true;
@@ -204,10 +203,11 @@ void cHeating::selectSink( int Sink )
 		}
 	}
 	
+	boolean controlByRoomsMixer = ((TransferStation.GetMode()!=AUTOMATIC) || (Boiler.needChargeWarmWater() && Rooms.bAct));
 	Rooms.charge(roomsMayCharge,controlByRoomsMixer);
+
 	boolean bBoilerCharging = Boiler.charge(boilerMayCharge,TempSource,needSink);
 	boolean bPoolCharging = Pool.charge(poolMayCharge, TempSource);
-	
 	if (!bBoilerCharging && !bPoolCharging)
 		Boiler.Pump.run(); //stop charge pump
 }
