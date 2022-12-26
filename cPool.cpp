@@ -1,27 +1,25 @@
 #include "cPool.h"
 
-cPool::cPool(cBoiler* Boiler_):
+cPool::cPool(cPump* BoilerPump_):
 TempPool(&MPNumSys[0], &MPChanSys[idxTempPool], &SysTempOffset[idxTempPool]),
 Valve(PinValvePool)
 {
-	Boiler = Boiler_;
+	BoilerPump = BoilerPump_;
 	pinMode(PinPoolSwitch, INPUT_PULLUP);
 	pinMode(PinFeedPoolSwitch, INPUT_PULLUP);
 }
 
-boolean cPool::charge(boolean mayCharge, double TempSource){
+boolean cPool::charge(boolean mayCharge, double TempSource) {
 	double SpTempCharge = SpTemp();
 	if (mayCharge) {
-		Boiler->Pump.SetOutputLimits(0.2, 1.0);
-		Boiler->Pump.run(SpTempCharge, TempSource);
+		BoilerPump->SetOutputLimits(0.2, 1.0);
+		BoilerPump->run(SpTempCharge, TempSource);
 	}
 
 	Valve.set(mayCharge);
 
 	return mayCharge;
 }
-
-
 
 void cPool::getData( JsonObject& root )	{
 		root["TPool"] = TempPool.get();
