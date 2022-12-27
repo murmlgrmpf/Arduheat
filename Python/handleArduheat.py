@@ -77,8 +77,7 @@ class handleArduheat(threading.Thread):
         while (not(self.conf)):
             #Trigger Arduino to send config
             self.arduinoAnswered = False
-            #self.arduino.write('\n')
-            self.arduino.write('{"getConf":[1]}'+'\n')
+            self.arduino.write(b"{\"getConf\":[1]}\n")
             print("Pull Config.")
             time.sleep(5)
         print("Pull of Arduino config: success.")
@@ -88,23 +87,24 @@ class handleArduheat(threading.Thread):
         self.writeConf()
     
     def readConf(self):
-        with open(self.ConfFile,'r') as cfgFile:
-            lines = cfgFile.readlines()
-            for line in lines:
-                try:
-                    cfg = json.loads(line)
-                    for obj in self.conf:
-                        if cfg.keys()==obj.keys():
-                            print("Success!\n")
-                            self.arduinoAnswered = False
-                            self.arduino.write(json.dumps(cfg,separators=(',', ':'))+ '\n')
-                            time.sleep(1)
-                            #while not(self.arduinoAnswered):
-                            #todo: timeout instead of waiting forever for an answer
-                                
-                except:
-                    print("Fail read from file!\n")
-                    print(line+ '\n')
+        if os.path.isfile(self.ConfFile):
+            with open(self.ConfFile,'r') as cfgFile:
+                lines = cfgFile.readlines()
+                for line in lines:
+                    try:
+                        cfg = json.loads(line)
+                        for obj in self.conf:
+                            if cfg.keys()==obj.keys():
+                                print("Success!\n")
+                                self.arduinoAnswered = False
+                                self.arduino.write(json.dumps(cfg,separators=(',', ':'))+ '\n')
+                                time.sleep(1)
+                                #while not(self.arduinoAnswered):
+                                #todo: timeout instead of waiting forever for an answer
+                                    
+                    except:
+                        print("Fail read from file!\n")
+                        print(line+ '\n')
                     
 
     def writeConf(self):
@@ -191,7 +191,7 @@ signal.signal(signal.SIGINT, signal_handler)
 #json_string = '{"getConf":[{"Bcm":5.00}]}'
 #json_string += '\n'
 
-arduHeat = handleArduheat('/dev/ttyATH0','/mnt/sda1/arduino/www/data/')
+arduHeat = handleArduheat('COM3','C:/arduinoLogTest/')
 arduHeat.start()
 #arduHeat.arduino.write(json_string)
 #arduHeat.arduino.write(json_string)

@@ -106,7 +106,7 @@ class bridgeSerial(threading.Thread):
         if sys.version_info[0] < 3:
             self.arduino.write(data)
         else:
-            self.arduino.write(bytes([ord(data)]))
+            self.arduino.write(data)
 
     # noinspection PyExceptClausesOrder
     def run(self):
@@ -120,8 +120,8 @@ class bridgeSerial(threading.Thread):
             # just ignore it
             try:
                 if self.arduino.inWaiting():
-                    c = self.arduino.read()
-                    self.command += str(c)
+                    c = self.arduino.read().decode()
+                    self.command += c
                     if c=='\n':
                         self.callback(self.command)
                         self.command = str()
