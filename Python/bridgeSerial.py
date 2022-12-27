@@ -120,7 +120,10 @@ class bridgeSerial(threading.Thread):
             # just ignore it
             try:
                 if self.arduino.inWaiting():
-                    c = self.arduino.read().decode()
+                    try:
+                        c = self.arduino.read().decode()
+                    except:
+                        continue 
                     self.command += c
                     if c=='\n':
                         self.callback(self.command)
