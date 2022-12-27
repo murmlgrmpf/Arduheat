@@ -17,10 +17,10 @@ class cMixer : public PID {
 		  Timer(180000)  // 3(min)*60(s/min)*1000(ms/s)
 	{
 		pinOpen = pinOpen_;
-		pinMode_wrap(pinOpen, OUTPUT);
+		pinMode(pinOpen, OUTPUT);
 
 		pinClose = pinClose_;
-		pinMode_wrap(pinClose, OUTPUT);
+		pinMode(pinClose, OUTPUT);
 
 		Is = 0;
 		Power = 0;
@@ -74,12 +74,12 @@ class cMixer : public PID {
 		// Check PWM and hysteresis and Timer for limit switch off
 		if ((PWM.get(abs(Power))) && (abs(Power) > 0.09) && (Timer.get())) {
 			// Drive in direction
-			digitalWrite_wrap(pinClose, !direction);
-			digitalWrite_wrap(pinOpen, direction);
+			digitalWrite(pinClose, !direction);
+			digitalWrite(pinOpen, direction);
 		} else {
 			// Stop
-			digitalWrite_wrap(pinClose, LOW);
-			digitalWrite_wrap(pinOpen, LOW);
+			digitalWrite(pinClose, LOW);
+			digitalWrite(pinOpen, LOW);
 		}
 	}
 };

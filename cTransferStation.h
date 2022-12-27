@@ -19,7 +19,7 @@ class cTransferStation : public PID
 	Valve(PinValveTransferStation)
 	{
 		sufficientHeat = false;
-		pinMode_wrap(PinFlowRegulator, OUTPUT);
+		pinMode(PinFlowRegulator, OUTPUT);
 		
 		Power = 0.0;
 		Setpoint = 0.0;

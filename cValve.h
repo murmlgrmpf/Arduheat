@@ -10,7 +10,7 @@ class cValve
 	cValve(int pinOpen_, boolean bisOpen_ = false)
 	{
 		pinOpen = pinOpen_;
-		pinMode_wrap(pinOpen, OUTPUT);
+		pinMode(pinOpen, OUTPUT);
 		bisOpen = !bisOpen_;
 		set(bisOpen_);
 	}
@@ -20,7 +20,7 @@ class cValve
 	void set(boolean bsetOpen)
 	{
 		bisOpen = bsetOpen;
-		digitalWrite_wrap(pinOpen, bsetOpen);
+		digitalWrite(pinOpen, bsetOpen);
 	}
 
 	private:

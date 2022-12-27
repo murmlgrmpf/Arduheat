@@ -20,7 +20,7 @@ class cPump : public PID
 	PWM(PWMPeriod_)	
 	{
 		PinPump = PinPump_;
-		pinMode_wrap(PinPump, OUTPUT);
+		pinMode(PinPump, OUTPUT);
 		
 		Is = 0;
 		Power = Power_;
@@ -39,7 +39,7 @@ class cPump : public PID
 	
 		Compute();
 		// Pump is running if switching time of PWM is not yet exceeded
-		digitalWrite_wrap(PinPump, PWM.get(Power)); // Pump switched on if true and off if false
+		digitalWrite(PinPump, PWM.get(Power)); // Pump switched on if true and off if false
 		return Power;
 	}
 	/// Regulate the power by pid controller
@@ -55,7 +55,7 @@ class cPump : public PID
 		Compute();
 		PWM.setSampleTime(160/min(0.03, max(0.002, (Power+PowerStatic_))));
 		// Pump is running if switching time of PWM is not yet exceeded
-		digitalWrite_wrap(PinPump, PWM.get(Power+PowerStatic_)); // Pump switched on if true and off if false
+		digitalWrite(PinPump, PWM.get(Power+PowerStatic_)); // Pump switched on if true and off if false
 		return Power;
 		
 	}

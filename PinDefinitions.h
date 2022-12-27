@@ -139,17 +139,6 @@ const PROGMEM int MPInput[] = {A0, A1, A2};
 
 #define Vcc 5.0 //! Voltage of power supply [V]
 
-// Wrapper function for digital outputs
-static void digitalWrite_wrap(uint8_t pin, boolean state)
-{
-	digitalWrite(pin, state);
-}
-
-static void pinMode_wrap(uint8_t pin, uint8_t mode)
-{
-	pinMode(pin, mode);
-}
-
 #endif
 /*
 Encoding scheme for variable names

@@ -13,7 +13,7 @@ class cRoomValve
 		
 		pinOpen = pinOpen_;
 		//pinClose=0;
-		pinMode_wrap(pgm_read_word(pinOpen), OUTPUT);
+		pinMode(pgm_read_word(pinOpen), OUTPUT);
                 bisOpen = false;
 		set(bisOpen);
 	}
@@ -28,7 +28,7 @@ class cRoomValve
 	void set(boolean bState)
 	{
                 bisOpen = bState;
-		digitalWrite_wrap(pgm_read_word(pinOpen), bisOpen);
+		digitalWrite(pgm_read_word(pinOpen), bisOpen);
 // 		digitalWrite(pinClose, !bState);
 	}
 	
