@@ -122,14 +122,14 @@ class bridgeSerial(threading.Thread):
                 if self.arduino.inWaiting():
                     try:
                         c = self.arduino.read().decode()
+                        self.command += c
+                        if self.command[-1:] =='\n':
+                            self.callback(self.command)
+                            self.command = str()
+                        if len(self.command)>10000:
+                            self.command = str()
                     except:
                         continue 
-                    self.command += c
-                    if c=='\n':
-                        self.callback(self.command)
-                        self.command = str()
-                    if len(self.command)>1000:
-                        self.command = str()
                 else:
                     time.sleep(.1)
             except OSError:

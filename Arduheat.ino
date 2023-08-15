@@ -1,22 +1,19 @@
 #include <Arduino.h>
-#include <SPI.h>
 #include <PID_v1.h>
-// RTC
-#include <Wire.h>
-#include <RTClib.h>
+#include <TimeLib.h>
 
 #include "cHeating.h"
 #include "config.h"
 #include "cTrigger.h"
 
-//// RTC //////////
-RTC_DS1307 rtc;
-DateTime TimeNow;
-///////////////////
-
 cTrigger trigger(10000);
 cHeating Heating;
 cConfig Config(&Serial,&Heating);
+
+time_t requestTimeSync() {
+	Serial.println("{\"Time\":[]}");
+	return 0;
+}
 
 /**
 * @fn void setup(void)
@@ -28,13 +25,10 @@ void setup() {
 	while (!Serial) {
 	}  // Wait until Serial1 is ready
 
-	// RTC
-	Wire.begin();
-	rtc.begin();
-	////////////////////////
-	//// following line sets the RTC to the date & time this sketch was compiled
-	rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-	TimeNow = rtc.now();
+	Serial.println("Arduino Startup.");
+
+	// TimeLib time
+	setSyncProvider(requestTimeSync);
 
 	// analogReference(DEFAULT);
 	analogReference(EXTERNAL);
@@ -53,6 +47,5 @@ void loop() {
 
 	if (trigger.get()) {
 		Config.sendLog();
-		TimeNow = rtc.now();
 	}
 }

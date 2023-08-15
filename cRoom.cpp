@@ -23,10 +23,9 @@ Valve(&RoomValvePin[RoomNumber])
 
 double cRoom::getSpTemp(void)
 {
-	DayTypes DayType = getDayType( TimeNow.dayOfTheWeek() );
-	
-	TimeSpan Now(0, TimeNow.hour(), TimeNow.minute(), 0);
-	
+	time_t dt = elapsedSecsToday(now());
+	DayTypes DayType = getDayType( dayOfWeek(dt) );
+		
 	double MasterSPTemp = 0.0;
 	// Check if manual override is valid
 	if((SpTempOverride.get()<TempRoomHigh)&&(SpTempOverride.get()>TempRoomLow))
@@ -38,7 +37,7 @@ double cRoom::getSpTemp(void)
 	
 	for(int iSwitch=0; iSwitch<nSwitch; iSwitch++)
 	{	// Apply offset according to schedule if time of schedule is later than Lastrent and sooner than 
-		if (Rooms->TempOffsetSchedule[Rooms->SetType][RoomType][DayType][iSwitch].time.totalseconds() < Now.totalseconds())
+		if (Rooms->TempOffsetSchedule[Rooms->SetType][RoomType][DayType][iSwitch].time < dt)
 			SpTemp = MasterSPTemp + Rooms->TempOffsetSchedule[Rooms->SetType][RoomType][DayType][iSwitch].temp;
 	}
 	

@@ -11,12 +11,10 @@
 #include "cSolar.h"
 #include "cPool.h"
 
-// RTC for DateTime class
-#include <RTClib.h>
+#include <TimeLib.h>
 
 #include <ArduinoJson.h>
 
-extern DateTime TimeNow;
 
 class cHeating
 {	

@@ -110,14 +110,14 @@ class cBoiler
 		return bHot;
 	}
 
-	boolean RelPool(void){
+	boolean hasMinHeat(void){
 		// introduce Hysteresis for Change of Pool and Boiler charging
 		if (TempHead.get() > 54)
-			bRelPool = true;
+			bhasMinHeat = true;
 		if (TempTop.get() < 56)
-			bRelPool = false;
+			bhasMinHeat = false;
 
-	return bRelPool;
+	return bhasMinHeat;
 	}
 
 	void discharge(boolean bNeedSourceBoiler){
@@ -153,7 +153,7 @@ class cBoiler
 	boolean bDischarging;
 	boolean bCharging;
 	boolean bHot;
-	boolean bRelPool;
+	boolean bhasMinHeat;
 };
 
 #endif

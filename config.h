@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include <ArduinoJson.h>
+#include <TimeLib.h>
 
 #define BufferSize 1000
 #define TimeOut 1000
@@ -34,12 +35,21 @@ public:
     void updateConf() {
         readSerial();
         if (newData) {
-            int posReturn = 0;
-            posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setOffsetTime);
-            posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setOffsetTemp);
-            posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setRooms);
-            posReturn += readConfigLine(&(Heating->WarmWater), &cWarmWater::setSP);
+            // Debug
+            serial->print("Message: ");
+            serial->println(receivedChars);
+
+            // Update Time of Timelib
+            processTimeSyncMessage();
+
+            //int posReturn = 0;
+            //posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setOffsetTime);
+            //posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setOffsetTemp);
+            //posReturn += readConfigLine(&(Heating->Rooms), &cRooms::setRooms);
+            //posReturn += readConfigLine(&(Heating->WarmWater), &cWarmWater::setSP);
+            
             sendConf();
+            newData = false;
         }
     }
 
@@ -53,7 +63,8 @@ public:
 		printElement(&(Heating->Boiler), &cBoiler::getData); serial->print(",");
 		printElement(&(Heating->WarmWater), &cWarmWater::getData); serial->print(",");
 		printElement(&(Heating->Solar), &cSolar::getData); serial->print(",");
-		printElement(&(Heating->Pool), &cPool::getData);
+		printElement(&(Heating->Pool), &cPool::getData); serial->print(",");
+        printTimeLibTime();
 		serial->println("]}");
     }
 
@@ -65,6 +76,21 @@ private:
             
             (Obj->*getF)(root);
             root.printTo(*serial);
+    }
+
+    void printTimeLibTime() {
+        StaticJsonBuffer<BufferSize> jsonBuffer;
+        JsonObject& root = jsonBuffer.createObject();
+        time_t dt = now();
+
+        char buffer[25]; // large enough for any DateTime, including invalid ones
+        sprintf(buffer, "%u-%02d-%02dT%02d:%02d:%02d", year(dt), month(dt), day(dt), hour(dt), minute(dt), second(dt));
+
+        root["TimeArduino"] = buffer;
+        root["TimeLibTimeStatus"] = timeStatus();
+        root["TimeLibTime"] = dt;
+        
+        root.printTo(*serial);
     }
     
     void readSerial() {
@@ -96,9 +122,26 @@ private:
         
         // Set configuration parameters
         int posReturn = (Obj->*setF)(root);
-        
-        newData = false;
+
         return posReturn;
+    }
+
+    void processTimeSyncMessage() {
+        unsigned long raspberryTime;
+        const unsigned long DEFAULT_TIME = 1357041600; // jan 1 2013
+
+        StaticJsonBuffer<BufferSize> jsonBuffer;
+        JsonObject& root = jsonBuffer.parseObject(receivedChars);
+
+        if (root.containsKey("TimeRasp")) {
+            if (root["TimeRasp"].is<unsigned long>()) {
+                raspberryTime = root["TimeRasp"].as<unsigned long>();
+                if (raspberryTime >= DEFAULT_TIME) {
+                    setTime(raspberryTime);
+                    serial->println("Successfully set Arduino time.");
+                }
+            }
+        }
     }
     
     HardwareSerial* serial;

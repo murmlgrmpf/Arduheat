@@ -16,17 +16,13 @@ Pool(&(Boiler.Pump))
 
 
 void cHeating::Circulation(void){
-	TimeSpan Now(0, TimeNow.hour(), TimeNow.minute(), 0);
-	//Now.set(0, TimeNow.hour(), TimeNow.minute(), 0);
-	// TimeNow.dayOfWeek() 0 = Sonntag, 6 = Samstag
+	time_t dt  = elapsedSecsToday(now());
+	time_t dt1 = hoursToTime_t(7);
+	time_t dt2 = hoursToTime_t(9) + minutesToTime_t(20);
+	time_t dt3 = hoursToTime_t(18);
+	time_t dt4 = hoursToTime_t(19) + minutesToTime_t(55);
 	
-	//TimeSpan dt1,dt2,dt3,dt4;
-	TimeSpan dt1(0, 7, 0, 0);
-	TimeSpan dt2(0, 9, 10, 0); // (0, 18, 0, 0)
-	TimeSpan dt3(0, 18, 0, 0);
-	TimeSpan dt4(0, 19, 55, 0); // (0, 21, 0, 0)
-	
-	if ((((dt1.totalseconds()<Now.totalseconds())&&(Now.totalseconds()<dt2.totalseconds())) || ((dt3.totalseconds()<Now.totalseconds())&&(Now.totalseconds()<dt4.totalseconds())))&&(WarmWater.Period.get()))
+	if ((( (dt1<dt) && (dt<dt2) ) || ( (dt3<dt) && (dt<dt4) ))&&(WarmWater.Period.get()))
 		digitalWrite(PinPumpCirculation, HIGH);
 	else
 		digitalWrite(PinPumpCirculation, LOW);
@@ -80,7 +76,7 @@ void cHeating::checkSinks(void)
 		needSource = false;
 	}
 	// #4 Charge the pool
-	else if ((Pool.shouldCharge()) && (Boiler.RelPool() || Pool.forceChargePool())) {
+	else if ((Pool.shouldCharge()) && (Boiler.hasMinHeat() || Pool.forceChargePool())) {
 		Sink = SiChargePool;
 		SpTempSource = Pool.SpTemp();
 		if (SpTempSource >= 55)

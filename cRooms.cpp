@@ -40,11 +40,12 @@ void cRooms::initDefaultSetpoint()
 	temp[1] = -1.2;
 	temp[2] = 0.0;
 	temp[3] = -1.2;
-	TimeSpan switchtime[nSwitch];
-	switchtime[0] = TimeSpan(0,5,45,0);
-	switchtime[1] = TimeSpan(0,8,0,0);
-	switchtime[2] = TimeSpan(0,18,0,0);
-	switchtime[3] = TimeSpan(0,21,0,0);
+
+	time_t switchtime[nSwitch];
+	switchtime[0] = hoursToTime_t(5) + minutesToTime_t(45);
+	switchtime[1] = hoursToTime_t(8);
+	switchtime[2] = hoursToTime_t(18);
+	switchtime[3] = hoursToTime_t(21);
 
 	// Iterate over all sets (At home, away)
 	for(int iSet = 0; iSet<nSetTypes; iSet++)
@@ -171,7 +172,7 @@ void cRooms::getOffsetTime( JsonObject& root )
 			{
 				for(int iSwitch = 0; iSwitch<nSwitch; iSwitch++)
 				{
-					times.add(TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time.totalseconds());
+					times.add(TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time);
 				}
 			}
 		}
@@ -199,7 +200,7 @@ int cRooms::setOffsetTime( JsonObject& root )
 								int idx = iSwitch + iDayType * (nSwitch) + iRoomType * (nDayTypes) * (nSwitch) + iSet * (nRoomTypes) * (nDayTypes) * (nSwitch);
 								if (times[idx].is<long>())
 								{
-									unsigned long oldTime = TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time.totalseconds();
+									unsigned long oldTime = TempOffsetSchedule[iSet][iRoomType][iDayType][iSwitch].time;
 									unsigned long newTime = times[idx].as<unsigned long>();
 									if ((newTime >= (unsigned long)0) && ((unsigned long)24 * (unsigned long)60 * (unsigned long)60 - newTime >= (unsigned long)0) && (newTime != oldTime))
 									{

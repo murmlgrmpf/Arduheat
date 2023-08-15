@@ -6,9 +6,8 @@
 #include "cRoomValve.h"
 #include "cTemp.h"
 
-// RTC for DateTime class
 #include <PID_v1.h>
-#include <RTClib.h>
+#include <TimeLib.h>
 #include <avr/pgmspace.h>
 
 #define TempRoomLow 13.5
@@ -21,8 +20,6 @@ enum RoomTypes { Living, Sleeping, Hallway, Bath, Side, Trim, Work, nRoomTypes }
 // enum SetTypes  {Normal, Holiday, nSetTypes};
 enum SetTypes { Normal, nSetTypes };
 enum DayTypes { Weekend, Workday, nDayTypes };
-
-extern DateTime TimeNow;
 
 // Forward declaration of cRooms class
 class cRooms;
@@ -41,7 +38,7 @@ class cRoom : public PID {
 
 	static DayTypes getDayType(uint8_t day) {
 		DayTypes DayType;
-		if ((day == 0) || (day == 6))
+		if ((day == 1) || (day == 7))
 			DayType = Weekend;
 		else
 			DayType = Workday;

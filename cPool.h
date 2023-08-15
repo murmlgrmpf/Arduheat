@@ -9,7 +9,7 @@
 #include "cTemp.h"
 #include "cValve.h"
 
-#define spTempPoolMax 26.0
+#define spTempPoolMax 27.0
 #define PoolMargin 12.0
 #define PoolHysteresis 1.0
 

@@ -1,20 +1,16 @@
 #ifndef cRooms_h
 #define cRooms_h
-// RTC
 
 #include <ArduinoJson.h>
+#include <TimeLib.h>
 
 #include "Arduino.h"
 #include "cLFPWM.h"
 #include "cMixer.h"
 #include "cPump.h"
 #include "cRoom.h"
-#include "cRoomValve.h"
 #include "cTemp.h"
 #include "cWarmWater.h"
-
-// RTC for DateTime class
-#include <RTClib.h>
 
 #define nSwitch 4  // Number of switching times each day
 #define nRooms 16  // Number of rooms
@@ -27,6 +23,11 @@
 #define dverst 2.5   // Raumeinfluss (war 1.8, 2.2)
 #define dminvl 28.0  // (war 30.0)
 #define dmaxvl 42.0
+
+typedef struct{
+	time_t time;
+	float temp;
+} sTempSchedule;
 
 class cRooms {
    public:

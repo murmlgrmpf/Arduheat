@@ -28,6 +28,8 @@ import json
 import os.path
 import csv
 
+from datetime import datetime
+
 from bridgeSerial import bridgeSerial
 
 class handleArduheat(threading.Thread):
@@ -118,6 +120,7 @@ class handleArduheat(threading.Thread):
     
     # Communication with arduino
     def processJsonString(self,jstr):
+        print("Raw Message from Arduino:")
         print(jstr)
         try:
             var = json.loads(jstr)
@@ -127,10 +130,21 @@ class handleArduheat(threading.Thread):
                 self.Conf(var['Conf'])
             if 'Reset' in var:
                 self.Reset()
+            if 'Time' in var:
+                self.Time()
         except:
-            print("Fail read from Arduino!")
-            print(jstr+'\n')
+            print("Failed to read json from Arduino!")
+            # print(jstr+'\n')
     
+    def Time(self):
+        print("Update Time.")
+        ts = time.time()
+        utc_offset = (datetime.fromtimestamp(ts) - datetime.utcfromtimestamp(ts)).total_seconds()
+        timestampLong = (int(ts) + int(utc_offset))
+        timeString = bytes("{\"TimeRasp\":" + str(timestampLong) + "}\n",'utf-8')
+        self.arduino.write(timeString)
+        print(timeString)
+
     def Reset(self):
         print("Reset Config.")
         self.conf = []
@@ -191,7 +205,7 @@ signal.signal(signal.SIGINT, signal_handler)
 #json_string = '{"getConf":[{"Bcm":5.00}]}'
 #json_string += '\n'
 
-arduHeat = handleArduheat('COM3','C:/arduinoLogTest/')
+arduHeat = handleArduheat('/dev/ttyACM0','/media/heat/USB-Stick/www/data/')
 arduHeat.start()
 #arduHeat.arduino.write(json_string)
 #arduHeat.arduino.write(json_string)

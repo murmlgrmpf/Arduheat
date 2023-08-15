@@ -5,9 +5,6 @@
 #include "PinDefinitions.h"
 #include "cTrigger.h"
 
-// RTC for DateTime class
-#include <RTClib.h>
-
 //! Pullup Resistor Value in Ohm
 #define R 2000.0   //! OP Resistor Value [Ohm]
 #define R1 12000.0 //! OP Resistor Value [Ohm]
@@ -21,11 +18,6 @@
 #define AlphaT 8.0 //Was 10 - ! Error decay rate
 #define TimePeriod 100
 #define nMultiSample 3
-
-typedef struct{
-	TimeSpan time;
-	float temp;
-} sTempSchedule;
 
 
 class cTempSensor

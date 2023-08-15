@@ -12,7 +12,7 @@ TempReserve2((&MPNumSys[0]),(&MPChanSys[idxTempBoilerReserve2]),(&SysTempOffset[
 	Rooms = Rooms_;
 	WarmWater = WarmWater_;
 	Pump.SetOutputLimits(0.0, 1.0);
-	bRelPool = false;
+	bhasMinHeat = false;
 }
 
 void cBoiler::getData( JsonObject& root )
