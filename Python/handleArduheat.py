@@ -205,7 +205,7 @@ signal.signal(signal.SIGINT, signal_handler)
 #json_string = '{"getConf":[{"Bcm":5.00}]}'
 #json_string += '\n'
 
-arduHeat = handleArduheat('/dev/ttyACM0','/media/heat/USB-Stick/www/data/')
+arduHeat = handleArduheat('/dev/ttyACM0','/media/heat/USB-STICK/www/data/')
 arduHeat.start()
 #arduHeat.arduino.write(json_string)
 #arduHeat.arduino.write(json_string)
