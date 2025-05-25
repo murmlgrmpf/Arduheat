@@ -41,9 +41,9 @@ class cBoiler
 	if (WarmWater->Period.get()) {
 		// Hysteresis by top and head temperature sensors.
 		// If top falls below setpoint: charge. If head gets above setpoint: dont charge.
-		if (TempTop.get() < 50)
+		if (TempTop.get() < 48)
 			bneedChargeWarmWater = true;
-		if (TempHead.get() > 50)
+		if (TempHead.get() > 48)
 			bneedChargeWarmWater = false;
 	}
 	else
@@ -112,9 +112,9 @@ class cBoiler
 
 	boolean hasMinHeat(void){
 		// introduce Hysteresis for Change of Pool and Boiler charging
-		if (TempHead.get() > 54)
+		if (TempHead.get() > 48)
 			bhasMinHeat = true;
-		if (TempTop.get() < 56)
+		if (TempTop.get() < 48)
 			bhasMinHeat = false;
 
 	return bhasMinHeat;
