@@ -8,7 +8,7 @@
 #include "cRooms.h"
 #include "cTransferStation.h"
 #include "cWarmWater.h"
-#include "cSolar.h"
+#include "cFlowHeater.h"
 #include "cPool.h"
 
 #include <TimeLib.h>
@@ -24,7 +24,7 @@ class cHeating
 	cRooms Rooms;
 	cBoiler Boiler;
 	cTransferStation TransferStation;
-	cSolar Solar;
+	cFlowHeater FlowHeater;
 	cPool Pool;
 	
 	cHeating(void);

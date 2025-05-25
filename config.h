@@ -62,7 +62,7 @@ public:
 		printElement(&(Heating->TransferStation), &cTransferStation::getData); serial->print(",");
 		printElement(&(Heating->Boiler), &cBoiler::getData); serial->print(",");
 		printElement(&(Heating->WarmWater), &cWarmWater::getData); serial->print(",");
-		printElement(&(Heating->Solar), &cSolar::getData); serial->print(",");
+		printElement(&(Heating->FlowHeater), &cFlowHeater::getData); serial->print(",");
 		printElement(&(Heating->Pool), &cPool::getData); serial->print(",");
         printTimeLibTime();
 		serial->println("]}");
