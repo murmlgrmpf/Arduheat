@@ -14,17 +14,19 @@ void cWarmWater::Control(void) {
 		Factor1 * ((Factor2 * 0.025 - 0.0139) / (15 - 2.6) * (WarmWaterFlow - 2.6) +
 				   0.0139);  // Adaption of Pump Power to required primary Flow by PowerStatic value
 
-	if (WarmWaterFlow > 2.0) {
+	if (WarmWaterFlow > 3.0) {
 		// Modeling of Heat exchanger with proportional correction
 		PowerStatic = Kwp * WarmWaterFlow *
 					  ((SpTemp + 11.5 * min(2.2, (SpTemp - IsTemp.getRaw()))) -
 					   IsTempWaterFromOutside.getRaw()) /
 					  ((max(30, IsTempWarmWaterFromBoiler.getRaw())) - 19);
 		Pump.run(SpTemp, max(45.0, IsTemp.getRaw()), PowerStatic);
-		Period.restart();
+		
+		if (not(PeriodDelay.get())) Period.restart();
 	} else {
 		Pump.run();  // manual mode (stop pump)
 		PowerStatic = 0;
+		PeriodDelay.restart();
 	}
 }
 
