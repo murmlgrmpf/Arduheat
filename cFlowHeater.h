@@ -11,16 +11,6 @@
 #include <cPID.h>
 #include <ArduinoJson.h>
 
-// Intensity smoothing
-#define AlphaT_Solar 10 //! Filter sampling interval
-#define TimePeriod 100
-//#define R    4990.0  //! OP Resistor Value [Ohm]
-#define Ri1 11000.0 //! OP Resistor Value [Ohm]
-#define Ri2  3740.0 //! OP Resistor Value [Ohm]
-#define Ri3 10000.0 //! OP Resistor Value [Ohm]
-#define Uf0 1.211
-#define Wmax 1300
-#define Ufmax 2.233
 
 class cFlowHeater
 {
