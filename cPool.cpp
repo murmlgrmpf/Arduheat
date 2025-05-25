@@ -14,6 +14,8 @@ boolean cPool::charge(boolean mayCharge, double TempSource) {
 	if (mayCharge) {
 		BoilerPump->SetOutputLimits(0.2, 1.0);
 		BoilerPump->run(SpTempCharge, TempSource);
+		if (forceChargePool()) //Test
+			BoilerPump->run(1.0); //Test
 	}
 
 	Valve.set(mayCharge);

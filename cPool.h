@@ -20,7 +20,7 @@ class cPool {
 	double SpTemp(void) {
 		double SpTemp_ = 0.0;
 		if (forceChargePool())
-			SpTemp_ = 55;
+			SpTemp_ = 75;
 		else
 			SpTemp_ = TempPool.get() + PoolMargin;
 
