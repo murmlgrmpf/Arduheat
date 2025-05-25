@@ -6,7 +6,6 @@
 #define PinPumpCirculation           17
 #define PinPumpWarmWater             18
 #define PinPumpBoiler                16
-#define PinPumpSolar                 23
 #define PinPumpHeating               22
 #define PinMixerOpen                 14
 #define PinMixerClose                25
@@ -19,7 +18,7 @@
 #define PinFlowRegulator              3
 #define PinValveTransferStation      15
 #define PinValveBoiler                2
-#define PinValveSolar                24
+#define PinValveFlowHeater           24
 #define PinValvePool                 44 //Pin 10 on Connector 3
 //#define PinReserve                 37 //Pin 9 on Connector 3
 //#define PinReserve                 45 //Pin 8 on Connector 3
@@ -35,20 +34,18 @@
 #define PinPumpCirculation           17
 #define PinPumpWarmWater             18
 #define PinPumpBoiler                16
-#define PinPumpSolar                 23
 #define PinPumpHeating               22
 #define PinMixerOpen                 14
 #define PinMixerClose                25
 #define PinPoolSwitch                47 //Pin 2 on Connector 4x Control
 #define PinFeedPoolSwitch            49 //Pin 4 on Connector 4x Control
-#define PinSolarVoltSwitch           51 //Pin 6 on Connector 4x Control
+#define PinFlowHeaterSwitch           51 //Pin 6 on Connector 4x Control
 //#define PinReserve2                53 //Pin 8 on Connector 4x Control
-#define PinSolarIntensity            A3
 #define PinWarmWaterFlow             A4
 #define PinFlowRegulator              3
 #define PinValveTransferStation      15
 #define PinValveBoiler                2
-#define PinValveSolar                24
+#define PinValveFlowHeater           24
 #define PinValvePool                 42 // Pin 10 on Connector 3
 //#define PinReserve                 43 //Pin 9 on Connector 3
 //#define PinReserve                 45 //Pin 8 on Connector 3
@@ -63,7 +60,6 @@
 #define PinPumpCirculation           16
 #define PinPumpWarmWater             17
 #define PinPumpBoiler                15
-#define PinPumpSolar                 18
 #define PinPumpHeating               23
 #define PinMixerOpen                  2
 #define PinMixerClose                22
@@ -76,7 +72,7 @@
 #define PinFlowRegulator              6
 #define PinValveTransferStation      14
 #define PinValveBoiler                3
-#define PinValveSolar                 5
+#define PinValveFlowHeater                 5
 #define PinValvePool                 50 //Pin 10 on Connector 3
 //#define PinReserve                 41 //Pin 9 on Connector 3
 //#define PinReserve                 51 //Pin 8 on Connector 3
@@ -94,21 +90,18 @@
 #define PinValveBoilerClose          38
 #define PinPumpWarmWater              5
 #define PinPumpBoiler                 7
-#define PinPumpSolar                 14
 #define PinPumpHeating               15
 #define PinMixerOpen                  9
 #define PinMixerClose                16
 #define PinWarmWaterSwitch           19
-#define PinSolarIntensity	         A3
 #define PinWarmWaterFlow	         A4
 #define PinFlowRegulator	         12
 */
 //System Temperatures
 #define idxTempHeatingReturn                   0
 #define idxTempHeatingLead                     1
-#define idxTempSolarFromCollector              3
 #define idxTempWarmWaterFromBoiler             2
-#define idxTempSolarToSystem                   6
+#define idxTempFlowHeaterToSystem              6
 #define idxTempBoilerCharge                    7
 #define idxTempBoilerReserve2                  8
 #define idxTempBoilerReserve1                  9
@@ -162,7 +155,7 @@ Objects
 Boiler B
 WarmWater W
 Burner Bu
-Solar S
+FlowHeater FH
 Source SO
 Sink SI
 Rooms R

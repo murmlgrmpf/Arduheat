@@ -31,7 +31,7 @@ class cBoiler
 	else if (bneedChargeHeating)
 		SpTempCharge = (Rooms->SpTemp()); // charge Rooms
 	else
-		SpTempCharge = TempReserve1.get() + SMargin; // Solar Charge
+		SpTempCharge = TempReserve1.get() + SMargin; // FlowHeater Charge
 
 	return (SpTempCharge);
 	}

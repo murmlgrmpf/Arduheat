@@ -6,7 +6,7 @@ WarmWater(),
 Rooms(&WarmWater),
 Boiler(&Rooms, &WarmWater),
 TransferStation(),
-Solar(),
+FlowHeater(),
 Pool(&(Boiler.Pump))
 // Initialize and activate WarmWater Circulation Heating system
 {
@@ -95,10 +95,10 @@ void cHeating::checkSinks(void)
 void cHeating::checkSources(void)
 {
 	// Priority of Heat sources:
-	// #1 Solar
-	if (Solar.hasHeat(SpTempSource)) {
+	// #1 FlowHeater
+	if (FlowHeater.hasHeat(SpTempSource)) {
 		Source = SoSolar;
-		TempSource = Solar.TempSource();
+		TempSource = FlowHeater.TempSource();
 		needSink = true;
 	}
 	// #3 Boiler
@@ -149,7 +149,7 @@ void cHeating::selectSource(int Source)
 		}
 	}
 
-	Solar.harvest(SpTempSource);
+	FlowHeater.harvest(SpTempSource);
 }
 
 void cHeating::selectSink( int Sink )
@@ -173,7 +173,7 @@ void cHeating::selectSink( int Sink )
 		}
 		case SiChargeRooms: {
 			roomsMayCharge = true;
-			if (Solar.sufficientHeat && (Solar.TempToSystem.getRaw() > Boiler.TempReserve1.get()))
+			if (FlowHeater.sufficientHeat && (FlowHeater.TempToSystem.getRaw() > Boiler.TempReserve1.get()))
 				boilerMayCharge = true;
 			else
 				boilerMayCharge = false;
